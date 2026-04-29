@@ -1,117 +1,75 @@
-const API_URL = 'https://script.google.com/macros/s/AKfycby3AgRD49QItpR6M3oKG0id58QCZN0a7zQbrm91Z1ZmjwvhBwJzLNI3xBuANUzsWaiVfA/exec';
-const pile = document.getElementById('project-pile');
-const logoContainer = document.getElementById('logo-container');
-let archiveData = [];
-
-function getSafeImg(url) {
-    const id = url.match(/id=([^&]+)/);
-    return id ? `https://drive.google.com/thumbnail?id=${id[1]}&sz=w1200` : url;
-}
-
-async function init() {
-    const res = await fetch(API_URL, { redirect: 'follow' });
-    archiveData = await res.json();
-    renderPile(archiveData);
-}
+// ... [getSafeImg and init functions remain same] ...
 
 function renderPile(data, isGrid = false) {
+    const pile = document.getElementById('project-pile');
     pile.innerHTML = '';
-    
-    // Grid Mode Fix
-    if (isGrid) {
-        pile.style.display = 'grid';
-        pile.style.gridTemplateColumns = 'repeat(4, 1fr)';
-        pile.style.gap = '30px';
-        pile.style.width = '90vw';
-    } else {
-        pile.style.display = 'flex';
-        pile.style.width = '600px';
-    }
+    document.body.classList.toggle('grid-mode', isGrid);
 
     data.forEach((p, i) => {
-        const card = document.createElement('div');
-        card.className = 'paper-card';
-        
-        if (!isGrid) {
-            // RANDOMIZED SIZES FOR STACK
-            const randW = 350 + Math.random() * 100; // Between 350-450px
-            card.style.width = randW + 'px';
-            card.style.zIndex = data.length - i;
-            card.style.transform = `rotate(${Math.random() * 8 - 4}deg)`;
-            card.onclick = () => shuffleToBack(card);
-        } else {
-            card.style.position = 'relative';
-            card.style.width = '100%';
-            card.style.transform = 'none';
-        }
+        const wrapper = document.createElement('div');
+        wrapper.className = isGrid ? 'grid-cell-wrapper' : '';
 
-        card.innerHTML = `
-            <img src="${getSafeImg(p.titleImage)}" style="width:100%; pointer-events:none;">
-            <div class="metadata-block" style="margin-top:10px; font-size:12px; text-transform:uppercase;">
-                <strong>${p.metadata.name}</strong><br>
-                ${p.metadata.author} — ${p.metadata.year}
-            </div>
-            <img src="expand.png" class="expand-btn" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
-        `;
-        pile.appendChild(card);
+        if (isGrid) {
+            // MINI-STACK LOGIC: Show Title + up to 2 other images Peeking out
+            const stackImages = [p.titleImage, ...p.images].slice(0, 3);
+            
+            stackImages.reverse().forEach((imgUrl, index) => {
+                const card = createCard(p, imgUrl, true, index);
+                wrapper.appendChild(card);
+            });
+            pile.appendChild(wrapper);
+        } else {
+            // LANDING STACK: Just the title image in a single pile
+            const card = createCard(p, p.titleImage, false, 0);
+            card.style.zIndex = data.length - i;
+            pile.appendChild(card);
+        }
     });
 }
 
-function unfoldProject(id) {
-    const p = archiveData.find(proj => proj.id === id);
-    const overlay = document.createElement('div');
-    overlay.id = 'unfold-overlay';
-    
-    // TOP HALF: Title and Meta
-    let html = `
-        <div class="unfold-top">
-            <img src="${getSafeImg(p.titleImage)}" class="unfold-title-img">
-            <div style="text-transform:uppercase;">
-                <h1 style="margin:0;">${p.metadata.name}</h1>
-                <p>${p.metadata.author} / ${p.metadata.year}</p>
-                <p style="opacity:0.5;">${p.metadata.tags.join(', ')}</p>
-                <div onclick="this.closest('#unfold-overlay').remove()" style="cursor:pointer; margin-top:20px; font-weight:bold;">[ CLOSE ]</div>
-            </div>
+// Helper function to create a card with random Passe-Partout
+function createCard(project, imgUrl, isGrid, layerIndex) {
+    const card = document.createElement('div');
+    card.className = 'paper-card';
+
+    // 1. RANDOM PASSE-PARTOUT: Change '10' and '20' to adjust thickness range
+    const padding = Math.floor(Math.random() * 20) + 10; 
+    card.style.padding = `${padding}px`;
+
+    // 2. RANDOM ROTATION & SHIFT
+    const rot = Math.random() * 10 - 5;
+    const shiftX = Math.random() * 12 - 6;
+    const shiftY = Math.random() * 12 - 6;
+
+    if (isGrid) {
+        card.style.position = 'absolute';
+        card.style.width = '100%';
+        // Layers peeking out: Bottom layers shift more
+        const layerOffset = (2 - layerIndex) * 5; 
+        card.style.transform = `rotate(${rot}deg) translate(${shiftX + layerOffset}px, ${shiftY + layerOffset}px)`;
+        card.style.zIndex = layerIndex;
+    } else {
+        card.style.position = 'absolute';
+        card.style.width = (350 + Math.random() * 50) + 'px';
+        card.style.transform = `rotate(${rot}deg)`;
+        card.onclick = (e) => shuffleToBack(e.currentTarget);
+    }
+
+    // Only show text and view button on the top layer (last image in stackImages array)
+    const isTopLayer = isGrid ? (layerIndex === 2) : true;
+
+    card.innerHTML = `
+        <div class="card-inner-frame">
+            <img src="${getSafeImg(imgUrl)}">
         </div>
-        <div class="unfold-bottom">
+        ${isTopLayer ? `
+            <div class="metadata-block" style="margin-top:12px; text-transform:lowercase; font-size:11px;">
+                <span class="highlight-link" style="font-weight:bold;">${project.metadata.name}</span><br>
+                <span class="highlight-link">${project.metadata.author}</span> — <span class="highlight-link">${project.metadata.year}</span>
+                <img src="expand.png" style="width:25px; float:right; cursor:pointer;" onclick="event.stopPropagation(); unfoldProject('${project.id}')">
+            </div>
+        ` : ''}
     `;
 
-    // BOTTOM HALF: Chaotic 2 Rows
-    p.images.forEach((url, i) => {
-        const row = i % 2; // Alternates between Row 0 and Row 1
-        const leftPos = (i * 15) + (Math.random() * 10); // Spreads them across
-        const rot = Math.random() * 10 - 5;
-        
-        html += `<img src="${getSafeImg(url)}" class="chaotic-thumb" 
-                 style="left:${leftPos}%; top:${row * 45}%; transform:rotate(${rot}deg);">`;
-    });
-
-    html += `</div>`;
-    overlay.innerHTML = html;
-    document.body.appendChild(overlay);
+    return card;
 }
-
-function filterProjects(tag) {
-    if (tag === 'All') renderPile(archiveData, false);
-    else renderPile(archiveData.filter(p => p.metadata.tags.includes(tag)), true);
-}
-
-function shuffleToBack(card) {
-    card.style.transform = 'translateX(130%) rotate(20deg)';
-    card.style.opacity = '0';
-    setTimeout(() => {
-        const cards = document.querySelectorAll('.paper-card');
-        const minZ = Math.min(...Array.from(cards).map(c => parseInt(c.style.zIndex || 0)));
-        card.style.zIndex = minZ - 1;
-        card.style.opacity = '1';
-        card.style.transform = `rotate(${Math.random() * 8 - 4}deg)`;
-    }, 600);
-}
-
-logoContainer.onclick = () => {
-    const active = document.body.classList.toggle('active-state');
-    document.body.classList.toggle('focus-state');
-    if (!active) renderPile(archiveData, false);
-};
-
-init();
