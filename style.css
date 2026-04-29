@@ -9,85 +9,129 @@ body {
     font-family: 'Ufficio', sans-serif;
     background: white;
     overflow-x: hidden;
-    height: 100vh;
 }
 
-/* --- 2. THE "FOG" (Landing State) --- */
+/* --- 2. THE FOG (Landing Only) --- */
 body.focus-state #main-header,
 body.focus-state #main-footer,
-body.focus-state #project-pile {
+body.focus-state #archive-stage {
     filter: blur(20px);
     opacity: 0.2;
     pointer-events: none;
 }
 
-/* --- 3. LANDING TRIGGER (Center of screen) --- */
-#landing-trigger {
+/* --- 3. UI PLACEMENT (Sketch 0.52 / 0.54) --- */
+#main-header {
     position: fixed;
-    top: 0; left: 0;
-    width: 100vw;
-    height: 100vh;
+    top: 0; left: 0; width: 100%;
     display: flex;
-    flex-direction: column;
-    justify-content: center; /* Vertical Center */
-    align-items: center;     /* Horizontal Center */
-    gap: 40px;               /* Space between Logo and Text */
-    z-index: 9999;
-    cursor: pointer;
-    transition: opacity 0.8s ease, visibility 0.8s;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 40px;
+    box-sizing: border-box;
+    z-index: 2000;
 }
 
-/* Landing Logo Size */
-#main-logo {
-    width: 300px; /* Adjust this to make the landing logo smaller/bigger */
-    height: auto;
-    transition: all 0.8s cubic-bezier(0.65, 0, 0.35, 1);
-}
+#side-menu-top { display: flex; flex-direction: column; gap: 8px; }
+#filter-bar { display: flex; gap: 20px; opacity: 0; transition: 0.5s; }
+.active-state #filter-bar { opacity: 1; }
 
-#manifesto-box {
-    width: 320px;
-    text-align: center;
-    font-size: 13px;
-    line-height: 1.5;
-    text-transform: lowercase;
-}
-
-/* --- 4. ACTIVE STATE (The Transition) --- */
-body.active-state #landing-trigger {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
-
-/* Corner Logo (Resting place) */
-#active-logo-corner {
+#main-footer {
     position: fixed;
-    top: 40px;
-    right: 40px;
-    width: 450px; /* Your 5x scale logo */
-    z-index: 8000;
+    bottom: 0; left: 0; width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 40px;
+    z-index: 2000;
     opacity: 0;
-    transition: opacity 0.8s;
-    cursor: pointer;
 }
-body.active-state #active-logo-corner { opacity: 1; }
+.active-state #main-footer { opacity: 1; }
 
-/* --- 5. UI ELEMENTS & NO BORDERS --- */
+/* HIGHLIGHT LOOK */
 .highlight-link {
     background-image: linear-gradient(120deg, rgba(139, 0, 0, 0.4) 0%, rgba(139, 0, 0, 0.4) 100%);
     background-repeat: no-repeat;
-    background-size: 100% 0.15em;
-    background-position: 0 92%;
+    background-size: 100% 0.2em;
+    background-position: 0 90%;
     text-decoration: none;
     color: black;
+    cursor: pointer;
 }
 
-#main-header, #main-footer, .paper-card, .card-inner-frame, #logo-container {
-    border: none !important;
+/* --- 4. THE LOGO TRANSITION --- */
+#logo-container {
+    position: fixed;
+    z-index: 9999;
+    transition: all 0.8s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-#main-header { position: fixed; top: 0; width: 100%; padding: 30px 40px; display: flex; justify-content: space-between; z-index: 1000; }
-#main-footer { position: relative; bottom: 0; padding: 60px 0; display: flex; justify-content: center; z-index: 1000; opacity: 0; }
-.active-state #main-footer { opacity: 1; }
-#filter-bar { display: flex; gap: 20px; opacity: 0; transition: 0.5s; }
-.active-state #filter-bar { opacity: 1; }
+/* Landing (Centered) */
+body.focus-state #logo-container {
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+}
+body.focus-state #main-logo { width: 350px; }
+
+/* Active (Top Right - Sketch 0.52) */
+body.active-state #logo-container {
+    top: 40px; right: 40px;
+    transform: none;
+}
+body.active-state #main-logo { width: 450px; }
+
+#main-logo { height: auto; display: block; cursor: pointer; }
+
+/* --- 5. THE CONTENT STAGE --- */
+#archive-stage {
+    width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding-top: 180px; /* Space for header */
+}
+
+#project-pile {
+    position: relative;
+    width: 90vw;
+    max-width: 1400px;
+}
+
+/* ORGANIZED GRID (Sketch 0.54) */
+.grid-mode #project-pile {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 100px 40px;
+}
+
+/* PAPER CARDS (Passe-partout style) */
+.paper-card {
+    background: white;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    transition: transform 0.6s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-inner-frame { width: 100%; overflow: hidden; margin-bottom: 10px; }
+
+/* --- 6. PROJECT DETAIL (Sketch 0.53) --- */
+#unfold-overlay {
+    position: fixed;
+    inset: 0;
+    background: white;
+    z-index: 10000;
+    overflow-y: auto;
+    padding: 120px 60px;
+}
+
+.unfold-header {
+    display: flex;
+    gap: 50px;
+    align-items: flex-end;
+    margin-bottom: 100px;
+}
+
+.unfold-title-pic { width: 50%; flex-shrink: 0; }
+.unfold-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+
+.hidden { display: none !important; }
