@@ -1,73 +1,93 @@
-/* --- 1. THE BLUR LOGIC --- */
-/* Everything starts blurred in focus-state EXCEPT the landing-trigger */
+/* --- 1. FONTS & RESET --- */
+@font-face {
+    font-family: 'Ufficio';
+    src: url('fonts/UfficioDisplay-500.woff2') format('woff2');
+}
+
+body {
+    margin: 0;
+    font-family: 'Ufficio', sans-serif;
+    background: white;
+    overflow-x: hidden;
+    height: 100vh;
+}
+
+/* --- 2. THE "FOG" (Landing State) --- */
 body.focus-state #main-header,
 body.focus-state #main-footer,
 body.focus-state #project-pile {
-    filter: blur(20px); /* The "Fog" */
-    opacity: 0.3;
-    pointer-events: none; /* Can't click through the fog */
+    filter: blur(20px);
+    opacity: 0.2;
+    pointer-events: none;
 }
 
-/* When the class swaps to active-state, the fog lifts */
-body.active-state #main-header,
-body.active-state #main-footer,
-body.active-state #project-pile {
-    filter: blur(0px);
-    opacity: 1;
-    pointer-events: auto;
-}
-
-/* --- 2. LOGO MOVEMENT --- */
-#logo-container {
+/* --- 3. LANDING TRIGGER (Center of screen) --- */
+#landing-trigger {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 9999; /* Always on top */
-    transition: all 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Vertical Center */
+    align-items: center;     /* Horizontal Center */
+    gap: 40px;               /* Space between Logo and Text */
+    z-index: 9999;
     cursor: pointer;
+    transition: opacity 0.8s ease, visibility 0.8s;
 }
 
+/* Landing Logo Size */
 #main-logo {
-    width: 350px; /* Large landing size */
+    width: 300px; /* Adjust this to make the landing logo smaller/bigger */
     height: auto;
-    display: block;
-    transition: width 0.8s;
+    transition: all 0.8s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-/* Moving the logo to its "Resting Place" in the top-right corner */
-body.active-state #logo-container {
-    top: 40px;
-    right: 40px;
-    left: auto;
-    transform: translate(0, 0);
-}
-
-body.active-state #main-logo {
-    width: 450px; /* The 5x scale logo */
-}
-
-/* --- 3. MANIFESTO & TRIGGER --- */
-#landing-manifesto {
-    position: fixed;
-    top: calc(50% + 150px); /* Sits below the centered logo */
-    left: 50%;
-    transform: translateX(-50%);
+#manifesto-box {
     width: 320px;
     text-align: center;
     font-size: 13px;
     line-height: 1.5;
-    z-index: 9998;
-    transition: opacity 0.5s;
-    pointer-events: none; /* Click goes through to the logo-container */
+    text-transform: lowercase;
 }
 
-body.active-state #landing-manifesto {
+/* --- 4. ACTIVE STATE (The Transition) --- */
+body.active-state #landing-trigger {
     opacity: 0;
     visibility: hidden;
+    pointer-events: none;
 }
 
-/* --- 4. NO BORDERS --- */
-#logo-container, #manifesto-box, .paper-card, .card-inner-frame {
+/* Corner Logo (Resting place) */
+#active-logo-corner {
+    position: fixed;
+    top: 40px;
+    right: 40px;
+    width: 450px; /* Your 5x scale logo */
+    z-index: 8000;
+    opacity: 0;
+    transition: opacity 0.8s;
+    cursor: pointer;
+}
+body.active-state #active-logo-corner { opacity: 1; }
+
+/* --- 5. UI ELEMENTS & NO BORDERS --- */
+.highlight-link {
+    background-image: linear-gradient(120deg, rgba(139, 0, 0, 0.4) 0%, rgba(139, 0, 0, 0.4) 100%);
+    background-repeat: no-repeat;
+    background-size: 100% 0.15em;
+    background-position: 0 92%;
+    text-decoration: none;
+    color: black;
+}
+
+#main-header, #main-footer, .paper-card, .card-inner-frame, #logo-container {
     border: none !important;
 }
+
+#main-header { position: fixed; top: 0; width: 100%; padding: 30px 40px; display: flex; justify-content: space-between; z-index: 1000; }
+#main-footer { position: relative; bottom: 0; padding: 60px 0; display: flex; justify-content: center; z-index: 1000; opacity: 0; }
+.active-state #main-footer { opacity: 1; }
+#filter-bar { display: flex; gap: 20px; opacity: 0; transition: 0.5s; }
+.active-state #filter-bar { opacity: 1; }
