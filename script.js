@@ -20,7 +20,7 @@ window.startArchive = function() {
     if (document.body.classList.contains('focus-state')) {
         document.body.classList.remove('focus-state');
         document.body.classList.add('active-state');
-        renderPile(archiveData, false); // Initialize messy stack
+        renderPile(archiveData, false);
     }
 };
 
@@ -51,7 +51,7 @@ function createCard(p, imgUrl, isGrid, layer) {
     const card = document.createElement('div');
     card.className = 'paper-card';
     
-    // Dynamic Passe-Partout
+    // Dynamic Passe-Partout for the main cards
     const pad = Math.floor(Math.random() * 15) + 15;
     card.style.padding = `${pad}px`;
 
@@ -77,7 +77,7 @@ function createCard(p, imgUrl, isGrid, layer) {
             <div style="font-size:11px; text-transform:lowercase; margin-top:10px;">
                 <span class="highlight-link" style="font-weight:bold;">${p.metadata.name}</span><br>
                 <span class="highlight-link">${p.metadata.author} — ${p.metadata.year}</span>
-                <img src="expand.png" style="width:35px; float:right; cursor:pointer;" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
+                <img src="expand.png" style="width:45px; float:right; cursor:pointer;" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
             </div>
         `;
     } else {
@@ -86,16 +86,15 @@ function createCard(p, imgUrl, isGrid, layer) {
     return card;
 }
 
-// TRULY ENDLESS SHUFFLE FIX
+// TRULY ENDLESS SHUFFLE
 function shuffleToBack(card) {
-    card.style.pointerEvents = 'none'; // Prevents breaking it with fast clicks
+    card.style.pointerEvents = 'none'; 
     card.style.transform = 'translate(100%, 0) rotate(20deg)';
     card.style.opacity = '0';
     
     setTimeout(() => {
-        pile.prepend(card); // Physically moves it to the back of the HTML stack
+        pile.prepend(card); 
         
-        // Re-calculate all z-indexes so it never hits negative numbers
         const cards = Array.from(pile.querySelectorAll('.paper-card'));
         cards.forEach((c, idx) => { c.style.zIndex = idx; });
         
@@ -108,7 +107,6 @@ function shuffleToBack(card) {
 function unfoldProject(id) {
     const p = archiveData.find(proj => proj.id === id);
     
-    // Check if one is already open, if so close it
     const existing = document.getElementById('unfold-overlay');
     if (existing) existing.remove();
 
@@ -123,15 +121,15 @@ function unfoldProject(id) {
                 <span class="highlight-link" style="font-size:1.8rem; font-weight:bold;">${p.metadata.name}</span>
                 <span class="highlight-link">${p.metadata.author}</span>
                 <span class="highlight-link">${p.metadata.year}</span>
-                </div>
+            </div>
         </div>
         <div class="unfold-grid">
     `;
 
     p.images.forEach(img => {
-        const rot = Math.random() * 4 - 2;
-        const pad = Math.floor(Math.random() * 15) + 15;
-        // The align-items: start in CSS fixes the huge white bar
+        // LESS CHAOTIC SPREAD: Reduced rotation to barely tilt (-1 to +1 degree), uniform 20px padding
+        const rot = Math.random() * 2 - 1; 
+        const pad = 20; 
         html += `<div style="padding:${pad}px; background:white; transform:rotate(${rot}deg); box-shadow:0 5px 15px rgba(0,0,0,0.05);"><img src="${getSafeImg(img)}" style="width:100%; display:block;"></div>`;
     });
 
@@ -139,7 +137,6 @@ function unfoldProject(id) {
     over.innerHTML = html;
     document.body.appendChild(over);
     
-    // Scroll to the top of the page smoothly when opened
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
