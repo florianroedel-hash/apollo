@@ -1,158 +1,108 @@
+/* --- 1. FONTS & BASICS --- */
 @font-face {
     font-family: 'Ufficio';
     src: url('fonts/UfficioDisplay-500.woff2') format('woff2');
-    font-weight: 500;
 }
 
 body {
     margin: 0;
-    padding: 0;
-    font-family: 'Ufficio', sans-serif;
-    background: #fff;
+    font-family: 'Ufficio', sans-serif; /* EDIT HERE: Change font name */
+    background: white;
     overflow-x: hidden;
-    height: 100vh;
 }
 
-/* --- UI ELEMENTS --- */
-#side-menu {
-    position: fixed;
-    top: 30px;
-    left: 30px;
-    z-index: 1500;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.marker-link {
-    background: #ccff00;
-    color: #000;
-    text-decoration: none;
-    padding: 2px 8px;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    width: fit-content;
-}
-
-#filter-bar {
-    position: fixed;
-    top: 35px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 25px;
-    z-index: 1200;
-    opacity: 0;
-    transition: opacity 0.5s ease;
-}
-
-.tag-filter {
-    cursor: pointer;
-    font-size: 0.8rem;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-}
-
-/* --- LOGO ANIMATION --- */
+/* --- 2. LOGO (The "Big" Change) --- */
 #logo-container {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 2000;
-    cursor: pointer;
     transition: all 0.8s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 #main-logo {
-    width: 320px;
+    width: 400px; /* EDIT HERE: Landing size (px) */
     height: auto;
-    transition: width 0.8s ease;
 }
 
+/* Logo in the Top Right Corner */
 .active-state #logo-container {
-    top: 30px;
-    right: 30px;
+    top: 50px;
+    right: 50px;
     left: auto;
     transform: translate(0, 0);
 }
 
 .active-state #main-logo {
-    width: 90px;
+    width: 450px; /* EDIT HERE: 5x bigger corner logo (was 90px) */
 }
 
-/* --- PROJECT CARDS --- */
-#archive-stage {
-    width: 100%;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
+/* --- 3. THE GRID (4 Columns) --- */
+/* This container holds the cards */
 #project-pile {
     position: relative;
-    width: 360px;
-    height: 500px;
-    transition: all 0.5s ease;
+    width: 400px; /* Width of the stack */
+    height: 550px;
+    margin: 0 auto;
 }
 
+/* When a tag is clicked, we switch to this layout */
+.grid-mode #project-pile {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr); /* 4 Equal Columns */
+    gap: 40px; /* Space between cards */
+    width: 90vw; /* Use 90% of screen width */
+    height: auto;
+    padding: 200px 0; /* Space at top so it doesn't hit the logo/tags */
+}
+
+/* --- 4. THE CARDS --- */
 .paper-card {
-    position: absolute;
-    width: 100%;
     background: white;
-    padding: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    padding: 15px; /* EDIT HERE: Inner spacing of the card */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     cursor: pointer;
     box-sizing: border-box;
 }
 
-.metadata-block {
-    margin-top: 10px;
-    font-size: 0.75rem;
-    line-height: 1.4;
-    text-transform: uppercase;
+/* Hide the "Stacking" look when in Grid Mode */
+.grid-mode .paper-card {
+    position: relative !important;
+    z-index: 1 !important;
+    transform: none !important;
+    width: 100% !important;
 }
 
-.expand-icon {
-    position: absolute;
-    bottom: 12px;
-    right: 12px;
-    cursor: pointer;
+/* --- 5. INTERFACE (Tags & Sidebar) --- */
+#filter-bar {
+    position: fixed;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1500;
+    display: flex;
+    gap: 30px;
+    opacity: 0; /* Hidden until logo is clicked */
 }
 
-/* --- MODES --- */
 .active-state #filter-bar { opacity: 1; }
 
-.grid-mode #archive-stage {
-    align-items: flex-start;
-    padding-top: 150px;
+.marker-link {
+    background: #ccff00; /* EDIT HERE: Highlight color */
+    padding: 4px 10px;
+    font-size: 14px; /* EDIT HERE: Sidebar text size */
 }
 
-/* --- UNFOLD OVERLAY --- */
-#unfold-overlay {
-    position: fixed;
-    inset: 0;
-    background: white;
-    z-index: 5000;
-    overflow-y: auto;
-    padding: 60px 20px;
+/* --- 6. MOBILE FIXES --- */
+@media (max-width: 1000px) {
+    .grid-mode #project-pile {
+        grid-template-columns: repeat(2, 1fr); /* 2 columns on tablets */
+    }
 }
-
-.unfold-gallery img {
-    width: 100%;
-    max-width: 900px;
-    display: block;
-    margin: 0 auto 40px auto;
+@media (max-width: 600px) {
+    .grid-mode #project-pile {
+        grid-template-columns: 1fr; /* 1 column on phones */
+    }
+    .active-state #main-logo { width: 150px; } /* Don't cover the whole phone */
 }
-
-/* --- RESPONSIVE --- */
-@media (max-width: 768px) {
-    #main-logo { width: 220px; }
-    .active-state #main-logo { width: 60px; }
-    #side-menu { top: auto; bottom: 30px; left: 20px; }
-    #filter-bar { top: 20px; font-size: 0.7rem; width: 100%; justify-content: center; }
-    #project-pile { width: 85vw; }
-}
-
-.hidden { display: none !important; }
