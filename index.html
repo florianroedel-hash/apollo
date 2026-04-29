@@ -8,27 +8,43 @@
 </head>
 <body class="focus-state">
 
-    <div id="side-menu" class="hidden">
-        <a href="https://tally.so/r/LZJPYv" target="_blank" class="marker-link">Submit Work</a>
-        <a href="https://tally.so/r/lb7BOX" target="_blank" class="marker-link">Submit for Traces</a>
-        <a href="https://tally.so/r/81P1XY" target="_blank" class="marker-link">Work with Apollo</a>
-    </div>
+    <header id="main-header">
+        <div id="side-menu-top">
+            <a href="https://tally.so/r/LZJPYv" target="_blank" class="highlight-link">mission apollo</a>
+            <a href="https://tally.so/r/lb7BOX" target="_blank" class="highlight-link">submit to the archive</a>
+            <a href="https://tally.so/r/81P1XY" target="_blank" class="highlight-link">submit to traces</a>
+        </div>
+        
+        <nav id="filter-bar">
+            <span class="tag-filter highlight-link" onclick="filterProjects('All')">all</span>
+            <span class="tag-filter highlight-link" onclick="filterProjects('Urban')">urban</span>
+            <span class="tag-filter highlight-link" onclick="filterProjects('Heritage')">heritage</span>
+        </nav>
 
-    <nav id="filter-bar">
-        <span class="tag-filter" onclick="filterProjects('All')">All</span>
-        <span class="tag-filter" onclick="filterProjects('Urban')">Urban</span>
-        <span class="tag-filter" onclick="filterProjects('Heritage')">Heritage</span>
-    </nav>
-
-    <div id="logo-container">
-        <img src="logo.png" id="main-logo" alt="Archive Logo">
-    </div>
-
-    <div id="bg-blur-container"></div>
+        <div id="logo-container">
+            <img src="logo.png" id="main-logo" alt="Logo">
+        </div>
+    </header>
 
     <main id="archive-stage">
+        <div id="landing-wrapper">
+            <div id="manifesto-box">
+                the platform to showcase polimi students work and connect 
+                with the global architecture community through projects, 
+                photography and visual storytelling
+            </div>
+        </div>
+        
         <div id="project-pile"></div>
     </main>
+
+    <footer id="main-footer">
+        <div id="footer-links">
+            <a href="#" class="highlight-link">join apollo</a>
+            <a href="#" class="highlight-link">instagram</a>
+            <a href="#" class="highlight-link">contact</a>
+        </div>
+    </footer>
 
     <script src="script.js"></script>
 </body>
