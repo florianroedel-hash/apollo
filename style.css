@@ -1,121 +1,73 @@
-@font-face {
-    font-family: 'Ufficio';
-    src: url('fonts/UfficioDisplay-500.woff2') format('woff2');
-}
-
-body {
-    margin: 0;
-    font-family: 'Ufficio', sans-serif;
-    background: white;
-    overflow-x: hidden;
-}
-
-/* --- THE GHOST BLUR LOGIC --- */
-body.focus-state { overflow-y: hidden; height: 100vh; }
-body.active-state, body.grid-mode { overflow-y: auto; height: auto; }
-
-/* Blurring the background elements only */
+/* --- 1. THE BLUR LOGIC --- */
+/* Everything starts blurred in focus-state EXCEPT the landing-trigger */
 body.focus-state #main-header,
 body.focus-state #main-footer,
 body.focus-state #project-pile {
-    filter: blur(15px);
-    opacity: 0.25;
-    pointer-events: none;
+    filter: blur(20px); /* The "Fog" */
+    opacity: 0.3;
+    pointer-events: none; /* Can't click through the fog */
 }
 
-/* --- THE LANDING TRIGGER (Logo & Text) --- */
-#landing-trigger {
+/* When the class swaps to active-state, the fog lifts */
+body.active-state #main-header,
+body.active-state #main-footer,
+body.active-state #project-pile {
+    filter: blur(0px);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* --- 2. LOGO MOVEMENT --- */
+#logo-container {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 5000; /* Above the blur */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 60px;
-    cursor: pointer;
-    transition: opacity 0.6s ease, visibility 0.6s;
-}
-
-#logo-container {
-    background: transparent; /* No more black borders */
+    z-index: 9999; /* Always on top */
     transition: all 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+    cursor: pointer;
 }
 
-#main-logo { width: 350px; height: auto; display: block; }
+#main-logo {
+    width: 350px; /* Large landing size */
+    height: auto;
+    display: block;
+    transition: width 0.8s;
+}
 
-#manifesto-box {
+/* Moving the logo to its "Resting Place" in the top-right corner */
+body.active-state #logo-container {
+    top: 40px;
+    right: 40px;
+    left: auto;
+    transform: translate(0, 0);
+}
+
+body.active-state #main-logo {
+    width: 450px; /* The 5x scale logo */
+}
+
+/* --- 3. MANIFESTO & TRIGGER --- */
+#landing-manifesto {
+    position: fixed;
+    top: calc(50% + 150px); /* Sits below the centered logo */
+    left: 50%;
+    transform: translateX(-50%);
     width: 320px;
     text-align: center;
     font-size: 13px;
     line-height: 1.5;
-    text-transform: lowercase;
+    z-index: 9998;
+    transition: opacity 0.5s;
+    pointer-events: none; /* Click goes through to the logo-container */
 }
 
-/* Transitions when clicked */
-body.active-state #landing-trigger {
+body.active-state #landing-manifesto {
     opacity: 0;
     visibility: hidden;
-    pointer-events: none;
 }
 
-/* --- UI LINKS & HIGHLIGHTS --- */
-.highlight-link {
-    background-image: linear-gradient(120deg, rgba(139, 0, 0, 0.4) 0%, rgba(139, 0, 0, 0.4) 100%);
-    background-repeat: no-repeat;
-    background-size: 100% 0.15em;
-    background-position: 0 92%;
-    transition: background-size 0.2s ease-in;
-    text-decoration: none;
-    color: black;
-}
-.highlight-link:hover { background-size: 100% 100%; }
-
-#main-header, #main-footer {
-    position: fixed;
-    width: 100%;
-    z-index: 2500;
-    padding: 30px 40px;
-    box-sizing: border-box;
-    display: flex;
-}
-#main-header { top: 0; justify-content: space-between; align-items: flex-start; }
-#main-footer { position: relative; bottom: 0; padding: 60px 0; justify-content: center; opacity: 0; transition: opacity 0.5s; }
-.active-state #main-footer { opacity: 1; }
-
-#filter-bar { display: flex; gap: 20px; opacity: 0; transition: 0.5s; }
-.active-state #filter-bar { opacity: 1; }
-
-/* Corner Logo for Archive State */
-#active-logo-corner {
-    position: fixed;
-    top: 30px;
-    right: 40px;
-    width: 450px;
-    z-index: 4000;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.8s;
-}
-body.active-state #active-logo-corner { opacity: 1; visibility: visible; }
-
-/* --- PROJECT STACKS & GRID --- */
-.paper-card {
-    background: white;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08); /* Soft shadow, no border */
-    box-sizing: border-box;
-    transition: transform 0.6s ease, opacity 0.4s;
-    display: flex;
-    flex-direction: column;
-}
-
-.card-inner-frame { overflow: hidden; margin-bottom: 12px; }
-
-.grid-mode #project-pile {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 100px 60px;
-    width: 90vw;
-    margin: 180px auto 100px auto;
+/* --- 4. NO BORDERS --- */
+#logo-container, #manifesto-box, .paper-card, .card-inner-frame {
+    border: none !important;
 }
