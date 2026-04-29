@@ -1,33 +1,48 @@
-/* --- CUSTOM TYPOGRAPHY --- */
+/* --- 1. CUSTOM TYPOGRAPHY --- */
 @font-face {
-    font-family: 'ArchiveFont';
-    src: url('fonts/my-font.woff2') format('woff2');
+    font-family: 'Ufficio';
+    /* Ensure this path matches your folder structure exactly */
+    src: url('fonts/UfficioDisplay-500.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
 }
 
 :root {
     --bg-color: #ffffff;
-    --highlight: #ccff00; /* Neon highlight color */
-    --meta-scale: 0.7;
+    --highlight: #ccff00; /* Neon highlight color for menu */
+    --meta-scale: 0.7;     /* Scale of metadata relative to title */
+    --transition-speed: 0.8s;
 }
 
+/* --- 2. GLOBAL STYLES --- */
 body {
     margin: 0;
     padding: 0;
-    font-family: 'ArchiveFont', sans-serif;
+    font-family: 'Ufficio', sans-serif;
     background: var(--bg-color);
-    overflow: hidden;
+    overflow: hidden; /* Prevents unwanted scrolling */
     transition: background 0.5s ease;
 }
 
-/* --- STATE: FOCUS --- */
-.focus-state #bg-blur-container {
+/* --- 3. STATE: FOCUS (LANDING) --- */
+/* The background blur behind the logo */
+#bg-blur-container {
     position: fixed;
     inset: 0;
-    filter: blur(20px);
-    opacity: 0.6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     z-index: 1;
+    filter: blur(40px); /* Adjust the '40px' to make it more/less blurry */
+    opacity: 0;
+    transition: opacity 1s ease;
 }
 
+.focus-state #bg-blur-container {
+    opacity: 0.6;
+}
+
+/* The Central Logo */
 #logo-container {
     position: absolute;
     top: 50%;
@@ -35,75 +50,157 @@ body {
     transform: translate(-50%, -50%);
     z-index: 100;
     cursor: pointer;
-    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Movement when site is 'Active' */
 .active-state #logo-container {
-    top: 40px;
-    left: 40px;
-    transform: translate(0, 0) scale(0.6);
+    top: 40px; /* Distance from top */
+    left: 40px; /* Distance from left */
+    transform: translate(0, 0) scale(0.6); /* Shrinks the logo to 60% */
 }
 
-/* --- THE PILE --- */
+/* --- 4. THE PILE (SHUFFLE SYSTEM) --- */
+#archive-stage {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+.active-state #archive-stage {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 #project-pile {
     position: relative;
-    width: 400px; /* Width of the paper */
-    height: 600px;
-    margin: 100px auto;
+    width: 400px;  /* Width of the 'paper' */
+    height: 550px; /* Height of the 'paper' */
     perspective: 1000px;
 }
 
 .paper-card {
     position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     background: white;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    transition: transform 0.6s ease, opacity 0.4s;
+    padding: 15px; /* Internal spacing of the 'paper' */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08); /* Subtle paper shadow */
+    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), z-index 0s;
     cursor: pointer;
+    border: 1px solid #efefef;
 }
 
+.paper-card img {
+    width: 100%;
+    display: block;
+    height: auto;
+}
+
+/* Metadata Text Block */
 .metadata-block {
-    font-size: calc(1rem * var(--meta-scale));
-    margin-top: 10px;
-    line-height: 1.2;
+    margin-top: 12px;
+    font-size: calc(1rem * var(--meta-scale)); /* 70% of base size */
+    line-height: 1.4;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
-/* --- THE CHAOTIC GRID --- */
-.grid-layout {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 40px;
-    padding: 150px 50px;
-    overflow-y: auto;
-}
-
+/* --- 5. THE CHAOTIC GRID (UNFOLDED) --- */
 .grid-item {
-    width: 250px;
-    transition: transform 0.3s ease;
+    position: absolute;
+    width: 300px;
+    /* Rotation and scale are handled by JavaScript for randomness */
+    transition: all 0.5s ease-in-out;
 }
 
-/* --- UI ELEMENTS --- */
+/* --- 6. UI ELEMENTS --- */
+
+/* Pop-up Menu */
+#side-menu {
+    position: fixed;
+    top: 120px;
+    left: 40px;
+    z-index: 150;
+}
+
+.hidden { display: none; }
+
+/* The Marker Highlight Effect */
 .marker-link {
     display: block;
     width: fit-content;
+    font-size: 1.2rem;
+    color: black;
+    text-decoration: none;
+    margin-bottom: 8px;
+    padding: 0 8px;
     background-color: var(--highlight);
+    /* This makes the highlight look like a real marker stroke */
     box-decoration-break: clone;
     -webkit-box-decoration-break: clone;
-    padding: 0 10px;
-    margin-bottom: 10px;
-    text-decoration: none;
-    color: black;
 }
 
+/* Top Navigation Filters */
 #filter-bar {
     position: fixed;
-    top: 40px;
+    top: 45px;
     right: 40px;
     display: flex;
-    gap: 20px;
+    gap: 25px;
     z-index: 50;
     opacity: 0;
-    pointer-events: none;
+    transition: opacity 0.5s ease;
 }
 
-.active-state #filter-bar { opacity: 1; pointer-events: auto; }
+.active-state #filter-bar { opacity: 1; }
+
+.tag-filter {
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0.5;
+}
+
+.tag-filter:hover { opacity: 1; }
+
+/* Footer */
+footer {
+    position: fixed;
+    bottom: 30px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    font-size: 0.8rem;
+    z-index: 10;
+}
+
+footer a {
+    color: black;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* --- 7. UTILITY --- */
+.expand-icon {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+    opacity: 0.3;
+    transition: opacity 0.3s;
+}
+
+.expand-icon:hover { opacity: 1; }
