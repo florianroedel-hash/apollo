@@ -36,7 +36,7 @@ body.focus-state #archive-stage {
 }
 .highlight-link:hover { background-color: rgba(139, 0, 0, 0.6); }
 
-/* --- LANDING ELEMENTS --- */
+/* --- LANDING ELEMENTS & SMOOTH LOGO --- */
 #landing-overlay {
     position: fixed; inset: 0; z-index: 9990; cursor: pointer;
 }
@@ -44,18 +44,30 @@ body.active-state #landing-overlay { display: none; }
 
 #logo-container {
     position: fixed;
-    top: 50%; left: 50%;
+    top: 50%; 
+    left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 10005; /* High enough to stay above everything */
-    transition: all 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+    z-index: 10005;
+    /* Explicitly transition left and top for smooth diagonal flight */
+    transition: top 0.8s cubic-bezier(0.65, 0, 0.35, 1), 
+                left 0.8s cubic-bezier(0.65, 0, 0.35, 1), 
+                transform 0.8s cubic-bezier(0.65, 0, 0.35, 1);
     cursor: pointer;
 }
+
 body.active-state #logo-container {
-    top: 40px; right: 40px; left: auto;
+    top: 40px; 
+    /* 100% of screen width, minus the 450px logo width, minus the 40px margin */
+    left: calc(100% - 490px); 
     transform: translate(0, 0);
 }
 
-#main-logo { width: 300px; height: auto; transition: width 0.8s ease; display: block; }
+#main-logo { 
+    width: 300px; 
+    height: auto; 
+    transition: width 0.8s cubic-bezier(0.65, 0, 0.35, 1); 
+    display: block; 
+}
 body.active-state #main-logo { width: 450px; }
 
 #manifesto-box {
@@ -82,21 +94,21 @@ body.active-state #manifesto-box { opacity: 0; visibility: hidden; }
     align-items: start;
     padding: 40px;
     box-sizing: border-box;
-    z-index: 10001; /* Floats above project spread */
-    pointer-events: none; /* Allows clicking behind it */
+    z-index: 10001; 
+    pointer-events: none; 
 }
-#main-header > * { pointer-events: auto; } /* Re-enables clicks on links */
+#main-header > * { pointer-events: auto; }
 
 #side-menu-top { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 #filter-bar { display: flex; justify-content: center; gap: 20px; opacity: 0; transition: 0.5s; }
 body.active-state #filter-bar { opacity: 1; }
 
 #main-footer {
-    position: fixed; /* Fixed to bottom, floating above content */
+    position: fixed; 
     bottom: 0; left: 0; width: 100%;
     display: flex; justify-content: center;
     padding: 40px 0;
-    z-index: 10001; /* Floats above project spread */
+    z-index: 10001; 
     opacity: 0; pointer-events: none;
     transition: opacity 0.5s;
 }
@@ -128,10 +140,10 @@ body.active-state #main-footer { opacity: 1; pointer-events: auto; }
 
 /* --- PROJECT SPREAD --- */
 #unfold-overlay {
-    position: absolute; /* Attaches to full document height */
+    position: absolute; 
     top: 0; left: 0; width: 100%; min-height: 100vh;
     background: white;
-    z-index: 10000; /* Just below header/footer */
+    z-index: 10000; 
     padding: 140px 60px 140px 60px;
     box-sizing: border-box;
 }
@@ -144,5 +156,5 @@ body.active-state #main-footer { opacity: 1; pointer-events: auto; }
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 40px;
-    align-items: start; /* PREVENTS HUGE WHITE BARS */
+    align-items: start;
 }
