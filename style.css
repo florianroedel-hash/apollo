@@ -1,134 +1,44 @@
-/* --- 1. FONTS & RESET --- */
-@font-face {
-    font-family: 'Ufficio';
-    src: url('fonts/UfficioDisplay-500.woff2') format('woff2');
-}
-
-body {
-    margin: 0;
-    font-family: 'Ufficio', sans-serif;
-    background: white;
-    overflow: hidden; /* Prevents scroll on the main landing */
-}
-
-/* --- 2. LOGO FIX --- */
-#logo-container {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 3000;
-    transition: all 0.8s cubic-bezier(0.65, 0, 0.35, 1);
-}
-
-#main-logo {
-    width: 400px;
-    height: auto;
-}
-
-/* PIN TO CORNER FIX */
-.active-state #logo-container {
-    top: 30px;
-    right: 30px;
-    left: auto;
-    transform: translate(0, 0); /* Removes the centering transform */
-}
-
-.active-state #main-logo {
-    width: 450px;
-}
-
-/* --- 3. THE STAGE (Centering) --- */
-#archive-stage {
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-}
-
-#project-pile {
-    position: relative;
-    width: 600px; /* Box for the stack to live in */
-    height: 600px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
+/* --- PAPER CARD & PASSE-PARTOUT --- */
 .paper-card {
-    position: absolute;
     background: white;
-    padding: 15px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-    cursor: pointer;
-    transition: transform 0.6s ease, opacity 0.4s ease;
-}
-
-/* --- 4. UNFOLD OVERLAY (No Scroll) --- */
-#unfold-overlay {
-    position: fixed;
-    inset: 0;
-    background: white;
-    z-index: 5000;
+    border: 1px solid black;
+    /* EDIT HERE: The "slight shadow" */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.06); 
+    box-sizing: border-box;
+    transition: transform 0.6s ease, opacity 0.4s;
     display: flex;
     flex-direction: column;
-    padding: 40px;
+}
+
+.card-inner-frame {
+    border: 1px solid black;
     overflow: hidden;
+    width: 100%;
+    flex-grow: 1; /* Ensures image fills the frame */
 }
 
-.unfold-top {
-    height: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 40px;
+.card-inner-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Keeps images crisp within frames */
+    display: block;
 }
 
-.unfold-title-img {
-    height: 80%;
-    width: auto;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-}
-
-.unfold-bottom {
-    height: 50%;
+/* --- GRID CELL FOR MINI-STACKS --- */
+.grid-cell-wrapper {
     position: relative;
     width: 100%;
-}
-
-.chaotic-thumb {
-    position: absolute;
-    height: 180px; /* Fixed height for 2 rows */
-    width: auto;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
-/* --- 5. UI ELEMENTS --- */
-#filter-bar {
-    position: fixed;
-    top: 40px;
-    left: 40px; /* Moved to clear logo space */
+    height: 450px; /* Adjust height based on your card sizes */
     display: flex;
-    gap: 20px;
-    z-index: 2500;
-    opacity: 0;
-}
-.active-state #filter-bar { opacity: 1; }
-
-#side-menu {
-    position: fixed;
-    bottom: 40px;
-    left: 40px;
-    z-index: 2500;
+    justify-content: center;
+    align-items: center;
 }
 
-.expand-btn {
-    width: 30px; /* Scaled relative to UI */
-    cursor: pointer;
-    float: right;
-    margin-top: 10px;
+/* Grid layout tweak for 3 columns */
+.grid-mode #project-pile {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 100px 60px; /* Increased gap to prevent stacks touching */
+    width: 90vw;
+    margin: 180px auto 100px auto;
 }
-
-.hidden { display: none !important; }
