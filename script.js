@@ -3,6 +3,7 @@ const pile = document.getElementById('project-pile');
 const logoContainer = document.getElementById('logo-container');
 let archiveData = [];
 
+// Helper for images
 function getSafeImg(url) {
     const id = url.match(/id=([^&]+)/);
     return id ? `https://drive.google.com/thumbnail?id=${id[1]}&sz=w1200` : url;
@@ -12,8 +13,15 @@ async function init() {
     try {
         const res = await fetch(API_URL, { redirect: 'follow' });
         archiveData = await res.json();
+        // If Google sent back an error, show it
+        if (archiveData.error) {
+            console.error("Google Error:", archiveData.error);
+            return;
+        }
         renderPile(archiveData);
-    } catch (e) { console.error("Data error"); }
+    } catch (e) {
+        console.error("Fetch failed");
+    }
 }
 
 function renderPile(data, isGrid = false) {
@@ -29,7 +37,6 @@ function renderPile(data, isGrid = false) {
         const card = document.createElement('div');
         card.className = 'paper-card';
         
-        // Stacking logic for the "Pile" view only
         if (!isGrid) {
             card.style.position = 'absolute';
             card.style.zIndex = data.length - i;
@@ -39,19 +46,17 @@ function renderPile(data, isGrid = false) {
 
         card.innerHTML = `
             <img src="${getSafeImg(p.titleImage)}" style="width:100%; pointer-events:none;">
-            <div class="metadata-block">
+            <div class="metadata-block" style="margin-top:10px; font-size:12px; text-transform:uppercase;">
                 <strong>${p.metadata.name}</strong><br>
                 ${p.metadata.author} — ${p.metadata.year}
             </div>
-            <div class="expand-icon" style="margin-top:10px; text-align:right;">
-                <button style="background:none; border:1px solid #000; cursor:pointer; font-family:inherit;">VIEW PROJECT</button>
-            </div>
+            <button class="view-btn" style="margin-top:15px; width:100%; padding:8px; cursor:pointer; background:white; border:1px solid #000; font-family:inherit; font-size:10px;">VIEW PROJECT</button>
         `;
         
-        // The fix for Unfold: Attach it to the specific button
-        const btn = card.querySelector('button');
+        // Unfold logic
+        const btn = card.querySelector('.view-btn');
         btn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevents the card from shuffling when clicking View
+            e.stopPropagation(); // Prevents card from shuffling
             unfoldProject(p.id);
         });
 
@@ -62,12 +67,14 @@ function renderPile(data, isGrid = false) {
 function unfoldProject(id) {
     const p = archiveData.find(proj => proj.id === id);
     const overlay = document.createElement('div');
-    overlay.style.cssText = "position:fixed; inset:0; background:white; z-index:9000; overflow-y:auto; padding:80px 20px;";
+    overlay.style.cssText = "position:fixed; inset:0; background:white; z-index:9999; overflow-y:auto; padding:100px 20px;";
     
-    let content = `<h2 onclick="this.parentElement.remove()" style="cursor:pointer; position:fixed; top:20px; left:20px;">[ CLOSE ]</h2>`;
+    let content = `<div onclick="this.parentElement.remove()" style="position:fixed; top:40px; left:40px; cursor:pointer; font-weight:bold;">[ CLOSE ]</div>`;
     content += `<div style="max-width:1000px; margin: 0 auto;">`;
-    [p.titleImage, ...p.images].forEach(url => {
-        content += `<img src="${getSafeImg(url)}" style="width:100%; margin-bottom:40px; display:block;">`;
+    
+    const allImgs = [p.titleImage, ...p.images];
+    allImgs.forEach(url => {
+        content += `<img src="${getSafeImg(url)}" style="width:100%; margin-bottom:50px; display:block;">`;
     });
     content += `</div>`;
     
@@ -85,7 +92,7 @@ function filterProjects(tag) {
 }
 
 function shuffleToBack(card) {
-    card.style.transform = 'translateX(120%) rotate(15deg)';
+    card.style.transform = 'translateX(130%) rotate(20deg)';
     card.style.opacity = '0';
     setTimeout(() => {
         const cards = document.querySelectorAll('.paper-card');
@@ -98,9 +105,10 @@ function shuffleToBack(card) {
 }
 
 logoContainer.onclick = () => {
-    document.body.classList.toggle('active-state');
+    const active = document.body.classList.toggle('active-state');
     document.body.classList.toggle('focus-state');
-    document.getElementById('side-menu').classList.toggle('hidden');
+    document.getElementById('side-menu').classList.toggle('hidden', !active);
+    if (!active) renderPile(archiveData, false); // Reset to stack when landing
 };
 
 init();
