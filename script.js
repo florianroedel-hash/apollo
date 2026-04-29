@@ -21,12 +21,27 @@ function getSafeImageUrl(googleUrl) {
 // 1. Initialize
 async function init() {
     try {
-        const response = await fetch(API_URL);
+        // We add 'follow' to tell the browser to follow Google's redirect
+        const response = await fetch(API_URL, {
+            method: 'GET',
+            redirect: 'follow',
+        });
+        
+        if (!response.ok) throw new Error('Network response was not ok');
+        
         archiveData = await response.json();
+        
+        if (archiveData.error) {
+            console.error("Google Script Error:", archiveData.error);
+            return;
+        }
+
         renderPile(archiveData);
         renderBackground(archiveData);
     } catch (err) {
         console.error("Archive fetch failed:", err);
+        // If it fails, show a message on the screen so you know
+        pile.innerHTML = '<p style="color:red; text-align:center;">Connection Error. Please check Google permissions.</p>';
     }
 }
 
