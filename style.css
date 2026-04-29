@@ -1,4 +1,3 @@
-/* --- 1. FONTS & RESET --- */
 @font-face {
     font-family: 'Ufficio';
     src: url('fonts/UfficioDisplay-500.woff2') format('woff2');
@@ -11,23 +10,7 @@ body {
     overflow-x: hidden;
 }
 
-/* --- 2. TEXT MARKER LOOK (Full Brush Background) --- */
-.highlight-link {
-    background-color: rgba(139, 0, 0, 0.4); /* Translucent Red */
-    padding: 2px 6px;
-    border-radius: 2px;
-    text-decoration: none;
-    color: black;
-    display: inline-block;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    text-transform: lowercase;
-}
-.highlight-link:hover {
-    background-color: rgba(139, 0, 0, 0.6);
-}
-
-/* --- 3. THE FOG (Landing Only) --- */
+/* --- THE FOG & STATE MANAGEMENT --- */
 body.focus-state { overflow-y: hidden; height: 100vh; }
 body.active-state, body.grid-mode { overflow-y: auto; height: auto; }
 
@@ -39,132 +22,127 @@ body.focus-state #archive-stage {
     pointer-events: none;
 }
 
-/* --- 4. LANDING TRIGGER (Centered) --- */
-#landing-trigger {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 40px;
-    z-index: 9999;
+/* --- TEXT MARKER --- */
+.highlight-link {
+    background-color: rgba(139, 0, 0, 0.4);
+    padding: 2px 6px;
+    border-radius: 2px;
+    text-decoration: none;
+    color: black;
+    display: inline-block;
     cursor: pointer;
-    transition: opacity 0.8s ease, visibility 0.8s;
+    transition: background-color 0.2s ease;
+    text-transform: lowercase;
+}
+.highlight-link:hover { background-color: rgba(139, 0, 0, 0.6); }
+
+/* --- LANDING ELEMENTS --- */
+#landing-overlay {
+    position: fixed; inset: 0; z-index: 9990; cursor: pointer;
+}
+body.active-state #landing-overlay { display: none; }
+
+#logo-container {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10005; /* High enough to stay above everything */
+    transition: all 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+    cursor: pointer;
+}
+body.active-state #logo-container {
+    top: 40px; right: 40px; left: auto;
+    transform: translate(0, 0);
 }
 
-#main-logo {
-    width: 300px;
-    height: auto;
-    display: block;
-}
+#main-logo { width: 300px; height: auto; transition: width 0.8s ease; display: block; }
+body.active-state #main-logo { width: 450px; }
 
 #manifesto-box {
-    width: 320px;
+    position: fixed;
+    top: calc(50% + 180px); left: 50%;
+    transform: translateX(-50%);
+    z-index: 9998;
     text-align: center;
+    width: 320px;
     font-size: 13px;
     line-height: 1.5;
     text-transform: lowercase;
-}
-
-/* Hide Landing Trigger on Active */
-body.active-state #landing-trigger {
-    opacity: 0;
-    visibility: hidden;
+    transition: opacity 0.5s;
     pointer-events: none;
 }
+body.active-state #manifesto-box { opacity: 0; visibility: hidden; }
 
-/* Corner Logo (Resting place) */
-#active-logo-corner {
-    position: fixed;
-    top: 40px; right: 40px;
-    width: 450px;
-    z-index: 8000;
-    opacity: 0;
-    transition: opacity 0.8s;
-    cursor: pointer;
-}
-body.active-state #active-logo-corner { opacity: 1; }
-
-/* --- 5. UI PLACEMENT (Header Grid) --- */
+/* --- UI: HEADER & FOOTER --- */
 #main-header {
     position: fixed;
     top: 0; left: 0; width: 100%;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr; /* 3 Equal sections */
+    grid-template-columns: 1fr 1fr 1fr;
     align-items: start;
     padding: 40px;
     box-sizing: border-box;
-    z-index: 2000;
+    z-index: 10001; /* Floats above project spread */
+    pointer-events: none; /* Allows clicking behind it */
 }
+#main-header > * { pointer-events: auto; } /* Re-enables clicks on links */
 
 #side-menu-top { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 #filter-bar { display: flex; justify-content: center; gap: 20px; opacity: 0; transition: 0.5s; }
 body.active-state #filter-bar { opacity: 1; }
 
 #main-footer {
-    position: relative;
+    position: fixed; /* Fixed to bottom, floating above content */
     bottom: 0; left: 0; width: 100%;
-    display: flex;
-    justify-content: center;
-    padding: 60px 0;
-    z-index: 2000;
-    opacity: 0;
+    display: flex; justify-content: center;
+    padding: 40px 0;
+    z-index: 10001; /* Floats above project spread */
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.5s;
 }
-body.active-state #main-footer { opacity: 1; }
+body.active-state #main-footer { opacity: 1; pointer-events: auto; }
+#footer-links { display: flex; gap: 20px; }
 
-/* --- 6. THE CONTENT STAGE --- */
+/* --- THE STAGE & GRID --- */
 #archive-stage {
-    width: 100vw;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    padding-top: 180px; /* Space for header */
+    width: 100vw; min-height: 100vh;
+    display: flex; justify-content: center;
+    padding-top: 180px; padding-bottom: 150px;
 }
-
 #project-pile { position: relative; width: 90vw; max-width: 1400px; }
 
-/* ORGANIZED GRID (Sketch 0.54) */
 .grid-mode #project-pile {
     display: grid !important;
     grid-template-columns: repeat(3, 1fr);
     gap: 100px 40px;
 }
 
-/* PAPER CARDS (Passe-partout style) */
 .paper-card {
     background: white;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.05); /* No borders, just shadow */
-    transition: transform 0.6s ease;
-    display: flex;
-    flex-direction: column;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    transition: transform 0.6s ease, opacity 0.4s ease;
+    display: flex; flex-direction: column;
 }
 .card-inner-frame { width: 100%; overflow: hidden; margin-bottom: 10px; }
+.card-inner-frame img { display: block; width: 100%; }
 
-/* --- 7. PROJECT DETAIL (Sketch 0.53) --- */
+/* --- PROJECT SPREAD --- */
 #unfold-overlay {
-    position: fixed;
-    inset: 0;
+    position: absolute; /* Attaches to full document height */
+    top: 0; left: 0; width: 100%; min-height: 100vh;
     background: white;
-    z-index: 10000;
-    overflow-y: auto;
-    padding: 120px 60px;
+    z-index: 10000; /* Just below header/footer */
+    padding: 140px 60px 140px 60px;
+    box-sizing: border-box;
 }
 
-/* Close Button Top Left */
-.close-unfold {
-    position: fixed;
-    top: 40px; left: 40px;
-    font-weight: bold;
-    z-index: 10001;
-}
-
-.unfold-header {
-    display: flex;
-    gap: 50px;
-    align-items: flex-end;
-    margin-bottom: 100px;
-}
+.close-unfold { position: fixed; top: 40px; left: 40px; font-weight: bold; z-index: 10002; }
+.unfold-header { display: flex; gap: 50px; align-items: flex-end; margin-bottom: 100px; }
 .unfold-title-pic { width: 50%; flex-shrink: 0; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
-.unfold-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+
+.unfold-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    align-items: start; /* PREVENTS HUGE WHITE BARS */
+}
