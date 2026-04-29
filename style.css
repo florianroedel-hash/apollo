@@ -1,4 +1,3 @@
-/* --- FONTS & BASICS --- */
 @font-face {
     font-family: 'Ufficio';
     src: url('fonts/UfficioDisplay-500.woff2') format('woff2');
@@ -11,11 +10,11 @@ body {
     overflow-x: hidden;
 }
 
-/* --- STATE MANAGEMENT: BLUR & SCROLL --- */
+/* --- THE GHOST BLUR LOGIC --- */
 body.focus-state { overflow-y: hidden; height: 100vh; }
 body.active-state, body.grid-mode { overflow-y: auto; height: auto; }
 
-/* The "Ghost" Look (Landing) */
+/* Blurring the background elements only */
 body.focus-state #main-header,
 body.focus-state #main-footer,
 body.focus-state #project-pile {
@@ -24,7 +23,44 @@ body.focus-state #project-pile {
     pointer-events: none;
 }
 
-/* --- TEXT MARKER HIGHLIGHT (Red Translucent) --- */
+/* --- THE LANDING TRIGGER (Logo & Text) --- */
+#landing-trigger {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 5000; /* Above the blur */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 60px;
+    cursor: pointer;
+    transition: opacity 0.6s ease, visibility 0.6s;
+}
+
+#logo-container {
+    background: transparent; /* No more black borders */
+    transition: all 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+#main-logo { width: 350px; height: auto; display: block; }
+
+#manifesto-box {
+    width: 320px;
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.5;
+    text-transform: lowercase;
+}
+
+/* Transitions when clicked */
+body.active-state #landing-trigger {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* --- UI LINKS & HIGHLIGHTS --- */
 .highlight-link {
     background-image: linear-gradient(120deg, rgba(139, 0, 0, 0.4) 0%, rgba(139, 0, 0, 0.4) 100%);
     background-repeat: no-repeat;
@@ -33,11 +69,9 @@ body.focus-state #project-pile {
     transition: background-size 0.2s ease-in;
     text-decoration: none;
     color: black;
-    text-transform: lowercase;
 }
 .highlight-link:hover { background-size: 100% 100%; }
 
-/* --- HEADER & FOOTER LAYOUT --- */
 #main-header, #main-footer {
     position: fixed;
     width: 100%;
@@ -50,106 +84,38 @@ body.focus-state #project-pile {
 #main-footer { position: relative; bottom: 0; padding: 60px 0; justify-content: center; opacity: 0; transition: opacity 0.5s; }
 .active-state #main-footer { opacity: 1; }
 
-#side-menu-top { display: flex; flex-direction: column; gap: 8px; }
 #filter-bar { display: flex; gap: 20px; opacity: 0; transition: 0.5s; }
 .active-state #filter-bar { opacity: 1; }
 
-/* LOGO BOX (Sketch 0.5) */
-#logo-container {
-    border: 1px solid black;
-    padding: 30px 50px;
-    background: white;
-    cursor: pointer;
-    transition: all 0.8s cubic-bezier(0.65, 0, 0.35, 1);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-#main-logo { width: 350px; height: auto; transition: width 0.8s; }
-
-/* LOGO ACTIVE (Sketch 0.52/0.54) */
-.active-state #logo-container {
-    top: 40px;
-    right: 40px;
-    padding: 10px 15px;
-    border: 1px solid black;
-}
-.active-state #main-logo { width: 450px; }
-
-/* --- LANDING MANIFESTO (Sketch 0.5) --- */
-#landing-wrapper {
+/* Corner Logo for Archive State */
+#active-logo-corner {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 30px;
+    right: 40px;
+    width: 450px;
     z-index: 4000;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 60px;
-    transition: opacity 0.5s;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.8s;
 }
-#manifesto-box {
-    border: 1px solid black;
-    padding: 15px 25px;
-    width: 320px;
-    text-align: center;
-    font-size: 13px;
-    line-height: 1.5;
-}
-.active-state #landing-wrapper { opacity: 0; pointer-events: none; }
+body.active-state #active-logo-corner { opacity: 1; visibility: visible; }
 
-/* --- THE PAPER CARDS & PASSE-PARTOUT --- */
-#archive-stage {
-    width: 100vw;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-body.grid-mode #archive-stage { align-items: flex-start; padding-top: 180px; }
-
-#project-pile {
-    position: relative;
-    width: 600px;
-    height: 600px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
+/* --- PROJECT STACKS & GRID --- */
 .paper-card {
     background: white;
-    border: 1px solid black;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08); /* Soft shadow, no border */
     box-sizing: border-box;
     transition: transform 0.6s ease, opacity 0.4s;
     display: flex;
     flex-direction: column;
 }
 
-.card-inner-frame { border: 1px solid black; padding: 5px; margin-bottom: 12px; }
+.card-inner-frame { overflow: hidden; margin-bottom: 12px; }
 
-/* --- ORGANIZED GRID (Sketch 0.54) --- */
 .grid-mode #project-pile {
     display: grid !important;
     grid-template-columns: repeat(3, 1fr);
     gap: 100px 60px;
     width: 90vw;
-    height: auto;
+    margin: 180px auto 100px auto;
 }
-.grid-cell-wrapper { position: relative; width: 100%; height: 450px; display: flex; justify-content: center; align-items: center; }
-
-/* --- UNFOLD SPREAD (Sketch 0.53) --- */
-#unfold-overlay {
-    position: fixed;
-    inset: 0;
-    background: white;
-    z-index: 9000;
-    overflow-y: auto;
-    padding: 120px 60px;
-}
-.unfold-header { display: flex; gap: 40px; margin-bottom: 80px; align-items: flex-end; }
-.unfold-title-frame { border: 1px solid black; padding: 10px; width: 45%; }
-.unfold-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 60px; }
-.unfold-grid-item { border: 1px solid black; padding: 8px; background: white; }
