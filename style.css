@@ -1,0 +1,109 @@
+/* --- CUSTOM TYPOGRAPHY --- */
+@font-face {
+    font-family: 'ArchiveFont';
+    src: url('fonts/my-font.woff2') format('woff2');
+}
+
+:root {
+    --bg-color: #ffffff;
+    --highlight: #ccff00; /* Neon highlight color */
+    --meta-scale: 0.7;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'ArchiveFont', sans-serif;
+    background: var(--bg-color);
+    overflow: hidden;
+    transition: background 0.5s ease;
+}
+
+/* --- STATE: FOCUS --- */
+.focus-state #bg-blur-container {
+    position: fixed;
+    inset: 0;
+    filter: blur(20px);
+    opacity: 0.6;
+    z-index: 1;
+}
+
+#logo-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+    cursor: pointer;
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.active-state #logo-container {
+    top: 40px;
+    left: 40px;
+    transform: translate(0, 0) scale(0.6);
+}
+
+/* --- THE PILE --- */
+#project-pile {
+    position: relative;
+    width: 400px; /* Width of the paper */
+    height: 600px;
+    margin: 100px auto;
+    perspective: 1000px;
+}
+
+.paper-card {
+    position: absolute;
+    width: 100%;
+    background: white;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: transform 0.6s ease, opacity 0.4s;
+    cursor: pointer;
+}
+
+.metadata-block {
+    font-size: calc(1rem * var(--meta-scale));
+    margin-top: 10px;
+    line-height: 1.2;
+}
+
+/* --- THE CHAOTIC GRID --- */
+.grid-layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    padding: 150px 50px;
+    overflow-y: auto;
+}
+
+.grid-item {
+    width: 250px;
+    transition: transform 0.3s ease;
+}
+
+/* --- UI ELEMENTS --- */
+.marker-link {
+    display: block;
+    width: fit-content;
+    background-color: var(--highlight);
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    padding: 0 10px;
+    margin-bottom: 10px;
+    text-decoration: none;
+    color: black;
+}
+
+#filter-bar {
+    position: fixed;
+    top: 40px;
+    right: 40px;
+    display: flex;
+    gap: 20px;
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.active-state #filter-bar { opacity: 1; pointer-events: auto; }
