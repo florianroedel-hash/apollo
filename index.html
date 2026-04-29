@@ -1,41 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Archive</title>
-    <link rel="stylesheet" href="style.css">
-</head>
 <body class="focus-state">
 
+    <div id="side-menu" class="hidden">
+        <a href="https://tally.so/r/LZJPYv" target="_blank" class="marker-link">Submit Work</a>
+        <a href="https://tally.so/r/lb7BOX" target="_blank" class="marker-link">Submit for Traces</a>
+        <a href="https://tally.so/r/81P1XY" target="_blank" class="marker-link">Work with Apollo</a>
+    </div>
+
+    <nav id="filter-bar">
+        <span class="tag-filter" onclick="filterProjects('All')">All</span>
+        <span class="tag-filter" onclick="filterProjects('Urban')">Urban</span>
+        <span class="tag-filter" onclick="filterProjects('Heritage')">Heritage</span>
+    </nav>
+
     <div id="logo-container">
-        <img src="logo.png" id="main-logo" alt="Logo">
+        <img src="logo.png" id="main-logo" alt="Archive Logo">
     </div>
 
     <div id="bg-blur-container"></div>
-
-    <nav id="filter-bar">
-        <span class="tag-filter" data-tag="All">All</span>
-        <span class="tag-filter" data-tag="Urban">Urban</span>
-        <span class="tag-filter" data-tag="Architecture">Architecture</span>
-        <span class="tag-filter" data-tag="Landscape">Landscape</span>
-    </nav>
 
     <main id="archive-stage">
         <div id="project-pile"></div>
     </main>
 
-    <div id="side-menu" class="hidden">
-        <a href="#" class="marker-link">Submit Work</a>
-        <a href="#" class="marker-link">Archive Inquiry</a>
-        <a href="#" class="marker-link">Collaboration</a>
-    </div>
-
-    <footer>
-        <a href="#">Instagram</a>
-        <a href="#">Contact</a>
-    </footer>
-
     <script src="script.js"></script>
 </body>
-</html>
