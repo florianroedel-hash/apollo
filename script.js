@@ -1,4 +1,4 @@
-const API_URL = 'https://script.google.com/macros/s/AKfycbyl6Uj0xd6qmyb69sLF63RvJN7SRsppgwm2FwW_sVvtJ8bJTAAc5msS_oq_scI7u8M/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbw9AJb8akuwVCffFT6oUDwxoXfirjSmJ4YeN3lo7uzSKe-uavjDHIIZFT2TjxcaqjEU/exec';
 const pile = document.getElementById('project-pile');
 const logoContainer = document.getElementById('logo-container');
 let archiveData = [];
@@ -9,26 +9,23 @@ function getSafeImg(url) {
 }
 
 async function init() {
-    try {
-        const res = await fetch(API_URL, { method: 'GET', redirect: 'follow' });
-        archiveData = await res.json();
-        if (archiveData.error) {
-            console.error("Script Crash:", archiveData.error);
-            return;
-        }
-        renderPile(archiveData);
-    } catch (e) {
-        console.error("Connection error");
-    }
+    const res = await fetch(API_URL, { redirect: 'follow' });
+    archiveData = await res.json();
+    renderPile(archiveData);
 }
 
 function renderPile(data, isGrid = false) {
     pile.innerHTML = '';
     
+    // Grid Mode Fix
     if (isGrid) {
-        document.body.classList.add('grid-mode');
+        pile.style.display = 'grid';
+        pile.style.gridTemplateColumns = 'repeat(4, 1fr)';
+        pile.style.gap = '30px';
+        pile.style.width = '90vw';
     } else {
-        document.body.classList.remove('grid-mode');
+        pile.style.display = 'flex';
+        pile.style.width = '600px';
     }
 
     data.forEach((p, i) => {
@@ -36,10 +33,16 @@ function renderPile(data, isGrid = false) {
         card.className = 'paper-card';
         
         if (!isGrid) {
-            card.style.position = 'absolute';
+            // RANDOMIZED SIZES FOR STACK
+            const randW = 350 + Math.random() * 100; // Between 350-450px
+            card.style.width = randW + 'px';
             card.style.zIndex = data.length - i;
-            card.style.transform = `rotate(${Math.random() * 4 - 2}deg)`;
+            card.style.transform = `rotate(${Math.random() * 8 - 4}deg)`;
             card.onclick = () => shuffleToBack(card);
+        } else {
+            card.style.position = 'relative';
+            card.style.width = '100%';
+            card.style.transform = 'none';
         }
 
         card.innerHTML = `
@@ -48,16 +51,8 @@ function renderPile(data, isGrid = false) {
                 <strong>${p.metadata.name}</strong><br>
                 ${p.metadata.author} — ${p.metadata.year}
             </div>
-            <button class="view-btn" style="margin-top:15px; width:100%; padding:10px; cursor:pointer; background:white; border:1px solid #000; font-family:inherit; font-weight:bold;">VIEW PROJECT</button>
+            <img src="expand.png" class="expand-btn" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
         `;
-        
-        // Fix for Unfold Functionality
-        const btn = card.querySelector('.view-btn');
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Stops the card from shuffling when clicking button
-            unfoldProject(p.id);
-        });
-
         pile.appendChild(card);
     });
 }
@@ -65,28 +60,40 @@ function renderPile(data, isGrid = false) {
 function unfoldProject(id) {
     const p = archiveData.find(proj => proj.id === id);
     const overlay = document.createElement('div');
-    overlay.style.cssText = "position:fixed; inset:0; background:white; z-index:9999; overflow-y:auto; padding:80px 20px;";
+    overlay.id = 'unfold-overlay';
     
-    let html = `<div onclick="this.parentElement.remove()" style="position:fixed; top:40px; left:40px; cursor:pointer; font-weight:bold; background:#ccff00; padding:5px 10px;">[ CLOSE ]</div>`;
-    html += `<div style="max-width:1000px; margin: 0 auto;">`;
-    
-    const allImgs = [p.titleImage, ...p.images];
-    allImgs.forEach(url => {
-        html += `<img src="${getSafeImg(url)}" style="width:100%; margin-bottom:50px; display:block;">`;
+    // TOP HALF: Title and Meta
+    let html = `
+        <div class="unfold-top">
+            <img src="${getSafeImg(p.titleImage)}" class="unfold-title-img">
+            <div style="text-transform:uppercase;">
+                <h1 style="margin:0;">${p.metadata.name}</h1>
+                <p>${p.metadata.author} / ${p.metadata.year}</p>
+                <p style="opacity:0.5;">${p.metadata.tags.join(', ')}</p>
+                <div onclick="this.closest('#unfold-overlay').remove()" style="cursor:pointer; margin-top:20px; font-weight:bold;">[ CLOSE ]</div>
+            </div>
+        </div>
+        <div class="unfold-bottom">
+    `;
+
+    // BOTTOM HALF: Chaotic 2 Rows
+    p.images.forEach((url, i) => {
+        const row = i % 2; // Alternates between Row 0 and Row 1
+        const leftPos = (i * 15) + (Math.random() * 10); // Spreads them across
+        const rot = Math.random() * 10 - 5;
+        
+        html += `<img src="${getSafeImg(url)}" class="chaotic-thumb" 
+                 style="left:${leftPos}%; top:${row * 45}%; transform:rotate(${rot}deg);">`;
     });
+
     html += `</div>`;
-    
     overlay.innerHTML = html;
     document.body.appendChild(overlay);
 }
 
 function filterProjects(tag) {
-    if (tag === 'All') {
-        renderPile(archiveData, false);
-    } else {
-        const filtered = archiveData.filter(p => p.metadata.tags && p.metadata.tags.includes(tag));
-        renderPile(filtered, true);
-    }
+    if (tag === 'All') renderPile(archiveData, false);
+    else renderPile(archiveData.filter(p => p.metadata.tags.includes(tag)), true);
 }
 
 function shuffleToBack(card) {
@@ -97,14 +104,13 @@ function shuffleToBack(card) {
         const minZ = Math.min(...Array.from(cards).map(c => parseInt(c.style.zIndex || 0)));
         card.style.zIndex = minZ - 1;
         card.style.opacity = '1';
-        card.style.transform = `rotate(${Math.random() * 4 - 2}deg)`;
+        card.style.transform = `rotate(${Math.random() * 8 - 4}deg)`;
     }, 600);
 }
 
 logoContainer.onclick = () => {
     const active = document.body.classList.toggle('active-state');
     document.body.classList.toggle('focus-state');
-    document.getElementById('side-menu').classList.toggle('hidden', !active);
     if (!active) renderPile(archiveData, false);
 };
 
