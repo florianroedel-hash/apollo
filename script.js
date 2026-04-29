@@ -1,10 +1,8 @@
 const API_URL = 'https://script.google.com/macros/s/AKfycbw9AJb8akuwVCffFT6oUDwxoXfirjSmJ4YeN3lo7uzSKe-uavjDHIIZFT2TjxcaqjEU/exec';
 const pile = document.getElementById('project-pile');
 const logoContainer = document.getElementById('logo-container');
-const sideMenu = document.getElementById('side-menu');
 let archiveData = [];
 
-// Handle Google Drive image display
 function getSafeImg(url) {
     const id = url.match(/id=([^&]+)/);
     return id ? `https://drive.google.com/thumbnail?id=${id[1]}&sz=w1200` : url;
@@ -15,35 +13,28 @@ async function init() {
         const res = await fetch(API_URL, { redirect: 'follow' });
         archiveData = await res.json();
         renderPile(archiveData);
-    } catch (e) {
-        console.error("Archive connection failed.");
-    }
+    } catch (e) { console.error("Data error"); }
 }
 
 function renderPile(data, isGrid = false) {
     pile.innerHTML = '';
-    const isMobile = window.innerWidth < 768;
-
+    
     if (isGrid) {
         document.body.classList.add('grid-mode');
-        pile.style.cssText = "display:flex; flex-wrap:wrap; justify-content:center; width:100%; height:auto;";
     } else {
         document.body.classList.remove('grid-mode');
-        pile.style.cssText = ""; // Reset to default CSS
     }
 
     data.forEach((p, i) => {
         const card = document.createElement('div');
         card.className = 'paper-card';
         
-        if (isGrid) {
-            card.style.position = 'relative';
-            card.style.margin = isMobile ? '15px' : '30px';
-            card.style.width = isMobile ? '85vw' : '320px';
-            card.style.transform = `rotate(${Math.random() * 10 - 5}deg)`;
-        } else {
+        // Stacking logic for the "Pile" view only
+        if (!isGrid) {
+            card.style.position = 'absolute';
             card.style.zIndex = data.length - i;
             card.style.transform = `rotate(${Math.random() * 4 - 2}deg)`;
+            card.onclick = () => shuffleToBack(card);
         }
 
         card.innerHTML = `
@@ -52,28 +43,36 @@ function renderPile(data, isGrid = false) {
                 <strong>${p.metadata.name}</strong><br>
                 ${p.metadata.author} — ${p.metadata.year}
             </div>
-            <div class="expand-icon" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
-                <img src="expand.png" width="22" style="opacity:0.6;">
+            <div class="expand-icon" style="margin-top:10px; text-align:right;">
+                <button style="background:none; border:1px solid #000; cursor:pointer; font-family:inherit;">VIEW PROJECT</button>
             </div>
         `;
         
-        if (!isGrid) card.onclick = () => shuffleToBack(card);
+        // The fix for Unfold: Attach it to the specific button
+        const btn = card.querySelector('button');
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevents the card from shuffling when clicking View
+            unfoldProject(p.id);
+        });
+
         pile.appendChild(card);
     });
 }
 
-function shuffleToBack(card) {
-    card.style.transform = 'translateX(130%) rotate(20deg)';
-    card.style.opacity = '0';
+function unfoldProject(id) {
+    const p = archiveData.find(proj => proj.id === id);
+    const overlay = document.createElement('div');
+    overlay.style.cssText = "position:fixed; inset:0; background:white; z-index:9000; overflow-y:auto; padding:80px 20px;";
     
-    setTimeout(() => {
-        const cards = document.querySelectorAll('.paper-card');
-        const zIndices = Array.from(cards).map(c => parseInt(c.style.zIndex || 0));
-        const minZ = Math.min(...zIndices);
-        card.style.zIndex = minZ - 1;
-        card.style.opacity = '1';
-        card.style.transform = `rotate(${Math.random() * 4 - 2}deg)`;
-    }, 600);
+    let content = `<h2 onclick="this.parentElement.remove()" style="cursor:pointer; position:fixed; top:20px; left:20px;">[ CLOSE ]</h2>`;
+    content += `<div style="max-width:1000px; margin: 0 auto;">`;
+    [p.titleImage, ...p.images].forEach(url => {
+        content += `<img src="${getSafeImg(url)}" style="width:100%; margin-bottom:40px; display:block;">`;
+    });
+    content += `</div>`;
+    
+    overlay.innerHTML = content;
+    document.body.appendChild(overlay);
 }
 
 function filterProjects(tag) {
@@ -85,27 +84,23 @@ function filterProjects(tag) {
     }
 }
 
-function unfoldProject(id) {
-    const p = archiveData.find(proj => proj.id === id);
-    const overlay = document.createElement('div');
-    overlay.id = 'unfold-overlay';
-    
-    let html = `<div onclick="this.parentElement.remove()" style="cursor:pointer; font-weight:bold; margin-bottom:50px;">[ CLOSE ]</div>`;
-    html += `<div class="unfold-gallery">`;
-    [p.titleImage, ...p.images].forEach(url => {
-        html += `<img src="${getSafeImg(url)}">`;
-    });
-    html += `</div>`;
-    
-    overlay.innerHTML = html;
-    document.body.appendChild(overlay);
+function shuffleToBack(card) {
+    card.style.transform = 'translateX(120%) rotate(15deg)';
+    card.style.opacity = '0';
+    setTimeout(() => {
+        const cards = document.querySelectorAll('.paper-card');
+        const zIndices = Array.from(cards).map(c => parseInt(c.style.zIndex || 0));
+        const minZ = Math.min(...zIndices);
+        card.style.zIndex = minZ - 1;
+        card.style.opacity = '1';
+        card.style.transform = `rotate(${Math.random() * 4 - 2}deg)`;
+    }, 600);
 }
 
 logoContainer.onclick = () => {
-    const active = document.body.classList.toggle('active-state');
+    document.body.classList.toggle('active-state');
     document.body.classList.toggle('focus-state');
-    sideMenu.classList.toggle('hidden', !active);
-    if (!active) renderPile(archiveData, false); // Reset to pile if going back to landing
+    document.getElementById('side-menu').classList.toggle('hidden');
 };
 
 init();
