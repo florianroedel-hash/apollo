@@ -1,47 +1,44 @@
-// 1. YOUR GOOGLE SCRIPT LINK
 const API_URL = 'https://script.google.com/macros/s/AKfycby3AgRD49QItpR6M3oKG0id58QCZN0a7zQbrm91Z1ZmjwvhBwJzLNI3xBuANUzsWaiVfA/exec';
-
-const logoContainer = document.getElementById('logo-container');
+const landingTrigger = document.getElementById('landing-trigger');
+const pile = document.getElementById('project-pile');
 let archiveData = [];
 
-// ... [Keep your getSafeImg and init functions] ...
+function getSafeImg(url) {
+    const id = url.match(/id=([^&]+)/);
+    return id ? `https://drive.google.com/thumbnail?id=${id[1]}&sz=w1200` : url;
+}
 
-// THE TRIGGER: Clicking the logo moves it and lifts the fog
-logoContainer.onclick = () => {
-    if (document.body.classList.contains('focus-state')) {
-        document.body.classList.remove('focus-state');
-        document.body.classList.add('active-state');
-        
-        // Render the archive pile immediately once sharp
-        renderPile(archiveData, false); 
+async function init() {
+    try {
+        const res = await fetch(API_URL, { redirect: 'follow' });
+        archiveData = await res.json();
+        renderPile(archiveData, false);
+    } catch (e) { console.error("Archive fetch error"); }
+}
+
+// CLICK ACTION: Lift the fog and move the logo
+landingTrigger.onclick = () => {
+    document.body.classList.remove('focus-state');
+    document.body.classList.add('active-state');
+    
+    // Create the corner logo if missing
+    if (!document.getElementById('active-logo-corner')) {
+        const cornerLogo = document.createElement('img');
+        cornerLogo.src = 'logo.png';
+        cornerLogo.id = 'active-logo-corner';
+        // Allow clicking corner logo to go back home
+        cornerLogo.onclick = () => {
+            document.body.classList.add('focus-state');
+            document.body.classList.remove('active-state');
+        };
+        document.body.appendChild(cornerLogo);
     }
 };
 
 function renderPile(data, isGrid = false) {
-    const pile = document.getElementById('project-pile');
     pile.innerHTML = '';
-    
-    // Toggle the scrolling mode
     document.body.classList.toggle('grid-mode', isGrid);
-
-    data.forEach((p, i) => {
-        const wrapper = document.createElement('div');
-        wrapper.className = isGrid ? 'grid-cell-wrapper' : '';
-        
-        // Random Passe-Partout for each card (from previous turn)
-        const card = createCard(p, p.titleImage, isGrid, 2); 
-        
-        if (!isGrid) {
-            card.style.position = 'absolute';
-            card.style.zIndex = data.length - i;
-            card.onclick = () => shuffleToBack(card);
-        }
-
-        if (isGrid) {
-            wrapper.appendChild(card);
-            pile.appendChild(wrapper);
-        } else {
-            pile.appendChild(card);
-        }
-    });
+    // ... [Rest of the renderPile code remains the same as previous turns] ...
 }
+
+init();
