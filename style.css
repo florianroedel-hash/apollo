@@ -1,111 +1,158 @@
-const API_URL = 'https://script.google.com/macros/s/AKfycbw9AJb8akuwVCffFT6oUDwxoXfirjSmJ4YeN3lo7uzSKe-uavjDHIIZFT2TjxcaqjEU/exec';
-const pile = document.getElementById('project-pile');
-const logoContainer = document.getElementById('logo-container');
-let archiveData = [];
-
-function getSafeImg(url) {
-    const id = url.match(/id=([^&]+)/);
-    return id ? `https://drive.google.com/thumbnail?id=${id[1]}&sz=w1000` : url;
+@font-face {
+    font-family: 'Ufficio';
+    src: url('fonts/UfficioDisplay-500.woff2') format('woff2');
+    font-weight: 500;
 }
 
-async function init() {
-    const res = await fetch(API_URL, { redirect: 'follow' });
-    archiveData = await res.json();
-    renderPile(archiveData);
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Ufficio', sans-serif;
+    background: #fff;
+    overflow-x: hidden;
+    height: 100vh;
 }
 
-function renderPile(data, isGrid = false) {
-    pile.innerHTML = '';
-    const isMobile = window.innerWidth < 768;
-
-    if (isGrid) {
-        document.body.classList.add('grid-mode');
-        pile.style.display = 'flex';
-        pile.style.flexWrap = 'wrap';
-        pile.style.justifyContent = 'center';
-        pile.style.width = '100%';
-        pile.style.height = 'auto';
-    } else {
-        document.body.classList.remove('grid-mode');
-        pile.style.display = 'block';
-        pile.style.width = isMobile ? '85vw' : '380px';
-    }
-
-    data.forEach((p, i) => {
-        const card = document.createElement('div');
-        card.className = 'paper-card';
-        
-        if (isGrid) {
-            card.style.position = 'relative';
-            card.style.margin = '30px';
-            card.style.width = isMobile ? '80vw' : '300px';
-            card.style.transform = `rotate(${Math.random() * 8 - 4}deg)`;
-        } else {
-            card.style.zIndex = data.length - i;
-            card.style.transform = `rotate(${Math.random() * 4 - 2}deg)`;
-        }
-
-        card.innerHTML = `
-            <img src="${getSafeImg(p.titleImage)}" style="width:100%; height:auto;">
-            <div class="metadata-block" style="padding:10px 0;">
-                <strong style="text-transform:uppercase;">${p.metadata.name}</strong><br>
-                <span style="font-size:0.8rem; opacity:0.7;">${p.metadata.author} — ${p.metadata.year}</span>
-            </div>
-            <div class="expand-icon" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
-                <img src="expand.png" width="20" style="opacity:0.5;">
-            </div>
-        `;
-        
-        if (!isGrid) card.onclick = () => shuffleToBack(card);
-        pile.appendChild(card);
-    });
+/* --- UI ELEMENTS --- */
+#side-menu {
+    position: fixed;
+    top: 30px;
+    left: 30px;
+    z-index: 1500;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-function shuffleToBack(card) {
-    const isMobile = window.innerWidth < 768;
-    const moveDist = isMobile ? '110%' : '130%';
-    
-    card.style.transform = `translateX(${moveDist}) rotate(15deg)`;
-    card.style.opacity = '0';
-    
-    setTimeout(() => {
-        const cards = document.querySelectorAll('.paper-card');
-        const zIndices = Array.from(cards).map(c => parseInt(c.style.zIndex || 0));
-        const minZ = Math.min(...zIndices);
-        card.style.zIndex = minZ - 1;
-        card.style.opacity = '1';
-        card.style.transform = `rotate(${Math.random() * 4 - 2}deg)`;
-    }, 600);
+.marker-link {
+    background: #ccff00;
+    color: #000;
+    text-decoration: none;
+    padding: 2px 8px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    width: fit-content;
 }
 
-function filterProjects(tag) {
-    if (tag === 'All') {
-        renderPile(archiveData, false);
-    } else {
-        const filtered = archiveData.filter(p => p.metadata.tags.includes(tag));
-        renderPile(filtered, true);
-    }
+#filter-bar {
+    position: fixed;
+    top: 35px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 25px;
+    z-index: 1200;
+    opacity: 0;
+    transition: opacity 0.5s ease;
 }
 
-function unfoldProject(id) {
-    const p = archiveData.find(proj => proj.id === id);
-    const overlay = document.createElement('div');
-    overlay.id = 'unfold-overlay';
-    overlay.style.cssText = "position:fixed; inset:0; background:white; z-index:5000; overflow-y:auto; padding:50px 20px;";
-    
-    let content = `<div onclick="this.parentElement.remove()" style="cursor:pointer; margin-bottom:40px; font-weight:bold;">[ CLOSE ]</div>`;
-    [p.titleImage, ...p.images].forEach(url => {
-        content += `<img src="${getSafeImg(url)}" style="width:100%; max-width:800px; display:block; margin: 0 auto 30px auto;">`;
-    });
-    
-    overlay.innerHTML = content;
-    document.body.appendChild(overlay);
+.tag-filter {
+    cursor: pointer;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
 }
 
-logoContainer.onclick = () => {
-    const isActive = document.body.classList.toggle('active-state');
-    document.body.classList.toggle('focus-state');
-    document.getElementById('side-menu').classList.toggle('hidden', !isActive);
-};
+/* --- LOGO ANIMATION --- */
+#logo-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2000;
+    cursor: pointer;
+    transition: all 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+}
 
-init();
+#main-logo {
+    width: 320px;
+    height: auto;
+    transition: width 0.8s ease;
+}
+
+.active-state #logo-container {
+    top: 30px;
+    right: 30px;
+    left: auto;
+    transform: translate(0, 0);
+}
+
+.active-state #main-logo {
+    width: 90px;
+}
+
+/* --- PROJECT CARDS --- */
+#archive-stage {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#project-pile {
+    position: relative;
+    width: 360px;
+    height: 500px;
+    transition: all 0.5s ease;
+}
+
+.paper-card {
+    position: absolute;
+    width: 100%;
+    background: white;
+    padding: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.metadata-block {
+    margin-top: 10px;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+.expand-icon {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    cursor: pointer;
+}
+
+/* --- MODES --- */
+.active-state #filter-bar { opacity: 1; }
+
+.grid-mode #archive-stage {
+    align-items: flex-start;
+    padding-top: 150px;
+}
+
+/* --- UNFOLD OVERLAY --- */
+#unfold-overlay {
+    position: fixed;
+    inset: 0;
+    background: white;
+    z-index: 5000;
+    overflow-y: auto;
+    padding: 60px 20px;
+}
+
+.unfold-gallery img {
+    width: 100%;
+    max-width: 900px;
+    display: block;
+    margin: 0 auto 40px auto;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+    #main-logo { width: 220px; }
+    .active-state #main-logo { width: 60px; }
+    #side-menu { top: auto; bottom: 30px; left: 20px; }
+    #filter-bar { top: 20px; font-size: 0.7rem; width: 100%; justify-content: center; }
+    #project-pile { width: 85vw; }
+}
+
+.hidden { display: none !important; }
