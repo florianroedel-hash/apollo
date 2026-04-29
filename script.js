@@ -1,99 +1,107 @@
-/**
- * BESPOKE ARCHIVE: CORE ENGINE
- * Connected to Google Apps Script JSON Feed
- */
-
-const API_URL = 'https://script.google.com/macros/s/AKfycbycjFdXAr-Dsaj7hpAqZr9Uq-rgPCcqgcBO77_XCy3TRH-RU-79nAnR9AVe6ftHJMlN/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbw9AJb8akuwVCffFT6oUDwxoXfirjSmJ4YeN3lo7uzSKe-uavjDHIIZFT2TjxcaqjEU/exec';
 const pile = document.getElementById('project-pile');
-const logo = document.getElementById('main-logo');
-const bgBlurContainer = document.getElementById('bg-blur-container');
+const logoContainer = document.getElementById('logo-container');
+const bgBlur = document.getElementById('bg-blur-container');
+const menu = document.getElementById('side-menu');
+
 let archiveData = [];
 
-// 1. Fetch Data from Google
-async function loadArchive() {
+// --- THE FIX: Force Google Drive links to act like real images ---
+function getSafeImageUrl(googleUrl) {
+    if (!googleUrl) return '';
+    // Extract the raw ID from the Google link
+    const idMatch = googleUrl.match(/id=([^&]+)/);
+    if (idMatch && idMatch[1]) {
+        // Rebuild it using the unblocked thumbnail server
+        return `https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=w1000`;
+    }
+    return googleUrl;
+}
+
+// 1. Initialize
+async function init() {
     try {
         const response = await fetch(API_URL);
         archiveData = await response.json();
         renderPile(archiveData);
-        renderBlurBackground(archiveData);
-    } catch (error) {
-        console.error("Data connection failed:", error);
+        renderBackground(archiveData);
+    } catch (err) {
+        console.error("Archive fetch failed:", err);
     }
 }
 
-// 2. Create the Blurred Background (Focus State)
-function renderBlurBackground(data) {
-    bgBlurContainer.innerHTML = '';
-    data.forEach(project => {
+// 2. Render blurred stack for landing
+function renderBackground(data) {
+    bgBlur.innerHTML = ''; // Clear existing
+    data.forEach(p => {
         const img = document.createElement('img');
-        img.src = project.titleImage;
+        img.src = getSafeImageUrl(p.titleImage);
+        img.style.width = '200px';
         img.style.position = 'absolute';
-        img.style.width = '300px';
-        // Randomly scatter blurred images behind logo
-        img.style.top = Math.random() * 80 + '%';
-        img.style.left = Math.random() * 80 + '%';
-        bgBlurContainer.appendChild(img);
+        img.style.top = Math.random() * 100 + '%';
+        img.style.left = Math.random() * 100 + '%';
+        img.style.opacity = '0.5';
+        bgBlur.appendChild(img);
     });
 }
 
-// 3. Render the "Infinite Shuffle" Pile
+// 3. Create the Paper Pile
 function renderPile(data) {
     pile.innerHTML = '';
-    data.forEach((project, index) => {
+    data.forEach((p, i) => {
         const card = document.createElement('div');
         card.className = 'paper-card';
-        card.style.zIndex = data.length - index;
+        card.style.zIndex = data.length - i;
         
-        // Random slight rotation for the "Paper on Desk" look
-        const randomRot = Math.random() * 4 - 2; 
-        card.style.transform = `rotate(${randomRot}deg)`;
+        const rot = Math.random() * 6 - 3;
+        card.style.transform = `rotate(${rot}deg)`;
 
+        // Added object-fit and min-height so the card never collapses
+        const safeImg = getSafeImageUrl(p.titleImage);
+        
         card.innerHTML = `
-            <img src="${project.titleImage}" style="width:100%" loading="lazy">
+            <img src="${safeImg}" style="width: 100%; height: 350px; object-fit: cover; background-color: #f5f5f5; border-radius: 2px;">
             <div class="metadata-block">
-                <strong>${project.metadata.name}</strong><br>
-                ${project.metadata.author} — ${project.metadata.year}
+                <strong>${p.metadata.name}</strong><br>
+                ${p.metadata.author} — ${p.metadata.year}
             </div>
-            <div class="expand-icon" onclick="event.stopPropagation(); unfoldProject('${project.id}')">
-                <img src="expand.png" style="width:100%">
+            <div class="expand-icon" style="position:absolute; bottom:10px; right:10px;">
+                <img src="expand.png" width="20">
             </div>
         `;
 
-        // Shuffle logic on click
-        card.addEventListener('click', () => shuffleToBack(card));
-        
+        card.onclick = () => shuffleToBack(card);
         pile.appendChild(card);
     });
 }
 
-// 4. The Shuffle Animation
+// 4. Shuffle Logic
 function shuffleToBack(card) {
-    // Slide out to the right
-    card.style.transform = 'translateX(120%) rotate(15deg)';
+    card.style.transform = 'translateX(150%) rotate(20deg)';
     card.style.opacity = '0';
 
     setTimeout(() => {
-        // Find the current lowest z-index
         const cards = document.querySelectorAll('.paper-card');
         const zIndices = Array.from(cards).map(c => parseInt(c.style.zIndex));
         const minZ = Math.min(...zIndices);
 
         card.style.zIndex = minZ - 1;
         card.style.opacity = '1';
-        // Slide back in with a random slight rotation
-        const randomRot = Math.random() * 4 - 2;
-        card.style.transform = `rotate(${randomRot}deg)`;
+        const rot = Math.random() * 6 - 3;
+        card.style.transform = `rotate(${rot}deg)`;
     }, 600);
 }
 
-// 5. Logo State Toggle
-logo.addEventListener('click', () => {
+// 5. Logo Click (Toggle State & Menu)
+logoContainer.onclick = () => {
     const isFocus = document.body.classList.contains('focus-state');
     if (isFocus) {
         document.body.classList.replace('focus-state', 'active-state');
+        menu.classList.remove('hidden');
     } else {
         document.body.classList.replace('active-state', 'focus-state');
+        menu.classList.add('hidden');
     }
-});
+};
 
-loadArchive();
+init();
