@@ -44,11 +44,9 @@ body.active-state #landing-overlay { display: none; }
 
 #logo-container {
     position: fixed;
-    top: 50%; 
-    left: 50%;
+    top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     z-index: 10005;
-    /* Explicitly transition left and top for smooth diagonal flight */
     transition: top 0.8s cubic-bezier(0.65, 0, 0.35, 1), 
                 left 0.8s cubic-bezier(0.65, 0, 0.35, 1), 
                 transform 0.8s cubic-bezier(0.65, 0, 0.35, 1);
@@ -57,18 +55,17 @@ body.active-state #landing-overlay { display: none; }
 
 body.active-state #logo-container {
     top: 40px; 
-    /* 100% of screen width, minus the 450px logo width, minus the 40px margin */
-    left: calc(100% - 490px); 
+    /* NEW MATH: 100% of screen minus 150px logo minus 40px margin = 190px */
+    left: calc(100% - 190px); 
     transform: translate(0, 0);
 }
 
 #main-logo { 
-    width: 100px; 
-    height: auto; 
-    transition: width 0.8s cubic-bezier(0.65, 0, 0.35, 1); 
-    display: block; 
+    width: 300px; height: auto; 
+    transition: width 0.8s cubic-bezier(0.65, 0, 0.35, 1); display: block; 
 }
-body.active-state #main-logo { width: 450px; }
+/* NEW SIZE: 1/3 of the old 450px size */
+body.active-state #main-logo { width: 150px; }
 
 #manifesto-box {
     position: fixed;
@@ -87,15 +84,10 @@ body.active-state #manifesto-box { opacity: 0; visibility: hidden; }
 
 /* --- UI: HEADER & FOOTER --- */
 #main-header {
-    position: fixed;
-    top: 0; left: 0; width: 100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    align-items: start;
-    padding: 40px;
-    box-sizing: border-box;
-    z-index: 10001; 
-    pointer-events: none; 
+    position: fixed; top: 0; left: 0; width: 100%;
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    align-items: start; padding: 40px; box-sizing: border-box;
+    z-index: 10001; pointer-events: none; 
 }
 #main-header > * { pointer-events: auto; }
 
@@ -104,12 +96,9 @@ body.active-state #manifesto-box { opacity: 0; visibility: hidden; }
 body.active-state #filter-bar { opacity: 1; }
 
 #main-footer {
-    position: fixed; 
-    bottom: 0; left: 0; width: 100%;
-    display: flex; justify-content: center;
-    padding: 40px 0;
-    z-index: 10001; 
-    opacity: 0; pointer-events: none;
+    position: fixed; bottom: 0; left: 0; width: 100%;
+    display: flex; justify-content: center; padding: 40px 0;
+    z-index: 10001; opacity: 0; pointer-events: none;
     transition: opacity 0.5s;
 }
 body.active-state #main-footer { opacity: 1; pointer-events: auto; }
@@ -125,36 +114,41 @@ body.active-state #main-footer { opacity: 1; pointer-events: auto; }
 
 .grid-mode #project-pile {
     display: grid !important;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 100px 40px;
+    grid-template-columns: repeat(3, 1fr); gap: 100px 40px;
 }
 
 .paper-card {
-    background: white;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.05);
     transition: transform 0.6s ease, opacity 0.4s ease;
     display: flex; flex-direction: column;
 }
 .card-inner-frame { width: 100%; overflow: hidden; margin-bottom: 10px; }
 .card-inner-frame img { display: block; width: 100%; }
 
-/* --- PROJECT SPREAD --- */
+/* --- PROJECT SPREAD (MASONRY GRID) --- */
 #unfold-overlay {
-    position: absolute; 
-    top: 0; left: 0; width: 100%; min-height: 100vh;
-    background: white;
-    z-index: 10000; 
-    padding: 140px 60px 140px 60px;
-    box-sizing: border-box;
+    position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh;
+    background: white; z-index: 10000; 
+    padding: 140px 60px 140px 60px; box-sizing: border-box;
 }
 
 .close-unfold { position: fixed; top: 40px; left: 40px; font-weight: bold; z-index: 10002; }
 .unfold-header { display: flex; gap: 50px; align-items: flex-end; margin-bottom: 100px; }
 .unfold-title-pic { width: 50%; flex-shrink: 0; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
 
+/* Option B: Fluid CSS Columns */
 .unfold-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 40px;
-    align-items: start;
+    column-count: 3;
+    column-gap: 40px;
+    width: 100%;
+}
+
+.unfold-grid-item {
+    break-inside: avoid; /* Keeps images from cutting in half across columns */
+    margin-bottom: 40px;
+    display: inline-block;
+    width: 100%;
+    box-sizing: border-box;
+    background: white;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
 }
