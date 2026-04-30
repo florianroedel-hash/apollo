@@ -35,10 +35,25 @@
     </header>
 
     <main id="archive-stage">
-        <!-- ROW 1: THE ARCHIVE PILE/GRID -->
-        <div id="project-pile"></div>
-        <!-- ROW 2: FUTURE CONTENT -->
-        <div id="row-2-content" style="display: none;"></div>
+        <!-- THE NEW 3-COLUMN DASHBOARD -->
+        <div id="dashboard-wrapper">
+            
+            <!-- LEFT: Calendar (25%) -->
+            <div id="calendar-column" class="side-column">
+                <div id="calendar-content"></div>
+            </div>
+
+            <!-- CENTER: Project Pile/Grid (50%) -->
+            <div id="project-pile"></div>
+
+            <!-- RIGHT: Magazine (25%) -->
+            <div id="magazine-column" class="side-column">
+                <div id="magazine-cover-container" onclick="openMagazine()">
+                    <!-- Magazine cover will inject here -->
+                </div>
+            </div>
+
+        </div>
     </main>
 
     <footer id="main-footer">
