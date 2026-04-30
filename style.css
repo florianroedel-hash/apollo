@@ -63,7 +63,7 @@ body.active-state #logo-container {
 }
 
 #main-logo { 
-    width: 300px; 
+    width: 100px; 
     height: auto; 
     transition: width 0.8s cubic-bezier(0.65, 0, 0.35, 1); 
     display: block; 
