@@ -55,7 +55,6 @@ body.active-state #landing-overlay { display: none; }
 
 body.active-state #logo-container {
     top: 40px; 
-    /* NEW MATH: 100% of screen minus 150px logo minus 40px margin = 190px */
     left: calc(100% - 190px); 
     transform: translate(0, 0);
 }
@@ -64,8 +63,15 @@ body.active-state #logo-container {
     width: 300px; height: auto; 
     transition: width 0.8s cubic-bezier(0.65, 0, 0.35, 1); display: block; 
 }
-/* NEW SIZE: 1/3 of the old 450px size */
 body.active-state #main-logo { width: 150px; }
+
+/* LOADING SPIN ANIMATION */
+@keyframes spin { 
+    100% { transform: rotate(360deg); } 
+}
+#main-logo.spinning { 
+    animation: spin 1.5s linear infinite; 
+}
 
 #manifesto-box {
     position: fixed;
@@ -132,11 +138,19 @@ body.active-state #main-footer { opacity: 1; pointer-events: auto; }
     padding: 140px 60px 140px 60px; box-sizing: border-box;
 }
 
-.close-unfold { position: fixed; top: 40px; left: 40px; font-weight: bold; z-index: 10002; }
+/* NEW CLOSE BUTTON: Bottom Left, rotated */
+.close-unfold { 
+    position: fixed; 
+    bottom: 40px; left: 40px; 
+    width: 45px; z-index: 10002; cursor: pointer; 
+    transform: rotate(180deg); 
+    transition: opacity 0.2s;
+}
+.close-unfold:hover { opacity: 0.6; }
+
 .unfold-header { display: flex; gap: 50px; align-items: flex-end; margin-bottom: 100px; }
 .unfold-title-pic { width: 50%; flex-shrink: 0; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
 
-/* Option B: Fluid CSS Columns */
 .unfold-grid {
     column-count: 3;
     column-gap: 40px;
@@ -144,7 +158,7 @@ body.active-state #main-footer { opacity: 1; pointer-events: auto; }
 }
 
 .unfold-grid-item {
-    break-inside: avoid; /* Keeps images from cutting in half across columns */
+    break-inside: avoid;
     margin-bottom: 40px;
     display: inline-block;
     width: 100%;
