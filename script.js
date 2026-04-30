@@ -1,64 +1,88 @@
-const API_URL = 'https://script.google.com/macros/s/AKfycby3AgRD49QItpR6M3oKG0id58QCZN0a7zQbrm91Z1ZmjwvhBwJzLNI3xBuANUzsWaiVfA/exec';
+const URL_PROJECTS = 'https://script.google.com/macros/s/AKfycby3AgRD49QItpR6M3oKG0id58QCZN0a7zQbrm91Z1ZmjwvhBwJzLNI3xBuANUzsWaiVfA/exec';
+const URL_CALENDAR = 'https://script.google.com/macros/s/AKfycbz5THEJ7sno1qcFbPaA0FWmtcXy3kEj4nbGGThGvHb9zRjWox57VDQghuOgdiFCbTfIIw/exec';
+const URL_MAGAZINE = 'https://script.google.com/macros/s/AKfycbyxSddhc-ntCVewfsAFXLcvStqnEN14VAJ-UtMuUxYt1zttxh8C39YelbeY5-pGsvZ6mg/exec';
+
 const pile = document.getElementById('project-pile');
 const logoImg = document.getElementById('main-logo');
-let archiveData = [];
 
-// Track loading states
-let isLoaded = false;
-let isWaitingToStart = false;
+let archiveData = [], calendarData = [], magazineData = [];
+let isLoaded = false, isWaitingToStart = false;
+let magCurrentPage = 0; // Tracks magazine flipbook state
 
 function getSafeImg(url) {
     const id = url.match(/id=([^&]+)/);
     return id ? `https://drive.google.com/thumbnail?id=${id[1]}&sz=w1200` : url;
 }
 
+// FETCH ALL 3 DATA SOURCES AT ONCE
 async function init() {
     try {
-        const res = await fetch(API_URL, { redirect: 'follow' });
-        archiveData = await res.json();
+        const [resProj, resCal, resMag] = await Promise.all([
+            fetch(URL_PROJECTS, { redirect: 'follow' }),
+            fetch(URL_CALENDAR, { redirect: 'follow' }),
+            fetch(URL_MAGAZINE, { redirect: 'follow' })
+        ]);
+        
+        archiveData = await resProj.json();
+        calendarData = await resCal.json();
+        magazineData = await resMag.json();
+        
         isLoaded = true;
         
-        // If they haven't clicked yet, render in background
         if (!isWaitingToStart) {
-            renderPile(archiveData, false);
+            renderDashboard();
         }
     } catch (e) { 
-        console.error("Archive fetch error"); 
-        isLoaded = true; // Prevent infinite spin on error
+        console.error("Data fetch error", e); 
+        isLoaded = true; 
     }
 }
 
-// 1. CLICK TO START
+// LOGO & LOADING LOGIC
 window.startArchive = function() {
     if (!document.body.classList.contains('focus-state')) return;
-
-    if (isLoaded) {
-        // Data is ready, jump straight to the archive
-        liftFog();
-    } else {
-        // Data still loading, start the slow spin
-        isWaitingToStart = true;
-        logoImg.classList.add('spinning');
-    }
+    if (isLoaded) { liftFog(); } 
+    else { isWaitingToStart = true; logoImg.classList.add('spinning'); }
 };
 
-// 2. WAIT FOR PERFECT ROTATION
-// This event fires every time the 360-degree CSS animation completes one full loop
 logoImg.addEventListener('animationiteration', () => {
-    if (isWaitingToStart && isLoaded) {
-        logoImg.classList.remove('spinning');
-        liftFog();
-    }
+    if (isWaitingToStart && isLoaded) { logoImg.classList.remove('spinning'); liftFog(); }
 });
 
-// 3. TRANSITION
 function liftFog() {
     isWaitingToStart = false;
     document.body.classList.remove('focus-state');
     document.body.classList.add('active-state');
-    renderPile(archiveData, false);
+    renderDashboard();
 }
 
+// RENDER ALL THREE ZONES
+function renderDashboard() {
+    renderPile(archiveData, false);
+    renderCalendar(calendarData);
+    renderMagazineCover(magazineData);
+}
+
+function renderCalendar(data) {
+    const calContainer = document.getElementById('calendar-content');
+    // Assuming data[0] has an image and text
+    if (data.length > 0) {
+        let html = '';
+        if (data[0].titleImage || data[0].image) html += `<img src="${getSafeImg(data[0].titleImage || data[0].image)}">`;
+        if (data[0].text || data[0].metadata?.description) html += `<div>${data[0].text || data[0].metadata?.description}</div>`;
+        calContainer.innerHTML = html;
+    }
+}
+
+function renderMagazineCover(data) {
+    const magContainer = document.getElementById('magazine-cover-container');
+    // Extracts cover from the first item
+    if (data.length > 0) {
+        magContainer.innerHTML = `<img src="${getSafeImg(data[0].titleImage || data[0].images[0])}">`;
+    }
+}
+
+// PROJECT PILE LOGIC (Updated for Dashboard context)
 function renderPile(data, isGrid = false) {
     pile.innerHTML = '';
     document.body.classList.toggle('grid-mode', isGrid);
@@ -69,10 +93,7 @@ function renderPile(data, isGrid = false) {
 
         if (isGrid) {
             const stack = [p.titleImage, ...p.images].slice(0, 3).reverse();
-            stack.forEach((img, idx) => {
-                const card = createCard(p, img, true, idx);
-                wrapper.appendChild(card);
-            });
+            stack.forEach((img, idx) => { wrapper.appendChild(createCard(p, img, true, idx)); });
             pile.appendChild(wrapper);
         } else {
             const card = createCard(p, p.titleImage, false, i);
@@ -85,11 +106,10 @@ function renderPile(data, isGrid = false) {
 function createCard(p, imgUrl, isGrid, layer) {
     const card = document.createElement('div');
     card.className = 'paper-card';
-    
     const pad = Math.floor(Math.random() * 15) + 15;
     card.style.padding = `${pad}px`;
-
     const rot = Math.random() * 6 - 3;
+
     if (isGrid) {
         card.style.position = 'absolute';
         card.style.width = '100%';
@@ -114,9 +134,7 @@ function createCard(p, imgUrl, isGrid, layer) {
                 <img src="expand.png" style="width:45px; float:right; cursor:pointer;" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
             </div>
         `;
-    } else {
-        card.innerHTML = `<div class="card-inner-frame"><img src="${getSafeImg(imgUrl)}"></div>`;
-    }
+    } else { card.innerHTML = `<div class="card-inner-frame"><img src="${getSafeImg(imgUrl)}"></div>`; }
     return card;
 }
 
@@ -124,7 +142,6 @@ function shuffleToBack(card) {
     card.style.pointerEvents = 'none'; 
     card.style.transform = 'translate(100%, 0) rotate(20deg)';
     card.style.opacity = '0';
-    
     setTimeout(() => {
         pile.prepend(card); 
         const cards = Array.from(pile.querySelectorAll('.paper-card'));
@@ -135,6 +152,58 @@ function shuffleToBack(card) {
     }, 600);
 }
 
+// MAGAZINE READING MODE (Flat Slide)
+window.openMagazine = function() {
+    if (magazineData.length === 0) return;
+    magCurrentPage = 0; // Reset to cover
+    
+    const over = document.createElement('div');
+    over.id = 'magazine-reader-overlay';
+    document.body.appendChild(over);
+    updateMagazineView();
+};
+
+function updateMagazineView() {
+    const over = document.getElementById('magazine-reader-overlay');
+    if (!over) return;
+    
+    // Flatten magazine images assuming data[0] contains them
+    const magImages = magazineData[0].images || [magazineData[0].titleImage];
+    
+    let spreadHtml = `<div class="spread-container">`;
+    
+    if (magCurrentPage === 0) {
+        // Cover page only
+        spreadHtml += `<img class="spread-page" src="${getSafeImg(magImages[0])}">`;
+    } else {
+        // Flat spread (Left & Right pages)
+        const leftPage = magImages[magCurrentPage * 2 - 1];
+        const rightPage = magImages[magCurrentPage * 2];
+        if (leftPage) spreadHtml += `<img class="spread-page" src="${getSafeImg(leftPage)}">`;
+        if (rightPage) spreadHtml += `<img class="spread-page" src="${getSafeImg(rightPage)}">`;
+    }
+    spreadHtml += `</div>`;
+
+    const totalSpreads = Math.ceil((magImages.length - 1) / 2);
+    
+    over.innerHTML = `
+        <img src="expand.png" class="close-unfold" onclick="this.parentElement.remove()">
+        ${spreadHtml}
+        <div class="reader-controls">
+            ${magCurrentPage > 0 ? `<span class="highlight-link" onclick="magCurrentPage--; updateMagazineView()">prev</span>` : '<span></span>'}
+            ${magCurrentPage < totalSpreads ? `<span class="highlight-link" onclick="magCurrentPage++; updateMagazineView()">next</span>` : '<span></span>'}
+        </div>
+    `;
+}
+
+// FILTER & SPREAD
+function filterProjects(tag) {
+    const existing = document.getElementById('unfold-overlay');
+    if (existing) existing.remove();
+    if (tag === 'All') renderPile(archiveData, false); 
+    else renderPile(archiveData.filter(p => p.metadata.tags.includes(tag)), true); 
+}
+
 function unfoldProject(id) {
     const p = archiveData.find(proj => proj.id === id);
     const existing = document.getElementById('unfold-overlay');
@@ -142,7 +211,6 @@ function unfoldProject(id) {
 
     const over = document.createElement('div');
     over.id = 'unfold-overlay';
-
     let html = `
         <img src="expand.png" class="close-unfold" onclick="this.parentElement.remove()">
         <div class="unfold-header">
@@ -158,27 +226,13 @@ function unfoldProject(id) {
 
     p.images.forEach(img => {
         const rot = Math.random() * 2 - 1; 
-        const pad = 20; 
-        html += `
-            <div class="unfold-grid-item" style="padding:${pad}px; transform:rotate(${rot}deg);">
-                <img src="${getSafeImg(img)}" style="width:100%; display:block;">
-            </div>
-        `;
+        html += `<div class="unfold-grid-item" style="padding:20px; transform:rotate(${rot}deg);"><img src="${getSafeImg(img)}" style="width:100%; display:block;"></div>`;
     });
 
     html += `</div>`;
     over.innerHTML = html;
     document.body.appendChild(over);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// FIX: Close unfold overlay before filtering so tags work from inside
-function filterProjects(tag) {
-    const existing = document.getElementById('unfold-overlay');
-    if (existing) existing.remove();
-
-    if (tag === 'All') renderPile(archiveData, false); 
-    else renderPile(archiveData.filter(p => p.metadata.tags.includes(tag)), true); 
 }
 
 init();
