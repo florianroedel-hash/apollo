@@ -15,7 +15,6 @@ async function init() {
     } catch (e) { console.error("Archive fetch error"); }
 }
 
-// LIFT THE FOG
 window.startArchive = function() {
     if (document.body.classList.contains('focus-state')) {
         document.body.classList.remove('focus-state');
@@ -51,7 +50,6 @@ function createCard(p, imgUrl, isGrid, layer) {
     const card = document.createElement('div');
     card.className = 'paper-card';
     
-    // Dynamic Passe-Partout for the main cards
     const pad = Math.floor(Math.random() * 15) + 15;
     card.style.padding = `${pad}px`;
 
@@ -86,7 +84,6 @@ function createCard(p, imgUrl, isGrid, layer) {
     return card;
 }
 
-// TRULY ENDLESS SHUFFLE
 function shuffleToBack(card) {
     card.style.pointerEvents = 'none'; 
     card.style.transform = 'translate(100%, 0) rotate(20deg)';
@@ -94,10 +91,8 @@ function shuffleToBack(card) {
     
     setTimeout(() => {
         pile.prepend(card); 
-        
         const cards = Array.from(pile.querySelectorAll('.paper-card'));
         cards.forEach((c, idx) => { c.style.zIndex = idx; });
-        
         card.style.opacity = '1';
         card.style.transform = `translate(-50%, 0) rotate(${Math.random() * 6 - 3}deg)`;
         card.style.pointerEvents = 'auto';
@@ -106,7 +101,6 @@ function shuffleToBack(card) {
 
 function unfoldProject(id) {
     const p = archiveData.find(proj => proj.id === id);
-    
     const existing = document.getElementById('unfold-overlay');
     if (existing) existing.remove();
 
@@ -127,16 +121,19 @@ function unfoldProject(id) {
     `;
 
     p.images.forEach(img => {
-        // LESS CHAOTIC SPREAD: Reduced rotation to barely tilt (-1 to +1 degree), uniform 20px padding
         const rot = Math.random() * 2 - 1; 
         const pad = 20; 
-        html += `<div style="padding:${pad}px; background:white; transform:rotate(${rot}deg); box-shadow:0 5px 15px rgba(0,0,0,0.05);"><img src="${getSafeImg(img)}" style="width:100%; display:block;"></div>`;
+        // Option B Masonry wrapper applied here
+        html += `
+            <div class="unfold-grid-item" style="padding:${pad}px; transform:rotate(${rot}deg);">
+                <img src="${getSafeImg(img)}" style="width:100%; display:block;">
+            </div>
+        `;
     });
 
     html += `</div>`;
     over.innerHTML = html;
     document.body.appendChild(over);
-    
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
