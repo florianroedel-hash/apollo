@@ -1,6 +1,11 @@
 const API_URL = 'https://script.google.com/macros/s/AKfycby3AgRD49QItpR6M3oKG0id58QCZN0a7zQbrm91Z1ZmjwvhBwJzLNI3xBuANUzsWaiVfA/exec';
 const pile = document.getElementById('project-pile');
+const logoImg = document.getElementById('main-logo');
 let archiveData = [];
+
+// Track loading states
+let isLoaded = false;
+let isWaitingToStart = false;
 
 function getSafeImg(url) {
     const id = url.match(/id=([^&]+)/);
@@ -11,17 +16,48 @@ async function init() {
     try {
         const res = await fetch(API_URL, { redirect: 'follow' });
         archiveData = await res.json();
-        renderPile(archiveData, false);
-    } catch (e) { console.error("Archive fetch error"); }
+        isLoaded = true;
+        
+        // If they haven't clicked yet, render in background
+        if (!isWaitingToStart) {
+            renderPile(archiveData, false);
+        }
+    } catch (e) { 
+        console.error("Archive fetch error"); 
+        isLoaded = true; // Prevent infinite spin on error
+    }
 }
 
+// 1. CLICK TO START
 window.startArchive = function() {
-    if (document.body.classList.contains('focus-state')) {
-        document.body.classList.remove('focus-state');
-        document.body.classList.add('active-state');
-        renderPile(archiveData, false);
+    if (!document.body.classList.contains('focus-state')) return;
+
+    if (isLoaded) {
+        // Data is ready, jump straight to the archive
+        liftFog();
+    } else {
+        // Data still loading, start the slow spin
+        isWaitingToStart = true;
+        logoImg.classList.add('spinning');
     }
 };
+
+// 2. WAIT FOR PERFECT ROTATION
+// This event fires every time the 360-degree CSS animation completes one full loop
+logoImg.addEventListener('animationiteration', () => {
+    if (isWaitingToStart && isLoaded) {
+        logoImg.classList.remove('spinning');
+        liftFog();
+    }
+});
+
+// 3. TRANSITION
+function liftFog() {
+    isWaitingToStart = false;
+    document.body.classList.remove('focus-state');
+    document.body.classList.add('active-state');
+    renderPile(archiveData, false);
+}
 
 function renderPile(data, isGrid = false) {
     pile.innerHTML = '';
@@ -108,7 +144,7 @@ function unfoldProject(id) {
     over.id = 'unfold-overlay';
 
     let html = `
-        <div class="close-unfold highlight-link" onclick="this.parentElement.remove()">[ close ]</div>
+        <img src="expand.png" class="close-unfold" onclick="this.parentElement.remove()">
         <div class="unfold-header">
             <img src="${getSafeImg(p.titleImage)}" class="unfold-title-pic">
             <div style="display:flex; flex-direction:column; gap:8px; padding-bottom:20px;">
@@ -123,7 +159,6 @@ function unfoldProject(id) {
     p.images.forEach(img => {
         const rot = Math.random() * 2 - 1; 
         const pad = 20; 
-        // Option B Masonry wrapper applied here
         html += `
             <div class="unfold-grid-item" style="padding:${pad}px; transform:rotate(${rot}deg);">
                 <img src="${getSafeImg(img)}" style="width:100%; display:block;">
@@ -137,7 +172,11 @@ function unfoldProject(id) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// FIX: Close unfold overlay before filtering so tags work from inside
 function filterProjects(tag) {
+    const existing = document.getElementById('unfold-overlay');
+    if (existing) existing.remove();
+
     if (tag === 'All') renderPile(archiveData, false); 
     else renderPile(archiveData.filter(p => p.metadata.tags.includes(tag)), true); 
 }
