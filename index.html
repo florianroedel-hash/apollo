@@ -8,18 +8,22 @@
 </head>
 <body class="focus-state">
 
+    <!-- INVISIBLE CLICK OVERLAY -->
     <div id="landing-overlay" onclick="startArchive()"></div>
 
+    <!-- LOGO -->
     <div id="logo-container" onclick="startArchive()">
         <img src="logo.png" id="main-logo" alt="Logo">
     </div>
 
+    <!-- MANIFESTO -->
     <div id="manifesto-box">
         the platform to showcase polimi students work and connect 
         with the global architecture community through projects, 
         photography and visual storytelling
     </div>
 
+    <!-- HEADER: Links & Filters -->
     <header id="main-header">
         <div id="side-menu-top">
             <a href="#" target="_blank" class="highlight-link">mission apollo</a>
@@ -27,16 +31,28 @@
             <a href="https://tally.so/r/lb7BOX" target="_blank" class="highlight-link">submit to traces</a>
         </div>
         <nav id="filter-bar">
+            <!-- Ensure exact spelling matching your Google Sheet -->
             <span class="tag-filter highlight-link" onclick="filterProjects('All')">all</span>
             <span class="tag-filter highlight-link" onclick="filterProjects('Urban')">urban</span>
             <span class="tag-filter highlight-link" onclick="filterProjects('Heritage')">heritage</span>
         </nav>
-        <div id="header-right-empty"></div> </header>
+        <div id="header-right-empty"></div>
+    </header>
 
+    <!-- MAIN STAGE -->
     <main id="archive-stage">
+        
+        <!-- ROW 1: THE ARCHIVE PILE/GRID -->
         <div id="project-pile"></div>
+
+        <!-- ROW 2: FUTURE CONTENT (Hidden for now, ready for your next steps) -->
+        <div id="row-2-content" style="display: none;">
+            <!-- Your new elements will go here later -->
+        </div>
+
     </main>
 
+    <!-- FOOTER -->
     <footer id="main-footer">
         <div id="footer-links">
             <a href="https://tally.so/r/81P1XY" target="_blank" class="highlight-link">join apollo</a>
