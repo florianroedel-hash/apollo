@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="focus-state">
-
     <div id="landing-overlay" onclick="startArchive()"></div>
 
     <div id="logo-container" onclick="startArchive()">
@@ -26,33 +25,16 @@
             <a href="https://tally.so/r/LZJPYv" target="_blank" class="highlight-link">submit to the archive</a>
             <a href="https://tally.so/r/lb7BOX" target="_blank" class="highlight-link">submit to traces</a>
         </div>
-        <nav id="filter-bar">
-            <span class="tag-filter highlight-link" onclick="filterProjects('All')">all</span>
-            <span class="tag-filter highlight-link" onclick="filterProjects('Urban')">urban</span>
-            <span class="tag-filter highlight-link" onclick="filterProjects('Heritage')">heritage</span>
-        </nav>
+        <!-- Dynamic tags will be injected here -->
+        <nav id="filter-bar"></nav>
         <div id="header-right-empty"></div>
     </header>
 
     <main id="archive-stage">
-        <!-- THE NEW 3-COLUMN DASHBOARD -->
         <div id="dashboard-wrapper">
-            
-            <!-- LEFT: Calendar (25%) -->
-            <div id="calendar-column" class="side-column">
-                <div id="calendar-content"></div>
-            </div>
-
-            <!-- CENTER: Project Pile/Grid (50%) -->
+            <div id="calendar-column" class="side-column"><div id="calendar-content"></div></div>
             <div id="project-pile"></div>
-
-            <!-- RIGHT: Magazine (25%) -->
-            <div id="magazine-column" class="side-column">
-                <div id="magazine-cover-container" onclick="openMagazine()">
-                    <!-- Magazine cover will inject here -->
-                </div>
-            </div>
-
+            <div id="magazine-column" class="side-column"><div id="magazine-cover-container" onclick="openMagazine()"></div></div>
         </div>
     </main>
 
