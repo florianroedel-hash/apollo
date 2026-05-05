@@ -4,17 +4,16 @@ const URL_MAGAZINE = 'https://script.google.com/macros/s/AKfycbyxSddhc-ntCVewfsA
 
 const pile = document.getElementById('project-pile');
 const logoImg = document.getElementById('main-logo');
+const filterBar = document.getElementById('filter-bar');
 
 let archiveData = [], calendarData = [], magazineData = [];
-let isLoaded = false, isWaitingToStart = false;
-let magCurrentPage = 0; // Tracks magazine flipbook state
+let isLoaded = false, isWaitingToStart = false, magCurrentPage = 0;
 
 function getSafeImg(url) {
     const id = url.match(/id=([^&]+)/);
     return id ? `https://drive.google.com/thumbnail?id=${id[1]}&sz=w1200` : url;
 }
 
-// FETCH ALL 3 DATA SOURCES AT ONCE
 async function init() {
     try {
         const [resProj, resCal, resMag] = await Promise.all([
@@ -27,22 +26,32 @@ async function init() {
         calendarData = await resCal.json();
         magazineData = await resMag.json();
         
+        generateDynamicTags();
         isLoaded = true;
         
-        if (!isWaitingToStart) {
-            renderDashboard();
-        }
-    } catch (e) { 
-        console.error("Data fetch error", e); 
-        isLoaded = true; 
-    }
+        if (!isWaitingToStart) renderDashboard();
+    } catch (e) { isLoaded = true; }
 }
 
-// LOGO & LOADING LOGIC
+function generateDynamicTags() {
+    let tags = new Set(["All"]);
+    archiveData.forEach(p => p.metadata.tags.forEach(t => tags.add(t.trim().toLowerCase())));
+    
+    filterBar.innerHTML = '';
+    tags.forEach(tag => {
+        const btn = document.createElement('span');
+        btn.className = 'tag-filter highlight-link';
+        btn.innerText = tag;
+        // Capitalize for matching back to data
+        const matchTag = tag === 'all' ? 'All' : tag;
+        btn.onclick = () => filterProjects(matchTag);
+        filterBar.appendChild(btn);
+    });
+}
+
 window.startArchive = function() {
     if (!document.body.classList.contains('focus-state')) return;
-    if (isLoaded) { liftFog(); } 
-    else { isWaitingToStart = true; logoImg.classList.add('spinning'); }
+    if (isLoaded) liftFog(); else { isWaitingToStart = true; logoImg.classList.add('spinning'); }
 };
 
 logoImg.addEventListener('animationiteration', () => {
@@ -56,7 +65,6 @@ function liftFog() {
     renderDashboard();
 }
 
-// RENDER ALL THREE ZONES
 function renderDashboard() {
     renderPile(archiveData, false);
     renderCalendar(calendarData);
@@ -65,143 +73,103 @@ function renderDashboard() {
 
 function renderCalendar(data) {
     const calContainer = document.getElementById('calendar-content');
-    // Assuming data[0] has an image and text
     if (data.length > 0) {
         let html = '';
-        if (data[0].titleImage || data[0].image) html += `<img src="${getSafeImg(data[0].titleImage || data[0].image)}">`;
-        if (data[0].text || data[0].metadata?.description) html += `<div>${data[0].text || data[0].metadata?.description}</div>`;
+        if (data[0].image) html += `<img src="${getSafeImg(data[0].image)}">`;
+        if (data[0].text) html += `<div>${data[0].text}</div>`;
         calContainer.innerHTML = html;
     }
 }
 
 function renderMagazineCover(data) {
     const magContainer = document.getElementById('magazine-cover-container');
-    // Extracts cover from the first item
-    if (data.length > 0) {
-        magContainer.innerHTML = `<img src="${getSafeImg(data[0].titleImage || data[0].images[0])}">`;
-    }
+    if (data.length > 0) magContainer.innerHTML = `<img src="${getSafeImg(data[0].images[0])}">`;
 }
 
-// PROJECT PILE LOGIC (Updated for Dashboard context)
 function renderPile(data, isGrid = false) {
     pile.innerHTML = '';
     document.body.classList.toggle('grid-mode', isGrid);
 
     data.forEach((p, i) => {
-        const wrapper = document.createElement('div');
-        wrapper.style.position = 'relative';
-
+        const rot = Math.random() * 6 - 3;
+        
+        // GRID MODE: Just the covers, scrollable layout
         if (isGrid) {
-            const stack = [p.titleImage, ...p.images].slice(0, 3).reverse();
-            stack.forEach((img, idx) => { wrapper.appendChild(createCard(p, img, true, idx)); });
+            const wrapper = document.createElement('div');
+            wrapper.style.position = 'relative';
+            wrapper.style.transform = `rotate(${rot}deg)`;
+            wrapper.appendChild(createCard(p, true));
             pile.appendChild(wrapper);
         } else {
-            const card = createCard(p, p.titleImage, false, i);
-            card.style.zIndex = data.length - i;
-            pile.appendChild(card);
+            // DASHBOARD: The overlapping pile
+            const wrapper = document.createElement('div');
+            wrapper.className = 'card-wrapper';
+            wrapper.style.position = 'absolute';
+            wrapper.style.width = '350px';
+            wrapper.style.left = '50%';
+            wrapper.style.top = '50%';
+            wrapper.style.transform = `translate(-50%, -50%) rotate(${rot}deg)`;
+            wrapper.style.zIndex = data.length - i;
+            wrapper.onclick = () => shuffleToBack(wrapper);
+            
+            wrapper.appendChild(createCard(p, false));
+            pile.appendChild(wrapper);
         }
     });
 }
 
-function createCard(p, imgUrl, isGrid, layer) {
+function createCard(p, isGrid) {
     const card = document.createElement('div');
     card.className = 'paper-card';
-    const pad = Math.floor(Math.random() * 15) + 15;
+    const pad = Math.floor(Math.random() * 10) + 15;
     card.style.padding = `${pad}px`;
-    const rot = Math.random() * 6 - 3;
 
-    if (isGrid) {
-        card.style.position = 'absolute';
-        card.style.width = '100%';
-        const off = (2 - layer) * 5;
-        card.style.transform = `rotate(${rot}deg) translate(${off}px, ${off}px)`;
-        card.style.zIndex = layer;
-    } else {
-        card.style.position = 'absolute';
-        card.style.width = '350px';
-        card.style.left = '50%';
-        card.style.top = '100px'; 
-        card.style.transform = `translate(-50%, 0) rotate(${rot}deg)`;
-        card.onclick = () => shuffleToBack(card);
+    // Only add the Bookmark Note on the main dashboard
+    let noteHtml = '';
+    if (!isGrid && p.metadata.description) {
+        noteHtml = `<div class="bookmark-note">${p.metadata.description}</div>`;
     }
 
-    if (!isGrid || layer === 2) {
-        card.innerHTML = `
-            <div class="card-inner-frame"><img src="${getSafeImg(imgUrl)}"></div>
-            <div style="font-size:11px; text-transform:lowercase; margin-top:10px;">
-                <span class="highlight-link" style="font-weight:bold;">${p.metadata.name}</span><br>
-                <span class="highlight-link">${p.metadata.author} — ${p.metadata.year}</span>
-                <img src="expand.png" style="width:45px; float:right; cursor:pointer;" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
+    card.innerHTML = `
+        ${noteHtml}
+        <div class="card-inner-frame">
+            <img src="${getSafeImg(p.titleImage)}">
+            <div class="belly-band">
+                <div class="belly-text">
+                    <span class="highlight-link" style="font-weight:bold;">${p.metadata.name}</span><br>
+                    <span class="highlight-link">${p.metadata.author} — ${p.metadata.year}</span>
+                </div>
+                <img src="expand.png" style="width:35px; cursor:pointer;" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
             </div>
-        `;
-    } else { card.innerHTML = `<div class="card-inner-frame"><img src="${getSafeImg(imgUrl)}"></div>`; }
+        </div>
+    `;
     return card;
 }
 
-function shuffleToBack(card) {
-    card.style.pointerEvents = 'none'; 
-    card.style.transform = 'translate(100%, 0) rotate(20deg)';
-    card.style.opacity = '0';
+function shuffleToBack(wrapper) {
+    wrapper.style.pointerEvents = 'none'; 
+    wrapper.style.transform = 'translate(100%, -50%) rotate(20deg)';
+    wrapper.style.opacity = '0';
     setTimeout(() => {
-        pile.prepend(card); 
-        const cards = Array.from(pile.querySelectorAll('.paper-card'));
-        cards.forEach((c, idx) => { c.style.zIndex = idx; });
-        card.style.opacity = '1';
-        card.style.transform = `translate(-50%, 0) rotate(${Math.random() * 6 - 3}deg)`;
-        card.style.pointerEvents = 'auto';
+        pile.prepend(wrapper); 
+        const wrappers = Array.from(pile.querySelectorAll('.card-wrapper'));
+        wrappers.forEach((w, idx) => { w.style.zIndex = idx; });
+        wrapper.style.opacity = '1';
+        wrapper.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 6 - 3}deg)`;
+        wrapper.style.pointerEvents = 'auto';
     }, 600);
 }
 
-// MAGAZINE READING MODE (Flat Slide)
-window.openMagazine = function() {
-    if (magazineData.length === 0) return;
-    magCurrentPage = 0; // Reset to cover
-    
-    const over = document.createElement('div');
-    over.id = 'magazine-reader-overlay';
-    document.body.appendChild(over);
-    updateMagazineView();
-};
-
-function updateMagazineView() {
-    const over = document.getElementById('magazine-reader-overlay');
-    if (!over) return;
-    
-    // Flatten magazine images assuming data[0] contains them
-    const magImages = magazineData[0].images || [magazineData[0].titleImage];
-    
-    let spreadHtml = `<div class="spread-container">`;
-    
-    if (magCurrentPage === 0) {
-        // Cover page only
-        spreadHtml += `<img class="spread-page" src="${getSafeImg(magImages[0])}">`;
-    } else {
-        // Flat spread (Left & Right pages)
-        const leftPage = magImages[magCurrentPage * 2 - 1];
-        const rightPage = magImages[magCurrentPage * 2];
-        if (leftPage) spreadHtml += `<img class="spread-page" src="${getSafeImg(leftPage)}">`;
-        if (rightPage) spreadHtml += `<img class="spread-page" src="${getSafeImg(rightPage)}">`;
-    }
-    spreadHtml += `</div>`;
-
-    const totalSpreads = Math.ceil((magImages.length - 1) / 2);
-    
-    over.innerHTML = `
-        <img src="expand.png" class="close-unfold" onclick="this.parentElement.remove()">
-        ${spreadHtml}
-        <div class="reader-controls">
-            ${magCurrentPage > 0 ? `<span class="highlight-link" onclick="magCurrentPage--; updateMagazineView()">prev</span>` : '<span></span>'}
-            ${magCurrentPage < totalSpreads ? `<span class="highlight-link" onclick="magCurrentPage++; updateMagazineView()">next</span>` : '<span></span>'}
-        </div>
-    `;
-}
-
-// FILTER & SPREAD
 function filterProjects(tag) {
     const existing = document.getElementById('unfold-overlay');
     if (existing) existing.remove();
-    if (tag === 'All') renderPile(archiveData, false); 
-    else renderPile(archiveData.filter(p => p.metadata.tags.includes(tag)), true); 
+    
+    // Logic matching case-insensitively
+    if (tag.toLowerCase() === 'all') {
+        renderPile(archiveData, false); 
+    } else {
+        renderPile(archiveData.filter(p => p.metadata.tags.some(t => t.toLowerCase() === tag.toLowerCase())), true);
+    }
 }
 
 function unfoldProject(id) {
@@ -211,11 +179,16 @@ function unfoldProject(id) {
 
     const over = document.createElement('div');
     over.id = 'unfold-overlay';
+    
+    // Spread view includes the bookmark note offset to the right of the title image
     let html = `
         <img src="expand.png" class="close-unfold" onclick="this.parentElement.remove()">
         <div class="unfold-header">
-            <img src="${getSafeImg(p.titleImage)}" class="unfold-title-pic">
-            <div style="display:flex; flex-direction:column; gap:8px; padding-bottom:20px;">
+            <div style="position:relative; width:50%;">
+                <img src="${getSafeImg(p.titleImage)}" style="width:100%; display:block; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
+                ${p.metadata.description ? `<div class="bookmark-note" style="top:10%; right:-40px;">${p.metadata.description}</div>` : ''}
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
                 <span class="highlight-link" style="font-size:1.8rem; font-weight:bold;">${p.metadata.name}</span>
                 <span class="highlight-link">${p.metadata.author}</span>
                 <span class="highlight-link">${p.metadata.year}</span>
@@ -233,6 +206,39 @@ function unfoldProject(id) {
     over.innerHTML = html;
     document.body.appendChild(over);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+window.openMagazine = function() {
+    if (magazineData.length === 0) return;
+    magCurrentPage = 0;
+    const over = document.createElement('div');
+    over.id = 'magazine-reader-overlay';
+    document.body.appendChild(over);
+    updateMagazineView();
+};
+
+function updateMagazineView() {
+    const over = document.getElementById('magazine-reader-overlay');
+    if (!over) return;
+    const magImages = magazineData[0].images;
+    let spreadHtml = `<div class="spread-container">`;
+    if (magCurrentPage === 0) { spreadHtml += `<img class="spread-page" src="${getSafeImg(magImages[0])}">`; } 
+    else {
+        const leftPage = magImages[magCurrentPage * 2 - 1];
+        const rightPage = magImages[magCurrentPage * 2];
+        if (leftPage) spreadHtml += `<img class="spread-page" src="${getSafeImg(leftPage)}">`;
+        if (rightPage) spreadHtml += `<img class="spread-page" src="${getSafeImg(rightPage)}">`;
+    }
+    spreadHtml += `</div>`;
+    const totalSpreads = Math.ceil((magImages.length - 1) / 2);
+    over.innerHTML = `
+        <img src="expand.png" class="close-unfold" onclick="this.parentElement.remove()">
+        ${spreadHtml}
+        <div class="reader-controls">
+            ${magCurrentPage > 0 ? `<span class="highlight-link" onclick="magCurrentPage--; updateMagazineView()">prev</span>` : '<span></span>'}
+            ${magCurrentPage < totalSpreads ? `<span class="highlight-link" onclick="magCurrentPage++; updateMagazineView()">next</span>` : '<span></span>'}
+        </div>
+    `;
 }
 
 init();
