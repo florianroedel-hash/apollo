@@ -4,8 +4,11 @@
 }
 
 body {
-    margin: 0; font-family: 'Ufficio', sans-serif;
-    background: white; overflow-x: hidden;
+    margin: 0; 
+    font-family: 'Ufficio', sans-serif;
+    background: #000000; /* Changed from white to black */
+    color: #ffffff;      /* Added this to make default text white */
+    overflow-x: hidden;
 }
 
 body.focus-state { overflow-y: hidden; height: 100vh; }
