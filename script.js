@@ -42,7 +42,6 @@ function generateDynamicTags() {
         const btn = document.createElement('span');
         btn.className = 'tag-filter highlight-link';
         btn.innerText = tag;
-        // Capitalize for matching back to data
         const matchTag = tag === 'all' ? 'All' : tag;
         btn.onclick = () => filterProjects(matchTag);
         filterBar.appendChild(btn);
@@ -91,17 +90,15 @@ function renderPile(data, isGrid = false) {
     document.body.classList.toggle('grid-mode', isGrid);
 
     data.forEach((p, i) => {
-        const rot = Math.random() * 6 - 3;
+        // Grid items get 0 rotation so they sit perfectly straight
+        const rot = isGrid ? 0 : Math.random() * 6 - 3;
         
-        // GRID MODE: Just the covers, scrollable layout
         if (isGrid) {
             const wrapper = document.createElement('div');
             wrapper.style.position = 'relative';
-            wrapper.style.transform = `rotate(${rot}deg)`;
             wrapper.appendChild(createCard(p, true));
             pile.appendChild(wrapper);
         } else {
-            // DASHBOARD: The overlapping pile
             const wrapper = document.createElement('div');
             wrapper.className = 'card-wrapper';
             wrapper.style.position = 'absolute';
@@ -124,23 +121,24 @@ function createCard(p, isGrid) {
     const pad = Math.floor(Math.random() * 10) + 15;
     card.style.padding = `${pad}px`;
 
-    // Only add the Bookmark Note on the main dashboard
+    // The Note now renders on BOTH the dashboard and the organized grid
     let noteHtml = '';
-    if (!isGrid && p.metadata.description) {
+    if (p.metadata.description) {
         noteHtml = `<div class="bookmark-note">${p.metadata.description}</div>`;
     }
 
+    // Notice the order: Image Frame (bottom), Note (middle), Belly Band (top wrapping everything)
     card.innerHTML = `
-        ${noteHtml}
         <div class="card-inner-frame">
             <img src="${getSafeImg(p.titleImage)}">
-            <div class="belly-band">
-                <div class="belly-text">
-                    <span class="highlight-link" style="font-weight:bold;">${p.metadata.name}</span><br>
-                    <span class="highlight-link">${p.metadata.author} — ${p.metadata.year}</span>
-                </div>
-                <img src="expand.png" style="width:35px; cursor:pointer;" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
+        </div>
+        ${noteHtml}
+        <div class="belly-band">
+            <div class="belly-text">
+                <span class="highlight-link" style="font-weight:bold;">${p.metadata.name}</span><br>
+                <span class="highlight-link">${p.metadata.author} — ${p.metadata.year}</span>
             </div>
+            <img src="expand.png" style="width:35px; cursor:pointer;" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
         </div>
     `;
     return card;
@@ -164,7 +162,6 @@ function filterProjects(tag) {
     const existing = document.getElementById('unfold-overlay');
     if (existing) existing.remove();
     
-    // Logic matching case-insensitively
     if (tag.toLowerCase() === 'all') {
         renderPile(archiveData, false); 
     } else {
@@ -180,13 +177,12 @@ function unfoldProject(id) {
     const over = document.createElement('div');
     over.id = 'unfold-overlay';
     
-    // Spread view includes the bookmark note offset to the right of the title image
     let html = `
         <img src="expand.png" class="close-unfold" onclick="this.parentElement.remove()">
         <div class="unfold-header">
             <div style="position:relative; width:50%;">
                 <img src="${getSafeImg(p.titleImage)}" style="width:100%; display:block; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
-                ${p.metadata.description ? `<div class="bookmark-note" style="top:10%; right:-40px;">${p.metadata.description}</div>` : ''}
+                ${p.metadata.description ? `<div class="bookmark-note" style="top:10%; right:-40px; bottom:auto;">${p.metadata.description}</div>` : ''}
             </div>
             <div style="display:flex; flex-direction:column; gap:8px;">
                 <span class="highlight-link" style="font-size:1.8rem; font-weight:bold;">${p.metadata.name}</span>
