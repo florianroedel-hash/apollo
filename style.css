@@ -24,7 +24,7 @@ body.active-state #main-logo { width: 150px; }
 #manifesto-box { position: fixed; top: calc(50% + 180px); left: 50%; transform: translateX(-50%); z-index: 9998; text-align: center; width: 320px; font-size: 13px; line-height: 1.5; transition: opacity 0.5s; pointer-events: none; }
 body.active-state #manifesto-box { opacity: 0; visibility: hidden; }
 
-/* RESTRUCTURED 2-ROW HEADER */
+/* 2-ROW HEADER */
 #main-header { 
     position: fixed; top: 0; left: 0; width: 100%; 
     display: flex; flex-direction: column; gap: 30px; 
@@ -41,9 +41,11 @@ body.active-state #filter-bar { opacity: 1; }
 body.active-state #main-footer { opacity: 1; pointer-events: auto; }
 #footer-links { display: flex; gap: 20px; }
 
-/* PERFECT VERTICAL DASHBOARD CENTERING */
+/* DASHBOARD & GRID SPACING */
 #archive-stage { height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-body.grid-mode #archive-stage { height: auto; align-items: flex-start; padding-top: 220px; padding-bottom: 150px; }
+
+/* Pushed grid mode further down to clear the tags, and widened the horizontal gap */
+body.grid-mode #archive-stage { height: auto; align-items: flex-start; padding-top: 260px; padding-bottom: 150px; }
 
 #dashboard-wrapper { display: flex; width: 100%; justify-content: space-between; align-items: center; padding: 0 5%; box-sizing: border-box; transition: 0.5s ease; }
 body.grid-mode .side-column { opacity: 0; pointer-events: none; width: 0; padding: 0; margin: 0; }
@@ -53,61 +55,57 @@ body.grid-mode #dashboard-wrapper { justify-content: center; align-items: flex-s
 #project-pile { position: relative; width: 50%; display: flex; justify-content: center; transition: 0.5s ease; }
 #magazine-column { width: 25%; align-self: center; transition: 0.5s ease; }
 
-body.grid-mode #project-pile { width: 90vw; max-width: 1400px; display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 80px 40px; }
+/* INCREASED HORIZONTAL GAP TO 100px */
+body.grid-mode #project-pile { width: 90vw; max-width: 1400px; display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 80px 100px; }
 
-/* THE PAPER CARD & HOVER PHYSICS */
+/* THE PAPER CARD (Now with thin border) */
 .card-wrapper { position: relative; } 
 .paper-card { 
-    background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.05); 
+    background: white; 
+    border: 1px solid #eaeaea; /* Ultra-thin definition line */
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05); 
     display: flex; flex-direction: column; position: relative; z-index: 2; cursor: pointer; 
     transform-style: preserve-3d;
 }
 
-/* Float towards user in Grid Mode */
 body.grid-mode .paper-card { transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease; }
-body.grid-mode .paper-card:hover { 
-    transform: scale(1.03) translateY(-8px); 
-    box-shadow: 0 15px 35px rgba(0,0,0,0.12); 
-    z-index: 50; 
-}
+body.grid-mode .paper-card:hover { transform: scale(1.03) translateY(-8px); box-shadow: 0 15px 35px rgba(0,0,0,0.12); z-index: 50; }
 
-/* CARD LAYERS: 1=Image, 2=Note, 3=Belly Band */
 .card-inner-frame { position: relative; z-index: 1; width: 100%; overflow: hidden; }
 .card-inner-frame img { display: block; width: 100%; }
 
-/* THE BOOKMARK NOTE (Tucked Under Band) */
+/* THE BOOKMARK NOTE (Scaled to 75%) */
 .bookmark-note {
-    position: absolute; bottom: 35px; right: -20px; z-index: 2; 
-    width: 140px; background: #fcf9ee; box-shadow: 2px 2px 10px rgba(0,0,0,0.08);
-    padding: 15px; padding-bottom: 45px; /* Extra padding to sit deep under the band */
-    font-size: 11px; line-height: 1.4; text-transform: lowercase;
-    transform: rotate(5deg);
+    position: absolute; bottom: 35px; right: -15px; z-index: 2; 
+    width: 110px; /* Reduced width */
+    background: #fcf9ee; box-shadow: 2px 2px 10px rgba(0,0,0,0.08);
+    padding: 12px; padding-bottom: 35px; /* Reduced padding */
+    font-size: 9.5px; /* Smaller text */
+    line-height: 1.4; text-transform: lowercase;
+    transform: rotate(4deg);
 }
 
-/* THE BELLY BAND (Bauchbinde) */
+/* THE BELLY BAND (Subtle Round Wrap) */
 .belly-band {
-    position: absolute; bottom: 25px; left: -10px; width: calc(100% + 20px); z-index: 3;
+    /* Sticking out just 2px on each side, moved to lower third */
+    position: absolute; bottom: 15%; left: -2px; width: calc(100% + 4px); z-index: 3;
     background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(8px);
-    padding: 15px 20px; box-sizing: border-box;
+    padding: 25px 20px; /* Taller band */
+    box-sizing: border-box;
     display: flex; justify-content: space-between; align-items: flex-end;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    
+    /* The optical illusion shadow: darkens the inside edges to mimic curving paper */
+    box-shadow: 
+        inset 6px 0 6px -4px rgba(0,0,0,0.15), 
+        inset -6px 0 6px -4px rgba(0,0,0,0.15), 
+        0 5px 15px rgba(0,0,0,0.05);
 }
 .belly-text { font-size: 11px; text-transform: lowercase; }
-
-/* The Bending Optical Illusion Shadows */
-.belly-band::before {
-    content: ''; position: absolute; top: 100%; left: 0;
-    border-top: 8px solid rgba(0,0,0,0.15); border-left: 10px solid transparent;
-}
-.belly-band::after {
-    content: ''; position: absolute; top: 100%; right: 0;
-    border-top: 8px solid rgba(0,0,0,0.15); border-right: 10px solid transparent;
-}
 
 /* MISC DASHBOARD */
 #calendar-content { padding: 20px; font-size: 13px; line-height: 1.5; }
 #calendar-content img { width: 100%; display: block; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-#magazine-cover-container { padding: 15px; background: white; box-shadow: 0 8px 30px rgba(0,0,0,0.08); transform: rotate(3deg); cursor: pointer; transition: 0.3s; }
+#magazine-cover-container { padding: 15px; background: white; border: 1px solid #eaeaea; box-shadow: 0 8px 30px rgba(0,0,0,0.08); transform: rotate(3deg); cursor: pointer; transition: 0.3s; }
 #magazine-cover-container:hover { transform: rotate(0deg) scale(1.02); }
 #magazine-cover-container img { width: 100%; display: block; }
 
@@ -119,8 +117,6 @@ body.grid-mode .paper-card:hover {
 #unfold-overlay { position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh; background: white; z-index: 10000; padding: 140px 60px; box-sizing: border-box; }
 .close-unfold { position: fixed; bottom: 40px; left: 40px; width: 45px; z-index: 10002; cursor: pointer; transform: rotate(180deg); transition: 0.2s; }
 .close-unfold:hover { opacity: 0.6; }
-.unfold-header { display: flex; gap: 50px; align-items: center; margin-bottom: 100px; position: relative; }
-.unfold-title-pic { width: 50%; flex-shrink: 0; box-shadow: 0 5px 20px rgba(0,0,0,0.05); position: relative; z-index: 2;}
 
 .unfold-grid { column-count: 3; column-gap: 40px; width: 100%; }
-.unfold-grid-item { break-inside: avoid; margin-bottom: 40px; display: inline-block; width: 100%; box-sizing: border-box; background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+.unfold-grid-item { break-inside: avoid; margin-bottom: 40px; display: inline-block; width: 100%; box-sizing: border-box; background: white; border: 1px solid #eaeaea; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
