@@ -90,7 +90,6 @@ function renderPile(data, isGrid = false) {
     document.body.classList.toggle('grid-mode', isGrid);
 
     data.forEach((p, i) => {
-        // Grid items get 0 rotation so they sit perfectly straight
         const rot = isGrid ? 0 : Math.random() * 6 - 3;
         
         if (isGrid) {
@@ -121,13 +120,11 @@ function createCard(p, isGrid) {
     const pad = Math.floor(Math.random() * 10) + 15;
     card.style.padding = `${pad}px`;
 
-    // The Note now renders on BOTH the dashboard and the organized grid
     let noteHtml = '';
     if (p.metadata.description) {
         noteHtml = `<div class="bookmark-note">${p.metadata.description}</div>`;
     }
 
-    // Notice the order: Image Frame (bottom), Note (middle), Belly Band (top wrapping everything)
     card.innerHTML = `
         <div class="card-inner-frame">
             <img src="${getSafeImg(p.titleImage)}">
@@ -169,6 +166,7 @@ function filterProjects(tag) {
     }
 }
 
+// RESTYLED PROJECT SPREAD (Note next to image, title text below)
 function unfoldProject(id) {
     const p = archiveData.find(proj => proj.id === id);
     const existing = document.getElementById('unfold-overlay');
@@ -179,17 +177,29 @@ function unfoldProject(id) {
     
     let html = `
         <img src="expand.png" class="close-unfold" onclick="this.parentElement.remove()">
-        <div class="unfold-header">
-            <div style="position:relative; width:50%;">
-                <img src="${getSafeImg(p.titleImage)}" style="width:100%; display:block; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
-                ${p.metadata.description ? `<div class="bookmark-note" style="top:10%; right:-40px; bottom:auto;">${p.metadata.description}</div>` : ''}
+        
+        <div style="margin-bottom: 100px; display: flex; flex-direction: column; align-items: flex-start;">
+            
+            <div style="display: flex; gap: 40px; align-items: flex-start; width: 100%;">
+                
+                <div style="width: 50%; position: relative;">
+                    <img src="${getSafeImg(p.titleImage)}" style="width:100%; display:block; border: 1px solid #eaeaea; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
+                </div>
+                
+                ${p.metadata.description ? `
+                <div class="bookmark-note" style="position: relative; top: 0; right: 0; transform: rotate(2deg);">
+                    ${p.metadata.description}
+                </div>` : ''}
+
             </div>
-            <div style="display:flex; flex-direction:column; gap:8px;">
+            
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 25px; width: 50%;">
                 <span class="highlight-link" style="font-size:1.8rem; font-weight:bold;">${p.metadata.name}</span>
-                <span class="highlight-link">${p.metadata.author}</span>
-                <span class="highlight-link">${p.metadata.year}</span>
+                <span class="highlight-link">${p.metadata.author} — ${p.metadata.year}</span>
             </div>
+            
         </div>
+
         <div class="unfold-grid">
     `;
 
