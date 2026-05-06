@@ -3,7 +3,6 @@ body { margin: 0; font-family: 'Ufficio', sans-serif; background: white; overflo
 
 /* LOCK SCROLLING ON MAIN DASHBOARD */
 body.focus-state, body.active-state { overflow: hidden; height: 100vh; }
-/* UNLOCK SCROLLING FOR GRID MODE */
 body.grid-mode { overflow-y: auto; height: auto; }
 
 body.focus-state #main-header, body.focus-state #main-footer, body.focus-state #archive-stage { filter: blur(20px); opacity: 0.2; pointer-events: none; }
@@ -25,52 +24,84 @@ body.active-state #main-logo { width: 150px; }
 #manifesto-box { position: fixed; top: calc(50% + 180px); left: 50%; transform: translateX(-50%); z-index: 9998; text-align: center; width: 320px; font-size: 13px; line-height: 1.5; transition: opacity 0.5s; pointer-events: none; }
 body.active-state #manifesto-box { opacity: 0; visibility: hidden; }
 
-#main-header { position: fixed; top: 0; left: 0; width: 100%; display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: start; padding: 40px; box-sizing: border-box; z-index: 10001; pointer-events: none; }
+/* RESTRUCTURED 2-ROW HEADER */
+#main-header { 
+    position: fixed; top: 0; left: 0; width: 100%; 
+    display: flex; flex-direction: column; gap: 30px; 
+    padding: 40px; box-sizing: border-box; z-index: 10001; pointer-events: none; 
+}
 #main-header > * { pointer-events: auto; }
+.header-row-1 { display: flex; justify-content: flex-start; width: 100%; }
+.header-row-2 { display: flex; justify-content: center; width: 100%; }
 #side-menu-top { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
-#filter-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; opacity: 0; transition: 0.5s; max-width: 400px; margin: 0 auto; }
+#filter-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; opacity: 0; transition: 0.5s; max-width: 600px; }
 body.active-state #filter-bar { opacity: 1; }
 
 #main-footer { position: fixed; bottom: 0; left: 0; width: 100%; display: flex; justify-content: center; padding: 40px 0; z-index: 10001; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
 body.active-state #main-footer { opacity: 1; pointer-events: auto; }
 #footer-links { display: flex; gap: 20px; }
 
-/* DASHBOARD CENTERING FIX */
+/* PERFECT VERTICAL DASHBOARD CENTERING */
 #archive-stage { height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-body.grid-mode #archive-stage { height: auto; align-items: flex-start; padding-top: 180px; padding-bottom: 150px; }
+body.grid-mode #archive-stage { height: auto; align-items: flex-start; padding-top: 220px; padding-bottom: 150px; }
 
-#dashboard-wrapper { display: flex; width: 100%; justify-content: space-between; align-items: flex-start; padding: 0 5%; box-sizing: border-box; transition: 0.5s ease; }
+#dashboard-wrapper { display: flex; width: 100%; justify-content: space-between; align-items: center; padding: 0 5%; box-sizing: border-box; transition: 0.5s ease; }
 body.grid-mode .side-column { opacity: 0; pointer-events: none; width: 0; padding: 0; margin: 0; }
-body.grid-mode #dashboard-wrapper { justify-content: center; }
+body.grid-mode #dashboard-wrapper { justify-content: center; align-items: flex-start; }
 
-#calendar-column { width: 15%; align-self: flex-end; transition: 0.5s ease; }
+#calendar-column { width: 20%; align-self: center; transition: 0.5s ease; }
 #project-pile { position: relative; width: 50%; display: flex; justify-content: center; transition: 0.5s ease; }
-#magazine-column { width: 28%; transition: 0.5s ease; }
+#magazine-column { width: 25%; align-self: center; transition: 0.5s ease; }
 
 body.grid-mode #project-pile { width: 90vw; max-width: 1400px; display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 80px 40px; }
 
-/* THE CARDS & THE BELLY BAND */
-.card-wrapper { position: relative; } /* Holds the card and the bookmark together */
+/* THE PAPER CARD & HOVER PHYSICS */
+.card-wrapper { position: relative; } 
+.paper-card { 
+    background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.05); 
+    display: flex; flex-direction: column; position: relative; z-index: 2; cursor: pointer; 
+    transform-style: preserve-3d;
+}
 
-.paper-card { background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.05); display: flex; flex-direction: column; position: relative; z-index: 2; cursor: pointer; }
-.card-inner-frame { width: 100%; position: relative; overflow: hidden; }
+/* Float towards user in Grid Mode */
+body.grid-mode .paper-card { transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease; }
+body.grid-mode .paper-card:hover { 
+    transform: scale(1.03) translateY(-8px); 
+    box-shadow: 0 15px 35px rgba(0,0,0,0.12); 
+    z-index: 50; 
+}
+
+/* CARD LAYERS: 1=Image, 2=Note, 3=Belly Band */
+.card-inner-frame { position: relative; z-index: 1; width: 100%; overflow: hidden; }
 .card-inner-frame img { display: block; width: 100%; }
 
+/* THE BOOKMARK NOTE (Tucked Under Band) */
+.bookmark-note {
+    position: absolute; bottom: 35px; right: -20px; z-index: 2; 
+    width: 140px; background: #fcf9ee; box-shadow: 2px 2px 10px rgba(0,0,0,0.08);
+    padding: 15px; padding-bottom: 45px; /* Extra padding to sit deep under the band */
+    font-size: 11px; line-height: 1.4; text-transform: lowercase;
+    transform: rotate(5deg);
+}
+
+/* THE BELLY BAND (Bauchbinde) */
 .belly-band {
-    position: absolute; bottom: 10%; left: 0; width: 100%;
-    background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px);
-    padding: 15px; box-sizing: border-box;
+    position: absolute; bottom: 25px; left: -10px; width: calc(100% + 20px); z-index: 3;
+    background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(8px);
+    padding: 15px 20px; box-sizing: border-box;
     display: flex; justify-content: space-between; align-items: flex-end;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 .belly-text { font-size: 11px; text-transform: lowercase; }
 
-/* THE BOOKMARK NOTE */
-.bookmark-note {
-    position: absolute; top: 15%; right: -25px; /* Sticking out the right side */
-    width: 150px; background: #fcf9ee; /* Old paper yellowish */
-    box-shadow: 2px 5px 15px rgba(0,0,0,0.08);
-    padding: 15px; font-size: 11px; line-height: 1.4; text-transform: lowercase;
-    transform: rotate(3deg); z-index: 1; /* Sits slightly behind the main card */
+/* The Bending Optical Illusion Shadows */
+.belly-band::before {
+    content: ''; position: absolute; top: 100%; left: 0;
+    border-top: 8px solid rgba(0,0,0,0.15); border-left: 10px solid transparent;
+}
+.belly-band::after {
+    content: ''; position: absolute; top: 100%; right: 0;
+    border-top: 8px solid rgba(0,0,0,0.15); border-right: 10px solid transparent;
 }
 
 /* MISC DASHBOARD */
