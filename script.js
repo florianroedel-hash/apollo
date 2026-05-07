@@ -41,9 +41,10 @@ function generateDynamicTags() {
     tags.forEach(tag => {
         const btn = document.createElement('span');
         btn.className = 'tag-filter highlight-link';
+        if(tag === 'all') btn.classList.add('active-tag');
         btn.innerText = tag;
         const matchTag = tag === 'all' ? 'All' : tag;
-        btn.onclick = () => filterProjects(matchTag);
+        btn.onclick = () => filterProjects(matchTag, btn);
         filterBar.appendChild(btn);
     });
 }
@@ -122,7 +123,8 @@ function createCard(p, isGrid) {
 
     let noteHtml = '';
     if (p.metadata.description) {
-        noteHtml = `<div class="bookmark-note">${p.metadata.description}</div>`;
+        // Safe 150% Hover & Click action added here
+        noteHtml = `<div class="bookmark-note" onclick="event.stopPropagation(); unfoldProject('${p.id}')">${p.metadata.description}</div>`;
     }
 
     card.innerHTML = `
@@ -132,8 +134,8 @@ function createCard(p, isGrid) {
         ${noteHtml}
         <div class="belly-band">
             <div class="belly-text">
-                <span class="highlight-link" style="font-weight:bold;">${p.metadata.name}</span><br>
-                <span class="highlight-link">${p.metadata.author} — ${p.metadata.year}</span>
+                <span class="clean-text">${p.metadata.name}</span>
+                <span class="clean-subtext">${p.metadata.author} — ${p.metadata.year}</span>
             </div>
             <img src="expand.png" style="width:35px; cursor:pointer;" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
         </div>
@@ -155,9 +157,15 @@ function shuffleToBack(wrapper) {
     }, 600);
 }
 
-function filterProjects(tag) {
+function filterProjects(tag, clickedBtn) {
     const existing = document.getElementById('unfold-overlay');
     if (existing) existing.remove();
+    
+    // Logic for [ ] bracket persistence
+    if (clickedBtn) {
+        document.querySelectorAll('.tag-filter').forEach(btn => btn.classList.remove('active-tag'));
+        clickedBtn.classList.add('active-tag');
+    }
     
     if (tag.toLowerCase() === 'all') {
         renderPile(archiveData, false); 
@@ -166,7 +174,7 @@ function filterProjects(tag) {
     }
 }
 
-// RESTYLED PROJECT SPREAD (Note next to image, title text below)
+// 3-COLUMN PROJECT SPREAD (50% | 25% | 25%)
 function unfoldProject(id) {
     const p = archiveData.find(proj => proj.id === id);
     const existing = document.getElementById('unfold-overlay');
@@ -178,25 +186,25 @@ function unfoldProject(id) {
     let html = `
         <img src="expand.png" class="close-unfold" onclick="this.parentElement.remove()">
         
-        <div style="margin-bottom: 100px; display: flex; flex-direction: column; align-items: flex-start;">
+        <div style="margin-bottom: 100px; display: flex; gap: 40px; align-items: stretch; width: 100%; margin-top: 40px;">
             
-            <div style="display: flex; gap: 40px; align-items: flex-start; width: 100%;">
-                
-                <div style="width: 50%; position: relative;">
-                    <img src="${getSafeImg(p.titleImage)}" style="width:100%; display:block; border: 1px solid #eaeaea; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
-                </div>
-                
+            <div style="width: 50%;">
+                <img src="${getSafeImg(p.titleImage)}" style="width:100%; display:block; border: 1px solid #eaeaea; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
+            </div>
+            
+            <div style="width: 25%; display: flex; flex-direction: column; justify-content: space-between;">
                 ${p.metadata.description ? `
-                <div class="bookmark-note" style="position: relative; top: 0; right: 0; transform: rotate(2deg);">
+                <div class="bookmark-note spread-note">
                     ${p.metadata.description}
-                </div>` : ''}
+                </div>` : '<div></div>'}
+                
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <span style="font-size:1.8rem; font-weight:bold; text-transform: lowercase;">${p.metadata.name}</span>
+                    <span style="text-transform: lowercase;">${p.metadata.author} — ${p.metadata.year}</span>
+                </div>
+            </div>
 
-            </div>
-            
-            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 25px; width: 50%;">
-                <span class="highlight-link" style="font-size:1.8rem; font-weight:bold;">${p.metadata.name}</span>
-                <span class="highlight-link">${p.metadata.author} — ${p.metadata.year}</span>
-            </div>
+            <div style="width: 25%;"></div>
             
         </div>
 
@@ -214,6 +222,7 @@ function unfoldProject(id) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// 3D MAGAZINE VIEWER
 window.openMagazine = function() {
     if (magazineData.length === 0) return;
     magCurrentPage = 0;
@@ -227,24 +236,44 @@ function updateMagazineView() {
     const over = document.getElementById('magazine-reader-overlay');
     if (!over) return;
     const magImages = magazineData[0].images;
-    let spreadHtml = `<div class="spread-container">`;
-    if (magCurrentPage === 0) { spreadHtml += `<img class="spread-page" src="${getSafeImg(magImages[0])}">`; } 
-    else {
-        const leftPage = magImages[magCurrentPage * 2 - 1];
-        const rightPage = magImages[magCurrentPage * 2];
-        if (leftPage) spreadHtml += `<img class="spread-page" src="${getSafeImg(leftPage)}">`;
-        if (rightPage) spreadHtml += `<img class="spread-page" src="${getSafeImg(rightPage)}">`;
+    const totalLeaves = Math.ceil(magImages.length / 2);
+
+    let leavesHtml = '';
+    for (let i = 0; i < totalLeaves; i++) {
+        const frontImg = magImages[i * 2];
+        const backImg = magImages[i * 2 + 1];
+        
+        const isFlipped = i < magCurrentPage ? 'flipped' : '';
+        // Calculate z-index so closed pages stack correctly, and open pages stack correctly
+        const zIndex = i < magCurrentPage ? i : totalLeaves - i;
+
+        leavesHtml += `
+            <div class="book-leaf ${isFlipped}" style="z-index: ${zIndex};" onclick="flipMag(${i})">
+                <div class="page-front">
+                    ${frontImg ? `<img src="${getSafeImg(frontImg)}">` : ''}
+                </div>
+                <div class="page-back">
+                    ${backImg ? `<img src="${getSafeImg(backImg)}">` : ''}
+                </div>
+            </div>
+        `;
     }
-    spreadHtml += `</div>`;
-    const totalSpreads = Math.ceil((magImages.length - 1) / 2);
+
     over.innerHTML = `
         <img src="expand.png" class="close-unfold" onclick="this.parentElement.remove()">
-        ${spreadHtml}
+        <div class="magazine-scene">${leavesHtml}</div>
         <div class="reader-controls">
             ${magCurrentPage > 0 ? `<span class="highlight-link" onclick="magCurrentPage--; updateMagazineView()">prev</span>` : '<span></span>'}
-            ${magCurrentPage < totalSpreads ? `<span class="highlight-link" onclick="magCurrentPage++; updateMagazineView()">next</span>` : '<span></span>'}
+            ${magCurrentPage < totalLeaves ? `<span class="highlight-link" onclick="magCurrentPage++; updateMagazineView()">next</span>` : '<span></span>'}
         </div>
     `;
+}
+
+// Interaction specific to the 3D book clicking
+window.flipMag = function(leafIndex) {
+    if (leafIndex === magCurrentPage) { magCurrentPage++; }
+    else if (leafIndex === magCurrentPage - 1) { magCurrentPage--; }
+    updateMagazineView();
 }
 
 init();
