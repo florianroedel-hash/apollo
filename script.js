@@ -123,7 +123,6 @@ function createCard(p, isGrid) {
 
     let noteHtml = '';
     if (p.metadata.description) {
-        // Safe 150% Hover & Click action added here
         noteHtml = `<div class="bookmark-note" onclick="event.stopPropagation(); unfoldProject('${p.id}')">${p.metadata.description}</div>`;
     }
 
@@ -161,7 +160,6 @@ function filterProjects(tag, clickedBtn) {
     const existing = document.getElementById('unfold-overlay');
     if (existing) existing.remove();
     
-    // Logic for [ ] bracket persistence
     if (clickedBtn) {
         document.querySelectorAll('.tag-filter').forEach(btn => btn.classList.remove('active-tag'));
         clickedBtn.classList.add('active-tag');
@@ -174,7 +172,6 @@ function filterProjects(tag, clickedBtn) {
     }
 }
 
-// 3-COLUMN PROJECT SPREAD (50% | 25% | 25%)
 function unfoldProject(id) {
     const p = archiveData.find(proj => proj.id === id);
     const existing = document.getElementById('unfold-overlay');
@@ -187,7 +184,6 @@ function unfoldProject(id) {
         <img src="expand.png" class="close-unfold" onclick="this.parentElement.remove()">
         
         <div style="margin-bottom: 100px; display: flex; gap: 40px; align-items: stretch; width: 100%; margin-top: 40px;">
-            
             <div style="width: 50%;">
                 <img src="${getSafeImg(p.titleImage)}" style="width:100%; display:block; border: 1px solid #eaeaea; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
             </div>
@@ -203,9 +199,7 @@ function unfoldProject(id) {
                     <span style="text-transform: lowercase;">${p.metadata.author} — ${p.metadata.year}</span>
                 </div>
             </div>
-
             <div style="width: 25%;"></div>
-            
         </div>
 
         <div class="unfold-grid">
@@ -217,12 +211,12 @@ function unfoldProject(id) {
     });
 
     html += `</div>`;
-    over.innerHTML = html;
     document.body.appendChild(over);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // JS FIX: Ensure the new fixed overlay resets to the top properly!
+    over.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// 3D MAGAZINE VIEWER
 window.openMagazine = function() {
     if (magazineData.length === 0) return;
     magCurrentPage = 0;
@@ -244,7 +238,6 @@ function updateMagazineView() {
         const backImg = magImages[i * 2 + 1];
         
         const isFlipped = i < magCurrentPage ? 'flipped' : '';
-        // Calculate z-index so closed pages stack correctly, and open pages stack correctly
         const zIndex = i < magCurrentPage ? i : totalLeaves - i;
 
         leavesHtml += `
@@ -269,7 +262,6 @@ function updateMagazineView() {
     `;
 }
 
-// Interaction specific to the 3D book clicking
 window.flipMag = function(leafIndex) {
     if (leafIndex === magCurrentPage) { magCurrentPage++; }
     else if (leafIndex === magCurrentPage - 1) { magCurrentPage--; }
