@@ -3,23 +3,26 @@ const URL_CALENDAR = 'https://script.google.com/macros/s/AKfycbz5THEJ7sno1qcFbPa
 const URL_MAGAZINE = 'https://script.google.com/macros/s/AKfycbyxSddhc-ntCVewfsAFXLcvStqnEN14VAJ-UtMuUxYt1zttxh8C39YelbeY5-pGsvZ6mg/exec';
 
 const pile = document.getElementById('project-pile');
-const logoImg = document.getElementById('main-logo');
 const filterBar = document.getElementById('filter-bar');
 
 let archiveData = [], calendarData = [], magazineData = [];
-let isLoaded = false, isWaitingToStart = false, magCurrentPage = 0;
+let isLoaded = false, isWaitingToStart = true;
 
 function getSafeImg(url) {
     const id = url.match(/id=([^&]+)/);
     return id ? `https://drive.google.com/thumbnail?id=${id[1]}&sz=w1200` : url;
 }
 
-// THE GATEKEEPER PASSCODE CHECK
+// GATEKEEPER LOGIC - Directly unlocks to Dashboard
 window.checkPasscode = function(e) {
     if (e.target.value === '1665') {
         const overlay = document.getElementById('passcode-overlay');
         overlay.style.opacity = '0';
-        setTimeout(() => overlay.remove(), 500);
+        setTimeout(() => {
+            overlay.remove();
+            if (isLoaded) liftFog();
+            else isWaitingToStart = true;
+        }, 500);
     }
 };
 
@@ -38,7 +41,10 @@ async function init() {
         generateDynamicTags();
         isLoaded = true;
         
-        if (!isWaitingToStart) renderDashboard();
+        // If passcode was already entered before loading finished
+        if (!document.getElementById('passcode-overlay')) {
+            liftFog();
+        }
     } catch (e) { isLoaded = true; }
 }
 
@@ -57,16 +63,6 @@ function generateDynamicTags() {
         filterBar.appendChild(btn);
     });
 }
-
-window.startArchive = function() {
-    if (document.getElementById('passcode-overlay')) return; // Prevents bypass
-    if (!document.body.classList.contains('focus-state')) return;
-    if (isLoaded) liftFog(); else { isWaitingToStart = true; logoImg.classList.add('spinning'); }
-};
-
-logoImg.addEventListener('animationiteration', () => {
-    if (isWaitingToStart && isLoaded) { logoImg.classList.remove('spinning'); liftFog(); }
-});
 
 function liftFog() {
     isWaitingToStart = false;
@@ -112,7 +108,7 @@ function renderPile(data, isGrid = false) {
             const wrapper = document.createElement('div');
             wrapper.className = 'card-wrapper';
             wrapper.style.position = 'absolute';
-            wrapper.style.width = '65%'; /* SCALES BEAUTIFULLY NOW */
+            wrapper.style.width = '65%'; 
             wrapper.style.left = '50%';
             wrapper.style.top = '50%';
             wrapper.style.transform = `translate(-50%, -50%) rotate(${rot}deg)`;
@@ -128,25 +124,29 @@ function renderPile(data, isGrid = false) {
 function createCard(p, isGrid) {
     const card = document.createElement('div');
     card.className = 'paper-card';
-    const pad = Math.floor(Math.random() * 10) + 20; /* Added slight pad to ensure binder holes look clean */
+    const pad = Math.floor(Math.random() * 10) + 20; 
     card.style.padding = `${pad}px`;
 
+    // Added Placeholder Title & Stamped Logo directly over text
     let noteHtml = '';
     if (p.metadata.description) {
-        noteHtml = `<div class="bookmark-note" onclick="event.stopPropagation(); unfoldProject('${p.id}')">${p.metadata.description}</div>`;
+        noteHtml = `
+            <div class="bookmark-note" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
+                <img src="logo.png" class="stamp-logo">
+                <div class="note-title">[ NOTE TITLE ]</div>
+                <div class="note-text-content">${p.metadata.description}</div>
+            </div>`;
     }
 
+    // Centered Belly Text
     card.innerHTML = `
         <div class="card-inner-frame">
             <img src="${getSafeImg(p.titleImage)}">
         </div>
         ${noteHtml}
         <div class="belly-band">
-            <div class="belly-text">
-                <span class="clean-text">${p.metadata.name}</span>
-                <span class="clean-subtext">${p.metadata.author} — ${p.metadata.year}</span>
-            </div>
-            <img src="expand.png" style="width:35px; cursor:pointer;" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
+            <div class="belly-text">${p.metadata.name} — ${p.metadata.author} — ${p.metadata.year}</div>
+            <img src="expand.png" class="belly-expand" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
         </div>
     `;
     return card;
@@ -168,7 +168,10 @@ function shuffleToBack(wrapper) {
 
 function filterProjects(tag, clickedBtn) {
     const existing = document.getElementById('unfold-overlay');
-    if (existing) existing.remove();
+    if (existing) {
+        document.body.classList.remove('spread-open');
+        existing.remove();
+    }
     
     if (clickedBtn) {
         document.querySelectorAll('.tag-filter').forEach(btn => btn.classList.remove('active-tag'));
@@ -187,15 +190,16 @@ function unfoldProject(id) {
     const existing = document.getElementById('unfold-overlay');
     if (existing) existing.remove();
 
+    // HIDES THE HEADER
+    document.body.classList.add('spread-open');
+
     const over = document.createElement('div');
     over.id = 'unfold-overlay';
     
     let html = `
-        <img src="expand.png" class="close-unfold" onclick="this.parentElement.remove()">
+        <img src="expand.png" class="close-unfold" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove()">
         
         <div style="margin-bottom: 100px; display: flex; gap: 40px; align-items: stretch; width: 100%; margin-top: 40px;">
-            
-            <!-- TITLE CARD WITH HOLES -->
             <div style="width: 50%;">
                 <div class="card-wrapper" style="width: 100%;">
                     <div class="paper-card" style="padding: 25px; cursor: default;">
@@ -209,7 +213,9 @@ function unfoldProject(id) {
             <div style="width: 25%; display: flex; flex-direction: column; justify-content: space-between;">
                 ${p.metadata.description ? `
                 <div class="bookmark-note spread-note">
-                    ${p.metadata.description}
+                    <img src="logo.png" class="stamp-logo">
+                    <div class="note-title">[ NOTE TITLE ]</div>
+                    <div class="note-text-content">${p.metadata.description}</div>
                 </div>` : '<div></div>'}
                 
                 <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -230,7 +236,6 @@ function unfoldProject(id) {
 
     html += `</div>`;
     
-    // THE CRITICAL FIX: The innerHTML is injected BEFORE it attaches to the body
     over.innerHTML = html;
     document.body.appendChild(over);
     over.scrollTo({ top: 0, behavior: 'smooth' });
@@ -239,6 +244,10 @@ function unfoldProject(id) {
 window.openMagazine = function() {
     if (magazineData.length === 0) return;
     magCurrentPage = 0;
+    
+    // HIDES THE HEADER
+    document.body.classList.add('spread-open');
+    
     const over = document.createElement('div');
     over.id = 'magazine-reader-overlay';
     document.body.appendChild(over);
@@ -272,7 +281,7 @@ function updateMagazineView() {
     }
 
     over.innerHTML = `
-        <img src="expand.png" class="close-unfold" onclick="this.parentElement.remove()">
+        <img src="expand.png" class="close-unfold" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove()">
         <div class="magazine-scene">${leavesHtml}</div>
         <div class="reader-controls">
             ${magCurrentPage > 0 ? `<span class="highlight-link" onclick="magCurrentPage--; updateMagazineView()">prev</span>` : '<span></span>'}
