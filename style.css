@@ -1,6 +1,11 @@
 @font-face { font-family: 'Ufficio'; src: url('fonts/UfficioDisplay-500.woff2') format('woff2'); }
 body { margin: 0; font-family: 'Ufficio', sans-serif; background: white; overflow-x: hidden; }
 
+/* THE PASSCODE STYLES */
+#passcode-overlay { position: fixed; inset: 0; background: white; z-index: 100000; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
+#passcode-input { border: 1px solid #eaeaea; border-radius: 0; padding: 10px; text-align: center; outline: none; font-family: 'Ufficio', sans-serif; width: 100px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02); }
+#passcode-input:focus { border-color: #000; }
+
 /* LOCK SCROLLING ON MAIN DASHBOARD */
 body.focus-state, body.active-state { overflow: hidden; height: 100vh; }
 body.grid-mode { overflow-y: auto; height: auto; }
@@ -8,11 +13,7 @@ body.grid-mode { overflow-y: auto; height: auto; }
 body.focus-state #main-header, body.focus-state #main-footer, body.focus-state #archive-stage { filter: blur(20px); opacity: 0.2; pointer-events: none; }
 
 /* MASKING LINK STYLE */
-.highlight-link { 
-    background-color: white; padding: 4px 8px; text-decoration: none; color: black; 
-    display: inline-block; cursor: pointer; transition: 0.2s; text-transform: lowercase; 
-    position: relative; font-weight: normal;
-}
+.highlight-link { background-color: white; padding: 4px 8px; text-decoration: none; color: black; display: inline-block; cursor: pointer; transition: 0.2s; text-transform: lowercase; position: relative; font-weight: normal; }
 .highlight-link::before { content: '[ '; opacity: 0; transition: 0.2s; position: absolute; left: -5px; }
 .highlight-link::after { content: ' ]'; opacity: 0; transition: 0.2s; position: absolute; right: -5px; }
 .highlight-link:hover::before, .highlight-link:hover::after,
@@ -45,7 +46,7 @@ body.active-state #filter-bar { opacity: 1; }
 body.active-state #main-footer { opacity: 1; pointer-events: auto; }
 #footer-links { display: flex; gap: 20px; }
 
-/* DASHBOARD */
+/* DASHBOARD & DIVIDERS */
 #archive-stage { height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 body.grid-mode #archive-stage { height: auto; align-items: flex-start; padding-top: 260px; padding-bottom: 150px; }
 
@@ -53,47 +54,57 @@ body.grid-mode #archive-stage { height: auto; align-items: flex-start; padding-t
 body.grid-mode .side-column { opacity: 0; pointer-events: none; width: 0; padding: 0; margin: 0; }
 body.grid-mode #dashboard-wrapper { justify-content: center; align-items: flex-start; }
 
+.col-divider { width: 1px; background: #eaeaea; height: calc(100vh - 160px); transition: 0.5s ease; }
+body.grid-mode .col-divider { opacity: 0; width: 0; margin: 0; }
+
 #calendar-column { width: 20%; align-self: center; transition: 0.5s ease; }
 #project-pile { position: relative; width: 50%; display: flex; justify-content: center; transition: 0.5s ease; }
 #magazine-column { width: 25%; align-self: center; transition: 0.5s ease; }
 body.grid-mode #project-pile { width: 90vw; max-width: 1400px; display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 80px 100px; }
 
-/* THE PAPER CARD */
-.card-wrapper { position: relative; } 
+/* THE PAPER CARD & BINDER HOLES (Using CSS drop-shadow so holes have shadows too!) */
+.card-wrapper { 
+    position: relative; 
+    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.06)); /* Real shadow that wraps the punched holes */
+} 
 .paper-card { 
-    background: white; border: 1px solid #eaeaea; box-shadow: 0 5px 20px rgba(0,0,0,0.05); 
+    background: white; border: 1px solid #eaeaea; 
     display: flex; flex-direction: column; position: relative; z-index: 2; cursor: pointer; transform-style: preserve-3d;
+    
+    /* 5 PERFECT BINDER HOLES */
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cmask id='holes'%3E%3Crect width='100%25' height='100%25' fill='white'/%3E%3Ccircle cx='18' cy='10%25' r='5.5' fill='black'/%3E%3Ccircle cx='18' cy='30%25' r='5.5' fill='black'/%3E%3Ccircle cx='18' cy='50%25' r='5.5' fill='black'/%3E%3Ccircle cx='18' cy='70%25' r='5.5' fill='black'/%3E%3Ccircle cx='18' cy='90%25' r='5.5' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='black' mask='url(%23holes)'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cmask id='holes'%3E%3Crect width='100%25' height='100%25' fill='white'/%3E%3Ccircle cx='18' cy='10%25' r='5.5' fill='black'/%3E%3Ccircle cx='18' cy='30%25' r='5.5' fill='black'/%3E%3Ccircle cx='18' cy='50%25' r='5.5' fill='black'/%3E%3Ccircle cx='18' cy='70%25' r='5.5' fill='black'/%3E%3Ccircle cx='18' cy='90%25' r='5.5' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='black' mask='url(%23holes)'/%3E%3C/svg%3E");
+    -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
 }
-body.grid-mode .paper-card { transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease; }
-body.grid-mode .paper-card:hover { transform: scale(1.03) translateY(-8px); box-shadow: 0 15px 35px rgba(0,0,0,0.12); z-index: 50; }
+
+body.grid-mode .card-wrapper { transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.4s ease; }
+body.grid-mode .card-wrapper:hover { transform: scale(1.03) translateY(-8px); filter: drop-shadow(0 15px 35px rgba(0,0,0,0.12)); z-index: 50; }
 
 .card-inner-frame { position: relative; z-index: 1; width: 100%; overflow: hidden; }
 .card-inner-frame img { display: block; width: 100%; }
 
-/* THE DYNAMIC POST-IT (Relative Sizing & Gradient Mask) */
+/* DYNAMIC POST-IT (Straightened, left-shifted, sticks out bottom) */
 .bookmark-note {
-    position: absolute; top: 15%; right: -5%; z-index: 2; 
-    width: 35%; /* Scales with the project card width */
-    max-height: 65%; /* Prevents it from dropping below the card */
-    background: #fcf9ee; box-shadow: 2px 2px 10px rgba(0,0,0,0.08);
+    position: absolute; top: 15%; right: 5%; z-index: 2; 
+    width: 35%; height: 85%; /* Extends deep to peek out below the belly band */
+    background: #fcf9ee; box-shadow: 2px 5px 15px rgba(0,0,0,0.06);
     padding: 12px; font-size: 10.5px; line-height: 1.4; text-transform: lowercase;
-    transform: rotate(4deg); transform-origin: top right;
+    transform: rotate(0deg); /* Perfectly straight */
+    transform-origin: top right;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     
-    /* Elegant gradient fade-out for long text */
     overflow: hidden;
     -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
     mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
 }
 .bookmark-note:hover { 
-    transform: scale(1.5) rotate(0deg); z-index: 9999 !important; 
+    transform: scale(1.5); z-index: 9999 !important; 
     box-shadow: 0 15px 35px rgba(0,0,0,0.15); cursor: pointer;
-    max-height: 400px; /* Expands to reveal all text */
-    -webkit-mask-image: none; /* Removes fade on hover */
-    mask-image: none;
+    height: auto; max-height: 400px; 
+    -webkit-mask-image: none; mask-image: none;
 }
-.spread-note { position: relative; max-height: none; width: 100%; -webkit-mask-image: none; mask-image: none; display: block; transform: rotate(2deg); right: 0; }
-.spread-note:hover { transform: none; box-shadow: 2px 2px 10px rgba(0,0,0,0.08); cursor: default; }
+.spread-note { position: relative; max-height: none; height: auto; width: 100%; -webkit-mask-image: none; mask-image: none; display: block; right: 0; }
+.spread-note:hover { transform: none; box-shadow: 2px 5px 15px rgba(0,0,0,0.06); cursor: default; }
 
 /* THE BELLY BAND */
 .belly-band {
@@ -107,14 +118,14 @@ body.grid-mode .paper-card:hover { transform: scale(1.03) translateY(-8px); box-
 .clean-subtext { background: white; padding: 2px 4px; display: inline-block; }
 
 /* GRID MODE PROPORTIONAL SCALING */
-body.grid-mode .bookmark-note { padding: 8px; font-size: 8.5px; right: -8%; }
+body.grid-mode .bookmark-note { padding: 8px; font-size: 8.5px; right: 5%; }
 body.grid-mode .belly-band { padding: 15px 15px; }
 body.grid-mode .belly-text { font-size: 9px; }
 body.grid-mode .belly-band img { width: 25px !important; }
 
-/* MISC DASHBOARD */
-#calendar-content { padding: 20px; font-size: 13px; line-height: 1.5; }
-#calendar-content img { width: 100%; display: block; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+/* MISC DASHBOARD (Calendar now has matching shadow and border) */
+#calendar-content { padding: 20px; font-size: 13px; line-height: 1.5; background: white; border: 1px solid #eaeaea; box-shadow: 0 8px 30px rgba(0,0,0,0.05); }
+#calendar-content img { width: 100%; display: block; margin-bottom: 15px; }
 #magazine-cover-container { padding: 15px; background: white; border: 1px solid #eaeaea; box-shadow: 0 8px 30px rgba(0,0,0,0.08); transform: rotate(3deg); cursor: pointer; transition: 0.3s; }
 #magazine-cover-container:hover { transform: rotate(0deg) scale(1.02); }
 #magazine-cover-container img { width: 100%; display: block; }
@@ -129,12 +140,8 @@ body.grid-mode .belly-band img { width: 25px !important; }
 .page-front img, .page-back img { width: 100%; height: 100%; object-fit: contain; }
 .reader-controls { position: absolute; bottom: 50px; display: flex; gap: 40px; z-index: 10011; }
 
-/* INDEPENDENT SPREAD SCROLLING */
-#unfold-overlay { 
-    position: fixed; /* Fixes scroll bug! */
-    top: 0; left: 0; width: 100%; height: 100vh; overflow-y: auto; 
-    background: white; z-index: 10000; padding: 220px 60px 140px 60px; box-sizing: border-box; 
-}
+/* SPREAD SCROLLING (Fixed bug) */
+#unfold-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; overflow-y: auto; background: white; z-index: 10000; padding: 220px 60px 140px 60px; box-sizing: border-box; }
 .close-unfold { position: fixed; bottom: 40px; left: 40px; width: 45px; z-index: 10002; cursor: pointer; transform: rotate(180deg); transition: 0.2s; }
 .close-unfold:hover { opacity: 0.6; }
 .unfold-grid { column-count: 3; column-gap: 40px; width: 100%; }
