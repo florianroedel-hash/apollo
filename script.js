@@ -14,6 +14,15 @@ function getSafeImg(url) {
     return id ? `https://drive.google.com/thumbnail?id=${id[1]}&sz=w1200` : url;
 }
 
+// THE GATEKEEPER PASSCODE CHECK
+window.checkPasscode = function(e) {
+    if (e.target.value === '1665') {
+        const overlay = document.getElementById('passcode-overlay');
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.remove(), 500);
+    }
+};
+
 async function init() {
     try {
         const [resProj, resCal, resMag] = await Promise.all([
@@ -50,6 +59,7 @@ function generateDynamicTags() {
 }
 
 window.startArchive = function() {
+    if (document.getElementById('passcode-overlay')) return; // Prevents bypass
     if (!document.body.classList.contains('focus-state')) return;
     if (isLoaded) liftFog(); else { isWaitingToStart = true; logoImg.classList.add('spinning'); }
 };
@@ -95,14 +105,14 @@ function renderPile(data, isGrid = false) {
         
         if (isGrid) {
             const wrapper = document.createElement('div');
-            wrapper.style.position = 'relative';
+            wrapper.className = 'card-wrapper';
             wrapper.appendChild(createCard(p, true));
             pile.appendChild(wrapper);
         } else {
             const wrapper = document.createElement('div');
             wrapper.className = 'card-wrapper';
             wrapper.style.position = 'absolute';
-            wrapper.style.width = '350px';
+            wrapper.style.width = '65%'; /* SCALES BEAUTIFULLY NOW */
             wrapper.style.left = '50%';
             wrapper.style.top = '50%';
             wrapper.style.transform = `translate(-50%, -50%) rotate(${rot}deg)`;
@@ -118,7 +128,7 @@ function renderPile(data, isGrid = false) {
 function createCard(p, isGrid) {
     const card = document.createElement('div');
     card.className = 'paper-card';
-    const pad = Math.floor(Math.random() * 10) + 15;
+    const pad = Math.floor(Math.random() * 10) + 20; /* Added slight pad to ensure binder holes look clean */
     card.style.padding = `${pad}px`;
 
     let noteHtml = '';
@@ -184,8 +194,16 @@ function unfoldProject(id) {
         <img src="expand.png" class="close-unfold" onclick="this.parentElement.remove()">
         
         <div style="margin-bottom: 100px; display: flex; gap: 40px; align-items: stretch; width: 100%; margin-top: 40px;">
+            
+            <!-- TITLE CARD WITH HOLES -->
             <div style="width: 50%;">
-                <img src="${getSafeImg(p.titleImage)}" style="width:100%; display:block; border: 1px solid #eaeaea; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
+                <div class="card-wrapper" style="width: 100%;">
+                    <div class="paper-card" style="padding: 25px; cursor: default;">
+                        <div class="card-inner-frame">
+                            <img src="${getSafeImg(p.titleImage)}" style="width:100%; display:block;">
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div style="width: 25%; display: flex; flex-direction: column; justify-content: space-between;">
@@ -211,9 +229,10 @@ function unfoldProject(id) {
     });
 
     html += `</div>`;
-    document.body.appendChild(over);
     
-    // JS FIX: Ensure the new fixed overlay resets to the top properly!
+    // THE CRITICAL FIX: The innerHTML is injected BEFORE it attaches to the body
+    over.innerHTML = html;
+    document.body.appendChild(over);
     over.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
