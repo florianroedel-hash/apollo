@@ -8,7 +8,6 @@
 </head>
 <body class="focus-state">
     
-    <!-- THE GATEKEEPER PASSCODE -->
     <div id="passcode-overlay">
         <div class="passcode-box">
             <img src="logo.png" style="width: 180px; margin-bottom: 25px; display: block; margin-left: auto; margin-right: auto;">
@@ -17,37 +16,27 @@
         </div>
     </div>
 
-    <div id="landing-overlay" onclick="startArchive()"></div>
-
-    <div id="logo-container" onclick="startArchive()">
-        <img src="logo.png" id="main-logo" alt="Logo">
-    </div>
-
-    <div id="manifesto-box">
-        the platform to showcase polimi students work and connect 
-        with the global architecture community through projects, 
-        photography and visual storytelling
-    </div>
-
     <header id="main-header">
-        <div class="header-row-1">
-            <div id="side-menu-top">
-                <a href="#" target="_blank" class="highlight-link">mission apollo</a>
+        <div class="header-columns">
+            <div class="header-col left-col"><div class="big-header-title">SUBMIT</div></div>
+            <div class="header-col center-col"><div class="big-header-title">ARCHIVE</div></div>
+            <div class="header-col right-col"><div class="big-header-title">MAGAZINE</div></div>
+        </div>
+        <div class="header-columns" style="margin-top: 15px;">
+            <div class="header-col left-col" id="side-menu-top">
                 <a href="https://tally.so/r/LZJPYv" target="_blank" class="highlight-link">submit to the archive</a>
                 <a href="https://tally.so/r/lb7BOX" target="_blank" class="highlight-link">submit to traces</a>
             </div>
-        </div>
-        <div class="header-row-2">
-            <nav id="filter-bar"></nav>
-        </div>
+            <div class="header-col center-col">
+                <nav id="filter-bar"></nav>
+            </div>
+            <div class="header-col right-col"></div> </div>
     </header>
 
     <main id="archive-stage">
         <div id="dashboard-wrapper">
             <div id="calendar-column" class="side-column"><div id="calendar-content"></div></div>
-            <div class="col-divider"></div>
             <div id="project-pile"></div>
-            <div class="col-divider"></div>
             <div id="magazine-column" class="side-column"><div id="magazine-cover-container" onclick="openMagazine()"></div></div>
         </div>
     </main>
