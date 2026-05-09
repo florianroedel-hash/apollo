@@ -7,6 +7,16 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="focus-state">
+    
+    <!-- THE GATEKEEPER PASSCODE -->
+    <div id="passcode-overlay">
+        <div class="passcode-box">
+            <img src="logo.png" style="width: 180px; margin-bottom: 25px; display: block; margin-left: auto; margin-right: auto;">
+            <div style="font-size: 12px; margin-bottom: 12px; font-weight: bold; text-transform: lowercase;">enter archive code</div>
+            <input type="password" id="passcode-input" onkeyup="checkPasscode(event)" autocomplete="off">
+        </div>
+    </div>
+
     <div id="landing-overlay" onclick="startArchive()"></div>
 
     <div id="logo-container" onclick="startArchive()">
@@ -35,7 +45,9 @@
     <main id="archive-stage">
         <div id="dashboard-wrapper">
             <div id="calendar-column" class="side-column"><div id="calendar-content"></div></div>
+            <div class="col-divider"></div>
             <div id="project-pile"></div>
+            <div class="col-divider"></div>
             <div id="magazine-column" class="side-column"><div id="magazine-cover-container" onclick="openMagazine()"></div></div>
         </div>
     </main>
