@@ -88,13 +88,9 @@ function renderPile(data, isGrid = false) {
         wrapper.className = 'card-wrapper';
         if (!isGrid) {
             wrapper.style.position = 'absolute';
-            wrapper.style.width = '65%';
-            /* THE FIX: Maximum pixel width protects against screen-stretching */
-            wrapper.style.maxWidth = '450px'; 
-            wrapper.style.left = '50%';
-            wrapper.style.top = '50%';
-            wrapper.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 6 - 3}deg)`;
+            wrapper.style.width = '80%'; /* Percentage of the 50% box */
             wrapper.style.zIndex = data.length - i;
+            wrapper.style.transform = `rotate(${Math.random() * 6 - 3}deg)`;
             wrapper.onclick = () => shuffleToBack(wrapper);
         }
         wrapper.appendChild(createCard(p));
@@ -105,8 +101,7 @@ function renderPile(data, isGrid = false) {
 function createCard(p) {
     const card = document.createElement('div');
     card.className = 'paper-card';
-    const pad = Math.floor(Math.random() * 10) + 20; 
-    card.style.padding = `${pad}px`;
+    card.style.padding = '25px';
     let note = p.metadata.description ? `
         <div class="bookmark-note" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
             <img src="logo.png" class="stamp-logo">
@@ -125,13 +120,13 @@ function createCard(p) {
 
 function shuffleToBack(w) {
     w.style.pointerEvents = 'none';
-    w.style.transform = 'translate(100%, -50%) rotate(20deg)';
+    w.style.transform = 'translate(60%, -20%) rotate(20deg)';
     w.style.opacity = '0';
     setTimeout(() => {
         pile.prepend(w);
         Array.from(pile.querySelectorAll('.card-wrapper')).forEach((el, idx) => el.style.zIndex = idx);
         w.style.opacity = '1';
-        w.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 6 - 3}deg)`;
+        w.style.transform = `rotate(${Math.random() * 6 - 3}deg)`;
         w.style.pointerEvents = 'auto';
     }, 600);
 }
