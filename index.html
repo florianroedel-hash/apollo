@@ -7,28 +7,52 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="focus-state">
-    <div id="landing-overlay" onclick="startArchive()"></div>
-
-    <div id="logo-container" onclick="startArchive()">
-        <img src="logo.png" id="main-logo" alt="Logo">
-    </div>
-
-    <div id="manifesto-box">
-        the platform to showcase polimi students work and connect 
-        with the global architecture community through projects, 
-        photography and visual storytelling
+    
+    <div id="passcode-overlay">
+        <div class="passcode-box">
+            <img src="logo.png" style="width: 180px; margin-bottom: 25px; display: block; margin-left: auto; margin-right: auto;">
+            <div style="font-size: 12px; margin-bottom: 12px; font-weight: bold; text-transform: lowercase;">enter archive code</div>
+            <input type="password" id="passcode-input" onkeyup="checkPasscode(event)" autocomplete="off">
+        </div>
     </div>
 
     <header id="main-header">
-        <div class="header-row-1">
-            <div id="side-menu-top">
-                <a href="#" target="_blank" class="highlight-link">mission apollo</a>
-                <a href="https://tally.so/r/LZJPYv" target="_blank" class="highlight-link">submit to the archive</a>
-                <a href="https://tally.so/r/lb7BOX" target="_blank" class="highlight-link">submit to traces</a>
+        <div class="header-columns">
+            
+            <div class="header-col left-col">
+                <div class="title-wrapper">
+                    <div class="big-header-title">APOLLO <span class="menu-toggle" onclick="toggleMenu('apollo', event)">+</span></div>
+                    <div class="dropdown-menu" id="menu-apollo">
+                        <a href="https://www.instagram.com/apollo.review" target="_blank" class="highlight-link">instagram</a>
+                        <a href="https://pin.it/6n3uztWHe" target="_blank" class="highlight-link">pinterest</a>
+                        <a href="#" class="highlight-link">contact</a>
+                        <a href="https://tally.so/r/81P1XY" target="_blank" class="highlight-link">join apollo</a>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="header-row-2">
-            <nav id="filter-bar"></nav>
+
+            <div class="header-col center-col">
+                <div class="center-col-flex">
+                    <div class="title-wrapper" style="justify-content: center;">
+                        <div class="big-header-title archive-title">ARCHIVE</div>
+                        <span class="menu-toggle archive-toggle" onclick="toggleMenu('archive', event)">+</span>
+                        <div class="dropdown-menu archive-menu" id="menu-archive">
+                            <a href="https://tally.so/r/LZJPYv" target="_blank" class="highlight-link">submit</a>
+                        </div>
+                    </div>
+                    <nav id="filter-bar"></nav>
+                </div>
+            </div>
+
+            <div class="header-col right-col">
+                <div class="title-wrapper" style="justify-content: flex-end; width: 100%;">
+                    <div class="big-header-title">MAGAZINE <span class="menu-toggle" onclick="toggleMenu('magazine', event)">+</span></div>
+                    <div class="dropdown-menu left-aligned" id="menu-magazine">
+                        <a href="https://tally.so/r/lb7BOX" target="_blank" class="highlight-link">submit</a>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </header>
 
@@ -41,10 +65,8 @@
     </main>
 
     <footer id="main-footer">
-        <div id="footer-links">
-            <a href="https://tally.so/r/81P1XY" target="_blank" class="highlight-link">join apollo</a>
-            <a href="https://www.instagram.com/apollo.review" target="_blank" class="highlight-link">instagram</a>
-            <a href="#" class="highlight-link">contact</a>
+        <div class="manifesto-line">
+            the platform to showcase polimi students work and connect with the global architecture community through projects, photography and visual storytelling
         </div>
     </footer>
 
