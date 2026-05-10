@@ -7,34 +7,28 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="focus-state">
-    
-    <div id="passcode-overlay">
-        <div class="passcode-box">
-            <img src="logo.png" style="width: 180px; margin-bottom: 25px; display: block; margin-left: auto; margin-right: auto;">
-            <div style="font-size: 12px; margin-bottom: 12px; font-weight: bold; text-transform: lowercase;">enter archive code</div>
-            <input type="password" id="passcode-input" onkeyup="checkPasscode(event)" autocomplete="off">
-        </div>
+    <div id="landing-overlay" onclick="startArchive()"></div>
+
+    <div id="logo-container" onclick="startArchive()">
+        <img src="logo.png" id="main-logo" alt="Logo">
+    </div>
+
+    <div id="manifesto-box">
+        the platform to showcase polimi students work and connect 
+        with the global architecture community through projects, 
+        photography and visual storytelling
     </div>
 
     <header id="main-header">
-        <div class="header-columns">
-            <div class="header-col left-col"><div class="big-header-title">APOLLO</div></div>
-            <div class="header-col center-col"><div class="big-header-title">ARCHIVE</div></div>
-            <div class="header-col right-col"><div class="big-header-title">MAGAZINE</div></div>
+        <div class="header-row-1">
+            <div id="side-menu-top">
+                <a href="#" target="_blank" class="highlight-link">mission apollo</a>
+                <a href="https://tally.so/r/LZJPYv" target="_blank" class="highlight-link">submit to the archive</a>
+                <a href="https://tally.so/r/lb7BOX" target="_blank" class="highlight-link">submit to traces</a>
+            </div>
         </div>
-        <div class="header-columns" style="margin-top: 15px;">
-            <div class="header-col left-col sub-links">
-                <a href="https://www.instagram.com/apollo.review" target="_blank" class="highlight-link">instagram</a>
-                <a href="https://pin.it/6n3uztWHe" target="_blank" class="highlight-link">pinterest</a>
-                <a href="#" class="highlight-link">contact</a>
-                <a href="https://tally.so/r/81P1XY" target="_blank" class="highlight-link">join apollo</a>
-            </div>
-            <div class="header-col center-col sub-links">
-                <a href="https://tally.so/r/LZJPYv" target="_blank" class="highlight-link">submit</a>
-            </div>
-            <div class="header-col right-col sub-links">
-                <a href="https://tally.so/r/lb7BOX" target="_blank" class="highlight-link">submit</a>
-            </div>
+        <div class="header-row-2">
+            <nav id="filter-bar"></nav>
         </div>
     </header>
 
@@ -47,7 +41,11 @@
     </main>
 
     <footer id="main-footer">
-        <nav id="filter-bar"></nav>
+        <div id="footer-links">
+            <a href="https://tally.so/r/81P1XY" target="_blank" class="highlight-link">join apollo</a>
+            <a href="https://www.instagram.com/apollo.review" target="_blank" class="highlight-link">instagram</a>
+            <a href="#" class="highlight-link">contact</a>
+        </div>
     </footer>
 
     <script src="script.js"></script>
