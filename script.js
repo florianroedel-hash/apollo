@@ -13,6 +13,23 @@ function getSafeImg(url) {
     return id ? `https://drive.google.com/thumbnail?id=${id[1]}&sz=w1200` : url;
 }
 
+// TOGGLE MENU LOGIC
+window.toggleMenu = function(menuId, event) {
+    const menu = document.getElementById('menu-' + menuId);
+    const toggleBtn = event.target;
+    const isOpen = menu.classList.contains('open');
+    
+    // Close all menus & reset plusses
+    document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('open'));
+    document.querySelectorAll('.menu-toggle').forEach(t => t.innerText = '+');
+    
+    // Open target if it wasn't already open
+    if (!isOpen) {
+        menu.classList.add('open');
+        toggleBtn.innerText = '–'; // En dash for a cleaner minus
+    }
+};
+
 window.checkPasscode = function(e) {
     if (e.target.value === '1665') {
         const overlay = document.getElementById('passcode-overlay');
@@ -164,7 +181,6 @@ function shuffleToBack(wrapper) {
 
 function filterProjects(tag, clickedBtn) {
     const existing = document.getElementById('unfold-overlay');
-    // Closes the project spread automatically if a footer tag is clicked!
     if (existing) {
         document.body.classList.remove('spread-open');
         existing.remove();
