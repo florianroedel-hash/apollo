@@ -13,7 +13,6 @@ function getSafeImg(url) {
     return id ? `https://drive.google.com/thumbnail?id=${id[1]}&sz=w1200` : url;
 }
 
-// GATEKEEPER LOGIC - Directly unlocks to Dashboard
 window.checkPasscode = function(e) {
     if (e.target.value === '1665') {
         const overlay = document.getElementById('passcode-overlay');
@@ -41,7 +40,6 @@ async function init() {
         generateDynamicTags();
         isLoaded = true;
         
-        // If passcode was already entered before loading finished
         if (!document.getElementById('passcode-overlay')) {
             liftFog();
         }
@@ -127,7 +125,6 @@ function createCard(p, isGrid) {
     const pad = Math.floor(Math.random() * 10) + 20; 
     card.style.padding = `${pad}px`;
 
-    // Added Placeholder Title & Stamped Logo directly over text
     let noteHtml = '';
     if (p.metadata.description) {
         noteHtml = `
@@ -138,7 +135,6 @@ function createCard(p, isGrid) {
             </div>`;
     }
 
-    // Centered Belly Text
     card.innerHTML = `
         <div class="card-inner-frame">
             <img src="${getSafeImg(p.titleImage)}">
@@ -168,6 +164,7 @@ function shuffleToBack(wrapper) {
 
 function filterProjects(tag, clickedBtn) {
     const existing = document.getElementById('unfold-overlay');
+    // Closes the project spread automatically if a footer tag is clicked!
     if (existing) {
         document.body.classList.remove('spread-open');
         existing.remove();
@@ -190,7 +187,6 @@ function unfoldProject(id) {
     const existing = document.getElementById('unfold-overlay');
     if (existing) existing.remove();
 
-    // HIDES THE HEADER
     document.body.classList.add('spread-open');
 
     const over = document.createElement('div');
@@ -245,7 +241,6 @@ window.openMagazine = function() {
     if (magazineData.length === 0) return;
     magCurrentPage = 0;
     
-    // HIDES THE HEADER
     document.body.classList.add('spread-open');
     
     const over = document.createElement('div');
