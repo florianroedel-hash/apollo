@@ -19,36 +19,38 @@
     <header id="main-header">
         <div class="header-columns">
             
-            <div class="header-col left-col">
+            <div class="header-col left-col" id="col-apollo">
                 <div class="title-wrapper">
-                    <div class="big-header-title">APOLLO <span class="menu-toggle" onclick="toggleMenu('apollo', event)">+</span></div>
+                    <div class="big-header-title">APOLLO <span class="menu-toggle" onclick="toggleMenu('apollo')">+</span></div>
                     <div class="dropdown-menu" id="menu-apollo">
                         <a href="https://www.instagram.com/apollo.review" target="_blank" class="highlight-link">instagram</a>
                         <a href="https://pin.it/6n3uztWHe" target="_blank" class="highlight-link">pinterest</a>
                         <a href="#" class="highlight-link">contact</a>
                         <a href="https://tally.so/r/81P1XY" target="_blank" class="highlight-link">join apollo</a>
+                        <span class="menu-toggle" onclick="toggleMenu('apollo')">–</span>
                     </div>
                 </div>
             </div>
 
-            <div class="header-col center-col">
+            <div class="header-col center-col" id="col-archive">
                 <div class="center-col-flex">
-                    <div class="title-wrapper" style="justify-content: center;">
-                        <div class="big-header-title archive-title">ARCHIVE</div>
-                        <span class="menu-toggle archive-toggle" onclick="toggleMenu('archive', event)">+</span>
-                        <div class="dropdown-menu archive-menu" id="menu-archive">
+                    <div class="title-wrapper">
+                        <div class="big-header-title">ARCHIVE <span class="menu-toggle" onclick="toggleMenu('archive')">+</span></div>
+                        <div class="dropdown-menu" id="menu-archive">
                             <a href="https://tally.so/r/LZJPYv" target="_blank" class="highlight-link">submit</a>
+                            <span class="menu-toggle" onclick="toggleMenu('archive')">–</span>
                         </div>
                     </div>
                     <nav id="filter-bar"></nav>
                 </div>
             </div>
 
-            <div class="header-col right-col">
-                <div class="title-wrapper" style="justify-content: flex-end; width: 100%;">
-                    <div class="big-header-title">MAGAZINE <span class="menu-toggle" onclick="toggleMenu('magazine', event)">+</span></div>
-                    <div class="dropdown-menu left-aligned" id="menu-magazine">
+            <div class="header-col right-col" id="col-magazine">
+                <div class="title-wrapper">
+                    <div class="big-header-title">MAGAZINE <span class="menu-toggle" onclick="toggleMenu('magazine')">+</span></div>
+                    <div class="dropdown-menu" id="menu-magazine">
                         <a href="https://tally.so/r/lb7BOX" target="_blank" class="highlight-link">submit</a>
+                        <span class="menu-toggle" onclick="toggleMenu('magazine')">–</span>
                     </div>
                 </div>
             </div>
