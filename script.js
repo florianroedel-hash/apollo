@@ -13,7 +13,6 @@ function getSafeImg(url) {
     return id ? `https://drive.google.com/thumbnail?id=${id[1]}&sz=w1200` : url;
 }
 
-// TOGGLE MENU: REPLACES TITLE WITH LINKS
 window.toggleMenu = function(id) {
     const col = document.getElementById('col-' + id);
     col.classList.toggle('menu-open');
@@ -90,6 +89,8 @@ function renderPile(data, isGrid = false) {
         if (!isGrid) {
             wrapper.style.position = 'absolute';
             wrapper.style.width = '65%';
+            /* THE FIX: Maximum pixel width protects against screen-stretching */
+            wrapper.style.maxWidth = '450px'; 
             wrapper.style.left = '50%';
             wrapper.style.top = '50%';
             wrapper.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 6 - 3}deg)`;
@@ -104,7 +105,8 @@ function renderPile(data, isGrid = false) {
 function createCard(p) {
     const card = document.createElement('div');
     card.className = 'paper-card';
-    card.style.padding = '25px';
+    const pad = Math.floor(Math.random() * 10) + 20; 
+    card.style.padding = `${pad}px`;
     let note = p.metadata.description ? `
         <div class="bookmark-note" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
             <img src="logo.png" class="stamp-logo">
