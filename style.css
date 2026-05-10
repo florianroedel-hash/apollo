@@ -44,10 +44,18 @@ body.active-state #filter-bar { opacity: 1; }
 body.active-state #main-footer { opacity: 1; pointer-events: auto; }
 .manifesto-line { background: white; padding: 6px 15px; font-size: 12px; font-weight: bold; text-transform: lowercase; border: 1px solid #eaeaea; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
 
-/* DASHBOARD */
+/* DASHBOARD ALIGNMENTS - THE MISSING CHUNK! */
 #archive-stage { height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 body.grid-mode #archive-stage { height: auto; align-items: flex-start; padding-top: 260px; padding-bottom: 150px; }
 #dashboard-wrapper { display: flex; width: 100%; justify-content: space-between; align-items: center; padding: 0 5%; box-sizing: border-box; transition: 0.5s ease; }
+
+#calendar-column { width: 20%; align-self: center; transition: 0.5s ease; }
+#project-pile { position: relative; width: 50%; display: flex; justify-content: center; transition: 0.5s ease; }
+#magazine-column { width: 25%; align-self: center; transition: 0.5s ease; display: flex; justify-content: center; }
+
+body.grid-mode .side-column { opacity: 0; pointer-events: none; width: 0; padding: 0; margin: 0; }
+body.grid-mode #dashboard-wrapper { justify-content: center; align-items: flex-start; }
+body.grid-mode #project-pile { width: 90vw; max-width: 1400px; display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 80px 100px; }
 
 /* THE PAPER CARD & SCALABLE BINDER HOLES */
 .card-wrapper { position: relative; filter: drop-shadow(0 8px 25px rgba(0,0,0,0.15)); } 
@@ -61,7 +69,7 @@ body.grid-mode #archive-stage { height: auto; align-items: flex-start; padding-t
 /* POST-IT (Fixed 15% Top Margin, Unlimited Hover Height) */
 .bookmark-note {
     position: absolute; bottom: 5%; right: 2%; z-index: 2; width: 35%; 
-    height: fit-content; max-height: 80%; /* Bottom 5% + Height 80% = Top at 15% */
+    height: fit-content; max-height: 80%; 
     background: #fcf9ee; box-shadow: 2px 5px 15px rgba(0,0,0,0.06); padding: 15px; 
     font-size: 10.5px; line-height: 1.5; transform: rotate(0deg); transition: 0.3s; overflow: hidden;
 }
