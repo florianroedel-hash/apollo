@@ -13,26 +13,22 @@ function getSafeImg(url) {
     return id ? `https://drive.google.com/thumbnail?id=${id[1]}&sz=w1200` : url;
 }
 
-// TOGGLE MENU PHYSICS & GLOBAL CLICK TO CLOSE
 window.toggleMenu = function(id, btn, event) {
-    event.stopPropagation(); // Prevents the click from triggering the global closer immediately
+    event.stopPropagation(); 
     const col = document.getElementById('col-' + id);
     const isOpen = col.classList.contains('menu-open');
     
-    // Shut everything down first
     document.querySelectorAll('.header-col').forEach(c => c.classList.remove('menu-open'));
     document.querySelectorAll('.menu-toggle').forEach(t => t.innerText = '+');
     
-    // Pop open target
     if (!isOpen) {
         col.classList.add('menu-open');
         btn.innerText = '–';
     }
 };
 
-// GLOBAL CLICK LISTENER: Closes menus when clicking outside
 document.addEventListener('click', function(e) {
-    if (!e.target.closest('.title-wrapper')) {
+    if (!e.target.closest('.header-col')) {
         document.querySelectorAll('.header-col').forEach(c => c.classList.remove('menu-open'));
         document.querySelectorAll('.menu-toggle').forEach(t => t.innerText = '+');
     }
