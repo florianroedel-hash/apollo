@@ -13,10 +13,30 @@ function getSafeImg(url) {
     return id ? `https://drive.google.com/thumbnail?id=${id[1]}&sz=w1200` : url;
 }
 
-window.toggleMenu = function(id) {
+// TOGGLE MENU PHYSICS & GLOBAL CLICK TO CLOSE
+window.toggleMenu = function(id, btn, event) {
+    event.stopPropagation(); // Prevents the click from triggering the global closer immediately
     const col = document.getElementById('col-' + id);
-    col.classList.toggle('menu-open');
+    const isOpen = col.classList.contains('menu-open');
+    
+    // Shut everything down first
+    document.querySelectorAll('.header-col').forEach(c => c.classList.remove('menu-open'));
+    document.querySelectorAll('.menu-toggle').forEach(t => t.innerText = '+');
+    
+    // Pop open target
+    if (!isOpen) {
+        col.classList.add('menu-open');
+        btn.innerText = '–';
+    }
 };
+
+// GLOBAL CLICK LISTENER: Closes menus when clicking outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.title-wrapper')) {
+        document.querySelectorAll('.header-col').forEach(c => c.classList.remove('menu-open'));
+        document.querySelectorAll('.menu-toggle').forEach(t => t.innerText = '+');
+    }
+});
 
 window.checkPasscode = function(e) {
     if (e.target.value === '1665') {
@@ -88,7 +108,7 @@ function renderPile(data, isGrid = false) {
         wrapper.className = 'card-wrapper';
         if (!isGrid) {
             wrapper.style.position = 'absolute';
-            wrapper.style.width = '80%'; /* Percentage of the 50% box */
+            wrapper.style.width = '80%'; 
             wrapper.style.zIndex = data.length - i;
             wrapper.style.transform = `rotate(${Math.random() * 6 - 3}deg)`;
             wrapper.onclick = () => shuffleToBack(wrapper);
@@ -101,7 +121,8 @@ function renderPile(data, isGrid = false) {
 function createCard(p) {
     const card = document.createElement('div');
     card.className = 'paper-card';
-    card.style.padding = '25px';
+    const pad = Math.floor(Math.random() * 10) + 20; 
+    card.style.padding = `${pad}px`;
     let note = p.metadata.description ? `
         <div class="bookmark-note" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
             <img src="logo.png" class="stamp-logo">
@@ -161,6 +182,8 @@ function unfoldProject(id) {
 }
 
 window.openMagazine = function() {
+    if (magazineData.length === 0) return;
+    magCurrentPage = 0;
     document.body.classList.add('spread-open');
     const over = document.createElement('div');
     over.id = 'magazine-reader-overlay';
@@ -170,6 +193,7 @@ window.openMagazine = function() {
 
 function updateMagazineView() {
     const over = document.getElementById('magazine-reader-overlay');
+    if (!over) return;
     const mag = magazineData[0].images;
     const leaves = Math.ceil(mag.length / 2);
     let html = '';
