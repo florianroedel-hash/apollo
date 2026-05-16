@@ -164,10 +164,10 @@ function unfoldProject(id) {
     
     let gridItems = p.images.map(img => `<div class="unfold-grid-item"><img src="${getSafeImg(img)}"></div>`).join('');
     
-    /* align-items: flex-end forces the text/post-it block to drop to the bottom edge of the image */
+    /* FIX: align-items: stretch links column heights. text column pushed to bottom via justify-content: flex-end */
     over.innerHTML = `
         <div class="close-minus" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove()">–</div>
-        <div style="margin-bottom:100px; display:flex; gap:40px; align-items:flex-end; width:100%; margin-top:40px;">
+        <div style="margin-bottom:100px; display:flex; gap:40px; align-items:stretch; width:100%; margin-top:40px;">
             <div style="width:50%;">
                 <div class="card-wrapper" style="transform: none !important;">
                     <div class="paper-card" style="padding:25px; cursor:default;">
@@ -175,7 +175,7 @@ function unfoldProject(id) {
                     </div>
                 </div>
             </div>
-            <div style="width:25%; display:flex; flex-direction:column;">
+            <div style="width:25%; display:flex; flex-direction:column; justify-content:flex-end;">
                 <div class="bookmark-note spread-note">
                     <img src="logo.png" class="stamp-logo">
                     <div class="note-title">[ NOTE TITLE ]</div>
