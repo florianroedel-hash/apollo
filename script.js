@@ -28,7 +28,7 @@ window.toggleMenu = function(id, btn, event) {
 };
 
 document.addEventListener('click', function(e) {
-    if (!e.target.closest('.header-col')) {
+    if (!e.target.closest('.title-wrapper')) {
         document.querySelectorAll('.header-col').forEach(c => c.classList.remove('menu-open'));
         document.querySelectorAll('.menu-toggle').forEach(t => t.innerText = '+');
     }
