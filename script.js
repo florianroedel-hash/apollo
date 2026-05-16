@@ -161,18 +161,35 @@ function unfoldProject(id) {
     document.body.classList.add('spread-open');
     const over = document.createElement('div');
     over.id = 'unfold-overlay';
-    let gridItems = p.images.map(img => `<div class="unfold-grid-item" style="padding:20px; transform:rotate(${Math.random() * 2 - 1}deg);"><img src="${getSafeImg(img)}" style="width:100%;"></div>`).join('');
+    
+    // Using pure clean HTML without inline rotations for the grid items
+    let gridItems = p.images.map(img => `<div class="unfold-grid-item"><img src="${getSafeImg(img)}"></div>`).join('');
+    
     over.innerHTML = `
         <div class="close-minus" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove()">–</div>
-        <div style="margin-bottom:100px; display:flex; gap:40px; align-items:stretch; width:100%; margin-top:40px;">
-            <div style="width:50%;"><div class="card-wrapper"><div class="paper-card" style="padding:25px; cursor:default;"><img src="${getSafeImg(p.titleImage)}" style="width:100%;"></div></div></div>
-            <div style="width:25%; display:flex; flex-direction:column; justify-content:space-between;">
-                <div class="bookmark-note spread-note"><img src="logo.png" class="stamp-logo"><div class="note-title">[ NOTE TITLE ]</div><div class="note-text-content">${p.metadata.description}</div></div>
-                <div style="display:flex; flex-direction:column; gap:8px;"><span style="font-size:1.8rem; font-weight:bold;">${p.metadata.name}</span><span>${p.metadata.author} — ${p.metadata.year}</span></div>
+        <div style="margin-bottom:100px; display:flex; gap:40px; align-items:flex-start; width:100%; margin-top:40px;">
+            <div style="width:50%;">
+                <div class="card-wrapper" style="transform: none !important;">
+                    <div class="paper-card" style="padding:25px; cursor:default;">
+                        <img src="${getSafeImg(p.titleImage)}" style="width:100%; display:block;">
+                    </div>
+                </div>
+            </div>
+            <div style="width:25%; display:flex; flex-direction:column;">
+                <div class="bookmark-note spread-note">
+                    <img src="logo.png" class="stamp-logo">
+                    <div class="note-title">[ NOTE TITLE ]</div>
+                    <div class="note-text-content">${p.metadata.description || ''}</div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <span style="font-size:1.8rem; font-weight:bold;">${p.metadata.name}</span>
+                    <span>${p.metadata.author} — ${p.metadata.year}</span>
+                </div>
             </div>
             <div style="width:25%;"></div>
         </div>
         <div class="unfold-grid">${gridItems}</div>`;
+    
     document.body.appendChild(over);
     over.scrollTo({ top: 0, behavior: 'smooth' });
 }
