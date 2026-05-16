@@ -162,12 +162,12 @@ function unfoldProject(id) {
     const over = document.createElement('div');
     over.id = 'unfold-overlay';
     
-    // Using pure clean HTML without inline rotations for the grid items
     let gridItems = p.images.map(img => `<div class="unfold-grid-item"><img src="${getSafeImg(img)}"></div>`).join('');
     
+    /* align-items: flex-end forces the text/post-it block to drop to the bottom edge of the image */
     over.innerHTML = `
         <div class="close-minus" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove()">–</div>
-        <div style="margin-bottom:100px; display:flex; gap:40px; align-items:flex-start; width:100%; margin-top:40px;">
+        <div style="margin-bottom:100px; display:flex; gap:40px; align-items:flex-end; width:100%; margin-top:40px;">
             <div style="width:50%;">
                 <div class="card-wrapper" style="transform: none !important;">
                     <div class="paper-card" style="padding:25px; cursor:default;">
