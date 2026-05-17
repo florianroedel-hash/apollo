@@ -96,7 +96,6 @@ function renderCalendar(data) {
             let html = '';
             data[0].events.forEach(evt => {
                 if (evt.imgId) {
-                    /* FIX 5: Bypassing the broken API by forcing the safe thumbnail endpoint */
                     html += `
                     <div class="calendar-event-group">
                         <div class="calendar-event-item has-invite" onclick="this.nextElementSibling.classList.toggle('expanded')">
@@ -125,7 +124,6 @@ function renderCalendar(data) {
 function renderMagazineCover(data) {
     const mag = document.getElementById('magazine-cover-container');
     if (data.length > 0) {
-        /* FIX 3: Injecting the actual graphic evidence into the vacuum bag */
         mag.innerHTML = `
             <img src="${getSafeImg(data[0].images[0])}">
             <div class="vac-stamp">DO NOT OPEN</div>
@@ -203,12 +201,13 @@ function unfoldProject(id) {
     
     let gridItems = p.images.map(img => `<div class="unfold-grid-item"><img src="${getSafeImg(img)}"></div>`).join('');
     
+    /* Notice the override style="width: 100%" on the paper-card here so it doesn't shrink-wrap */
     over.innerHTML = `
         <div class="close-minus" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove()">–</div>
         <div style="margin-bottom:100px; display:flex; gap:40px; align-items:stretch; width:100%; margin-top:40px;">
             <div style="width:50%;">
                 <div class="card-wrapper" style="transform: none !important;">
-                    <div class="paper-card" style="padding:25px; cursor:default;">
+                    <div class="paper-card" style="padding:25px; cursor:default; width: 100%;">
                         <div class="card-inner-frame"><img src="${getSafeImg(p.titleImage)}"></div>
                     </div>
                 </div>
@@ -235,7 +234,10 @@ function unfoldProject(id) {
 window.openMagazine = function() {
     if (magazineData.length === 0) return;
     magCurrentPage = 0;
-    document.body.classList.add('spread-open');
+    
+    // Explicit magazine class hides the header
+    document.body.classList.add('magazine-open');
+    
     const over = document.createElement('div');
     over.id = 'magazine-reader-overlay';
     document.body.appendChild(over);
@@ -254,7 +256,7 @@ function updateMagazineView() {
             <div class="page-back">${mag[i*2+1] ? `<img src="${getSafeImg(mag[i*2+1])}">` : ''}</div>
         </div>`;
     }
-    over.innerHTML = `<div class="close-minus" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove()">–</div><div class="magazine-scene">${html}</div>`;
+    over.innerHTML = `<div class="close-minus" onclick="document.body.classList.remove('magazine-open'); this.parentElement.remove()">–</div><div class="magazine-scene">${html}</div>`;
 }
 
 init();
