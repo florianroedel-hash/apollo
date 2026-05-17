@@ -13,7 +13,6 @@ function getSafeImg(url) {
     return id ? `https://drive.google.com/thumbnail?id=${id[1]}&sz=w1200` : url;
 }
 
-// Menu toggle updated to ignore clicks if a link was clicked
 window.toggleMenu = function(id, wrapper, event) {
     if(event.target.tagName === 'A') return; 
     event.stopPropagation(); 
@@ -93,18 +92,18 @@ function renderCalendar(data) {
         const calTxt = document.getElementById('calendar-text');
         calTxt.innerHTML = '';
 
-        // INLINE ACCORDION LOGIC
         if (data[0].events && data[0].events.length > 0) {
             let html = '';
             data[0].events.forEach(evt => {
                 if (evt.imgId) {
+                    /* FIX 5: Bypassing the broken API by forcing the safe thumbnail endpoint */
                     html += `
                     <div class="calendar-event-group">
                         <div class="calendar-event-item has-invite" onclick="this.nextElementSibling.classList.toggle('expanded')">
                             ${evt.text} <span class="invite-indicator">[+]</span>
                         </div>
                         <div class="calendar-inline-img">
-                            <img src="https://drive.google.com/uc?export=view&id=${evt.imgId}">
+                            <img src="https://drive.google.com/thumbnail?id=${evt.imgId}&sz=w1200">
                         </div>
                     </div>`;
                 } else {
@@ -114,12 +113,10 @@ function renderCalendar(data) {
             calTxt.innerHTML = html;
         }
 
-        // FULL MARQUEE INJECTION: Replicates text into two massive blocks to loop seamlessly
         if (data[0].marquee) {
             const track = document.getElementById('marquee-track');
             const spacer = " &nbsp;&nbsp; // &nbsp;&nbsp; ";
             const fullText = data[0].marquee + spacer;
-            // Repeat enough times to guarantee it fills the screen width twice over
             track.innerHTML = `<span>${fullText.repeat(8)}</span><span>${fullText.repeat(8)}</span>`;
         }
     }
@@ -127,7 +124,15 @@ function renderCalendar(data) {
 
 function renderMagazineCover(data) {
     const mag = document.getElementById('magazine-cover-container');
-    if (data.length > 0) mag.innerHTML = `<img src="${getSafeImg(data[0].images[0])}">`;
+    if (data.length > 0) {
+        /* FIX 3: Injecting the actual graphic evidence into the vacuum bag */
+        mag.innerHTML = `
+            <img src="${getSafeImg(data[0].images[0])}">
+            <div class="vac-stamp">DO NOT OPEN</div>
+            <div class="vac-release">ARCHIVAL MASTER // RELEASE DATE: SEP 2026</div>
+            <div class="vac-barcode"></div>
+        `;
+    }
 }
 
 function renderPile(data, isGrid = false) {
