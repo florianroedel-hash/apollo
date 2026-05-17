@@ -201,18 +201,22 @@ function unfoldProject(id) {
     
     let gridItems = p.images.map(img => `<div class="unfold-grid-item"><img src="${getSafeImg(img)}"></div>`).join('');
     
-    /* Notice the override style="width: 100%" on the paper-card here so it doesn't shrink-wrap */
+    /* FIX 3: Flexbox strict matching for Post-it Height */
     over.innerHTML = `
         <div class="close-minus" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove()">–</div>
         <div style="margin-bottom:100px; display:flex; gap:40px; align-items:stretch; width:100%; margin-top:40px;">
-            <div style="width:50%;">
+            
+            <div style="width:50%; display:flex; justify-content:flex-end;">
                 <div class="card-wrapper" style="transform: none !important;">
-                    <div class="paper-card" style="padding:25px; cursor:default; width: 100%;">
-                        <div class="card-inner-frame"><img src="${getSafeImg(p.titleImage)}"></div>
+                    <div class="paper-card" style="padding:25px; cursor:default; max-height: 70vh;">
+                        <div class="card-inner-frame">
+                            <img src="${getSafeImg(p.titleImage)}" style="max-height: calc(70vh - 50px); max-width: 100%; width: auto; height: auto;">
+                        </div>
                     </div>
                 </div>
             </div>
-            <div style="width:25%; display:flex; flex-direction:column; justify-content:flex-end;">
+
+            <div style="width:25%; display:flex; flex-direction:column; justify-content:flex-end; padding: 20px 0;">
                 <div class="bookmark-note spread-note">
                     <img src="logo.png" class="stamp-logo">
                     <div class="note-title">[ NOTE TITLE ]</div>
@@ -223,6 +227,7 @@ function unfoldProject(id) {
                     <span>${p.metadata.author} — ${p.metadata.year}</span>
                 </div>
             </div>
+
             <div style="width:25%;"></div>
         </div>
         <div class="unfold-grid">${gridItems}</div>`;
@@ -235,7 +240,6 @@ window.openMagazine = function() {
     if (magazineData.length === 0) return;
     magCurrentPage = 0;
     
-    // Explicit magazine class hides the header
     document.body.classList.add('magazine-open');
     
     const over = document.createElement('div');
