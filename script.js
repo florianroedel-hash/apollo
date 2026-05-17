@@ -13,10 +13,14 @@ function getSafeImg(url) {
     return id ? `https://drive.google.com/thumbnail?id=${id[1]}&sz=w1200` : url;
 }
 
-window.toggleMenu = function(id, btn, event) {
+// Menu toggle updated to ignore clicks if a link was clicked
+window.toggleMenu = function(id, wrapper, event) {
+    if(event.target.tagName === 'A') return; 
     event.stopPropagation(); 
+    
     const col = document.getElementById('col-' + id);
     const isOpen = col.classList.contains('menu-open');
+    const btn = wrapper.querySelector('.menu-toggle');
     
     document.querySelectorAll('.header-col').forEach(c => c.classList.remove('menu-open'));
     document.querySelectorAll('.menu-toggle').forEach(t => t.innerText = '+');
@@ -89,48 +93,37 @@ function renderCalendar(data) {
         const calTxt = document.getElementById('calendar-text');
         calTxt.innerHTML = '';
 
-        // Render the array of events
+        // INLINE ACCORDION LOGIC
         if (data[0].events && data[0].events.length > 0) {
             let html = '';
             data[0].events.forEach(evt => {
                 if (evt.imgId) {
-                    // It has an image, make it clickable
-                    html += `<div class="calendar-event-item has-invite" onclick="openEvent('${evt.imgId}')">${evt.text}</div>`;
+                    html += `
+                    <div class="calendar-event-group">
+                        <div class="calendar-event-item has-invite" onclick="this.nextElementSibling.classList.toggle('expanded')">
+                            ${evt.text} <span class="invite-indicator">[+]</span>
+                        </div>
+                        <div class="calendar-inline-img">
+                            <img src="https://drive.google.com/uc?export=view&id=${evt.imgId}">
+                        </div>
+                    </div>`;
                 } else {
-                    // Normal text
-                    html += `<div class="calendar-event-item">${evt.text}</div>`;
+                    html += `<div class="calendar-event-group"><div class="calendar-event-item">${evt.text}</div></div>`;
                 }
             });
             calTxt.innerHTML = html;
         }
 
-        // Render the CMS Marquee text
+        // FULL MARQUEE INJECTION: Replicates text into two massive blocks to loop seamlessly
         if (data[0].marquee) {
             const track = document.getElementById('marquee-track');
             const spacer = " &nbsp;&nbsp; // &nbsp;&nbsp; ";
             const fullText = data[0].marquee + spacer;
-            track.innerHTML = `<span>${fullText.repeat(10)}</span>`;
+            // Repeat enough times to guarantee it fills the screen width twice over
+            track.innerHTML = `<span>${fullText.repeat(8)}</span><span>${fullText.repeat(8)}</span>`;
         }
     }
 }
-
-// Function to open the specific event poster
-window.openEvent = function(imgId) {
-    document.body.classList.add('spread-open');
-    const over = document.createElement('div');
-    over.id = 'event-overlay';
-    
-    // Direct drive viewing link
-    const imgSrc = `https://drive.google.com/uc?export=view&id=${imgId}`;
-    
-    over.innerHTML = `
-        <div class="close-minus" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove()">–</div>
-        <div class="event-poster-container">
-            <img src="${imgSrc}">
-        </div>
-    `;
-    document.body.appendChild(over);
-};
 
 function renderMagazineCover(data) {
     const mag = document.getElementById('magazine-cover-container');
