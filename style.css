@@ -8,12 +8,10 @@ body.focus-state, body.active-state { overflow: hidden; height: 100vh; }
 body.grid-mode { overflow-y: auto; height: auto; }
 body.focus-state #main-header, body.focus-state #main-footer, body.focus-state #archive-stage { filter: blur(20px); opacity: 0.2; pointer-events: none; }
 
-/* OVERLAYS: Spread vs Magazine */
 body.spread-open .left-col, body.spread-open .right-col, body.spread-open .marquee-wrapper, body.spread-open .plus-archive { opacity: 0; pointer-events: none; transition: 0.3s; }
 body.grid-mode .left-col, body.grid-mode .right-col, body.grid-mode .marquee-wrapper { opacity: 0; pointer-events: none; transition: 0.3s; }
 body.spread-open .archive-title { background: white; padding: 5px 25px; box-shadow: 0 5px 25px rgba(0,0,0,0.08); position: relative; border-radius: 4px; z-index: 100001; }
 
-/* Pure Magazine Mode hides the entire header */
 body.magazine-open #main-header { opacity: 0; pointer-events: none; transition: 0.3s; }
 
 .highlight-link { background-color: white; padding: 4px 8px; text-decoration: none; color: black; display: inline-block; cursor: pointer; transition: 0.2s; text-transform: lowercase; position: relative; font-weight: normal; white-space: nowrap; }
@@ -28,17 +26,12 @@ body.magazine-open #main-header { opacity: 0; pointer-events: none; transition: 
 .header-col, .side-column, #project-pile { display: flex; justify-content: center; align-items: center; width: 100%; position: relative; }
 .center-col-flex { display: flex; flex-direction: column; align-items: center; width: 100%; }
 
-/* FIX: UNCOUPLED MENUS */
 .title-wrapper { display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
 .menu-content { display: flex; align-items: center; position: relative; }
 .big-header-title { font-size: 3.8rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; line-height: 1; white-space: nowrap; transition: opacity 0.2s; }
 .menu-toggle { font-size: 3.8rem; font-weight: bold; line-height: 1; user-select: none; transition: 0.2s; width: 30px; padding-left: 10px; text-align: left; }
 
-.dropdown-menu { 
-    display: flex; flex-direction: row; align-items: center; justify-content: flex-end; gap: 15px; 
-    position: absolute; right: 0; opacity: 0; pointer-events: none; transition: opacity 0.2s; white-space: nowrap;
-}
-/* Title goes invisible, menu fades in over it. Toggle stays frozen. */
+.dropdown-menu { display: flex; flex-direction: row; align-items: center; justify-content: flex-end; gap: 15px; position: absolute; right: 0; opacity: 0; pointer-events: none; transition: opacity 0.2s; white-space: nowrap; }
 .header-col.menu-open .big-header-title { opacity: 0; pointer-events: none; } 
 .header-col.menu-open .dropdown-menu { opacity: 1; pointer-events: auto; } 
 
@@ -47,7 +40,6 @@ body.magazine-open #main-header { opacity: 0; pointer-events: none; transition: 
 .plus-archive { color: #C2A878; }
 .plus-magazine { color: #D2042D; }
 
-/* FIX: MARQUEE SIZING */
 .marquee-wrapper { width: 100%; overflow: hidden; margin-top: 25px; padding: 10px 0; background: white; pointer-events: auto; transition: opacity 0.3s; }
 .marquee-track { display: inline-block; white-space: nowrap; font-size: 18px; font-weight: bold; text-transform: lowercase; animation: scrolling-text 60s linear infinite; }
 .marquee-track span { padding-right: 10px; }
@@ -65,43 +57,44 @@ body.grid-mode #archive-stage { height: auto; align-items: flex-start; padding-t
 
 body.grid-mode .side-column { opacity: 0; pointer-events: none; }
 body.grid-mode #dashboard-wrapper { display: flex; justify-content: center; align-items: flex-start; height: auto; }
-body.grid-mode #project-pile { width: 90vw; max-width: 1400px; display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 80px 100px; justify-items: center; }
+
+/* FIX 1: Exact 25vw Grid Spacing */
+body.grid-mode #project-pile { 
+    width: 90vw; max-width: none; display: grid !important; 
+    grid-template-columns: 25vw 25vw 25vw; 
+    justify-content: space-between; /* Mathematically distributes the remaining 15vw */
+    gap: 120px 0; 
+    justify-items: center; align-items: center; 
+}
 
 .card-wrapper { position: relative; filter: drop-shadow(0 8px 25px rgba(0,0,0,0.15)); transition: 0.5s; display: flex; justify-content: center; align-items: center; } 
 
-/* NORMAL CHAOTIC STACK (Shrink-Wrapped) */
+/* FIX 2: True Shrink-Wrap Paper Cards */
 .paper-card { 
     background: white; border: 1px solid #eaeaea; display: inline-flex; flex-direction: column; position: relative; cursor: pointer;
-    width: fit-content; max-width: 100%;
+    width: max-content; height: max-content; max-width: 100%; 
     -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cmask id='holes'%3E%3Crect width='100%25' height='100%25' fill='white'/%3E%3Ccircle cx='2%25' cy='10%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='30%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='50%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='70%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='90%25' r='1.2%25' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='black' mask='url(%23holes)'/%3E%3C/svg%3E");
     mask-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cmask id='holes'%3E%3Crect width='100%25' height='100%25' fill='white'/%3E%3Ccircle cx='2%25' cy='10%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='30%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='50%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='70%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='90%25' r='1.2%25' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='black' mask='url(%23holes)'/%3E%3C/svg%3E");
 }
 .card-inner-frame { position: relative; z-index: 1; }
-.card-inner-frame img { display: block; width: auto; max-width: 100%; height: auto; max-height: 50vh; object-fit: contain; }
+.card-inner-frame img { display: block; width: auto; height: auto; max-width: 100%; max-height: 50vh; object-fit: contain; }
 
-/* FIX: ORGANIZED GRID BOXES (Orientation preserved) */
-body.grid-mode .paper-card { width: 100%; height: 40vh; }
-body.grid-mode .card-inner-frame { height: 100%; display: flex; align-items: center; justify-content: center; }
-body.grid-mode .card-inner-frame img { width: 100%; height: 100%; object-fit: contain; }
+/* Grid specific image constraints to prevent giant scaling */
+body.grid-mode .card-inner-frame img { max-height: 35vh; }
 
-/* FIX: POST-IT VW PROPORTIONS & Z-INDEX SLIDE TRICK */
 .belly-band { z-index: 3; position: absolute; bottom: 15%; left: -2px; width: calc(100% + 4px); background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(8px); padding: 50px 20px; display: flex; justify-content: center; align-items: center; gap: 10px; box-shadow: inset 6px 0 6px -4px rgba(0,0,0,0.15), inset -6px 0 6px -4px rgba(0,0,0,0.15), 0 5px 15px rgba(0,0,0,0.05); }
 .belly-text { font-size: 11px; text-transform: lowercase; font-weight: bold; white-space: nowrap; }
 .belly-plus { font-size: 2rem; font-weight: bold; cursor: pointer; display: inline-block; line-height: 1; padding-bottom: 2px; }
 
 .bookmark-note {
-    position: absolute; bottom: 5%; right: 2%; 
-    z-index: 2; /* Below Belly Band */
-    width: 12vw; min-width: 160px; /* Locked proportional width */
-    height: fit-content; max-height: 80%; 
+    position: absolute; bottom: 5%; right: 2%; z-index: 2; width: 12vw; min-width: 160px; height: fit-content; max-height: 80%; 
     background: #fcf9ee; border: 1px solid #eadeb9; box-shadow: 2px 5px 15px rgba(0,0,0,0.06); padding: 15px; 
     font-size: 10.5px; line-height: 1.5; transform: rotate(0deg); overflow: hidden;
-    /* On mouse leave: wait 0.3s before dropping the z-index so it doesn't clip the image */
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), z-index 0s 0.3s;
 }
 .bookmark-note:hover { 
     transform: scale(1.35) translateX(-25%) translateY(-10%); box-shadow: 0 15px 35px rgba(0,0,0,0.15); max-height: none; overflow: visible; 
-    z-index: 10 !important; /* Instantly pop above the belly band */
+    z-index: 10 !important; 
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), z-index 0s 0s;
 }
 .note-text-content { position: relative; display: -webkit-box; -webkit-line-clamp: 14; -webkit-box-orient: vertical; overflow: hidden; }
@@ -113,18 +106,19 @@ body.grid-mode .card-inner-frame img { width: 100%; height: 100%; object-fit: co
 #unfold-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; overflow-y: auto; background: white; z-index: 100000; padding: 180px 60px 200px 60px; box-sizing: border-box; }
 .close-minus { position: fixed; top: 40px; right: 40px; font-size: 3.8rem; font-weight: bold; cursor: pointer; z-index: 100002; line-height: 1; }
 
-/* FIX: SPREAD GRID BOXES (Orientation preserved) */
 .unfold-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; width: 100%; }
-.unfold-grid-item { background: white; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transform: none !important; border-radius: 2px; box-sizing: border-box; height: 40vh; display: flex; justify-content: center; align-items: center; }
-.unfold-grid-item img { width: 100%; height: 100%; object-fit: contain; }
+.unfold-grid-item { background: white; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transform: none !important; border-radius: 2px; box-sizing: border-box; display: flex; justify-content: center; align-items: center; }
+.unfold-grid-item img { max-width: 100%; max-height: 40vh; width: auto; height: auto; object-fit: contain; }
 
+/* FIX 3: Project Spread Post-It Dynamics */
 .bookmark-note.spread-note { 
-    position: relative; bottom: auto; right: auto; width: 12vw; height: 80%; max-height: none; 
+    position: relative; bottom: auto; right: auto; width: 12vw; 
+    height: auto; max-height: none; flex-grow: 1; /* Automatically stretches to fill available height */
     transform: none; margin-bottom: 20px; cursor: default; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
     display: flex; flex-direction: column; justify-content: flex-start; z-index: 10;
 }
 .bookmark-note.spread-note:hover { transform: none; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-.bookmark-note.spread-note .note-text-content { -webkit-line-clamp: unset; }
+.bookmark-note.spread-note .note-text-content { -webkit-line-clamp: unset; flex-grow: 1; overflow-y: auto; }
 
 #calendar-column { display: flex; flex-direction: column; justify-content: center; }
 #calendar-text { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-y: auto; text-align: center; font-size: 11px; line-height: 1.4; gap: 25px; padding: 20px 0; max-height: 50vh; }
