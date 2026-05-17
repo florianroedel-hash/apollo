@@ -19,13 +19,15 @@ body.spread-open .archive-title { background: white; padding: 5px 25px; box-shad
 .highlight-link:hover::before, .highlight-link:hover::after, .highlight-link.active-tag::before, .highlight-link.active-tag::after { opacity: 1; }
 
 #main-header { position: fixed; top: 0; left: 0; width: 100%; display: flex; flex-direction: column; padding-top: 40px; box-sizing: border-box; z-index: 100005; pointer-events: none; }
+
+/* THE EXACT MATHEMATICAL GRID: 5% padding = 90% inner width. 22.22/55.56/22.22 equals exactly 20/50/20 of the total screen */
 .header-columns { display: flex; width: 100%; padding: 0 5%; gap: 0; box-sizing: border-box; pointer-events: none; }
 .header-columns > div { pointer-events: auto; }
 
 .header-col { position: relative; display: flex; justify-content: center; align-items: center; }
-.left-col { width: 20%; }
-.center-col { width: 55%; } 
-.right-col { width: 25%; }
+.left-col { width: 22.222%; }
+.center-col { width: 55.556%; } 
+.right-col { width: 22.222%; }
 .center-col-flex { display: flex; flex-direction: column; align-items: center; width: 100%; }
 
 .title-wrapper { display: flex; align-items: center; justify-content: center; cursor: pointer; }
@@ -55,29 +57,35 @@ body.active-state #main-footer { opacity: 1; pointer-events: auto; }
 #archive-stage { height: 100vh; width: 100vw; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 body.grid-mode #archive-stage { height: auto; align-items: flex-start; padding-top: 260px; padding-bottom: 150px; }
 
+/* THE DASHBOARD GRID: perfectly matches the header width mathematics */
 #dashboard-wrapper { display: flex; width: 100%; max-width: 1600px; margin: 0 auto; justify-content: space-between; padding: 0 5%; box-sizing: border-box; transition: 0.5s ease; height: 60vh; }
 
-/* FIX: align-items: center forces true horizontal centering */
-#calendar-column { display: flex; flex-direction: column; justify-content: center; align-items: center; align-self: center; width: 20%; height: 100%; }
-#project-pile { width: 50%; height: 100%; position: relative; display: flex; justify-content: center; align-items: center; }
-#magazine-column { display: flex; flex-direction: column; justify-content: center; align-items: center; align-self: center; width: 25%; height: 100%; }
+#calendar-column { display: flex; flex-direction: column; justify-content: center; align-items: center; align-self: center; width: 22.222%; height: 100%; }
+#project-pile { width: 55.556%; height: 100%; position: relative; display: flex; justify-content: center; align-items: center; }
+#magazine-column { display: flex; flex-direction: column; justify-content: center; align-items: center; align-self: center; width: 22.222%; height: 100%; }
 
 body.grid-mode .side-column { opacity: 0; pointer-events: none; width: 0; padding: 0; margin: 0; }
 body.grid-mode #dashboard-wrapper { justify-content: center; align-items: flex-start; height: auto; }
 body.grid-mode #project-pile { width: 90vw; max-width: 1400px; display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 80px 100px; }
 
 .card-wrapper { position: relative; filter: drop-shadow(0 8px 25px rgba(0,0,0,0.15)); transition: 0.5s; } 
+
+/* STRICT Z-INDEX LAYERING: Prevents the post-it from sliding behind the picture */
 .paper-card { 
     background: white; border: 1px solid #eaeaea; display: flex; flex-direction: column; position: relative; z-index: 2; cursor: pointer;
     -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cmask id='holes'%3E%3Crect width='100%25' height='100%25' fill='white'/%3E%3Ccircle cx='2%25' cy='10%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='30%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='50%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='70%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='90%25' r='1.2%25' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='black' mask='url(%23holes)'/%3E%3C/svg%3E");
     mask-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cmask id='holes'%3E%3Crect width='100%25' height='100%25' fill='white'/%3E%3Ccircle cx='2%25' cy='10%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='30%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='50%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='70%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='90%25' r='1.2%25' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='black' mask='url(%23holes)'/%3E%3C/svg%3E");
 }
+.card-inner-frame { position: relative; z-index: 1; }
 .card-inner-frame img { display: block; width: 100%; max-height: 50vh; object-fit: contain; }
 
+/* POST-IT DYNAMICS: Layer 2, darker outline applied */
 .bookmark-note {
     position: absolute; bottom: 5%; right: 2%; z-index: 2; width: 35%; 
     height: fit-content; max-height: 80%; 
-    background: #fcf9ee; box-shadow: 2px 5px 15px rgba(0,0,0,0.06); padding: 15px; 
+    background: #fcf9ee; 
+    border: 1px solid #eadeb9; 
+    box-shadow: 2px 5px 15px rgba(0,0,0,0.06); padding: 15px; 
     font-size: 10.5px; line-height: 1.5; transform: rotate(0deg); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
     overflow: hidden;
 }
@@ -88,6 +96,7 @@ body.grid-mode #project-pile { width: 90vw; max-width: 1400px; display: grid !im
 .note-title { font-size: 14px; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; position: relative; z-index: 2; }
 .stamp-logo { position: absolute; top: 10px; right: 5%; width: 90%; opacity: 0.12; transform: rotate(-15deg); z-index: 1; pointer-events: none; }
 
+/* BELLY BAND: Layer 3 */
 .belly-band {
     position: absolute; bottom: 15%; left: -2px; width: calc(100% + 4px); z-index: 3;
     background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(8px); padding: 50px 20px; 
@@ -105,12 +114,8 @@ body.grid-mode #project-pile { width: 90vw; max-width: 1400px; display: grid !im
 .unfold-grid-item { background: white; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transform: none !important; border-radius: 2px; box-sizing: border-box; }
 .unfold-grid-item img { width: 100%; display: block; object-fit: contain; }
 
-/* FIX: Post-it stretches 80% tall, starts text at top */
 .bookmark-note.spread-note { 
-    position: relative; bottom: auto; right: auto; 
-    width: 260px; 
-    height: 80%; 
-    max-height: none; 
+    position: relative; bottom: auto; right: auto; width: 260px; height: 80%; max-height: none; 
     transform: none; margin-bottom: 20px; cursor: default; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
     display: flex; flex-direction: column; justify-content: flex-start;
 }
@@ -119,8 +124,31 @@ body.grid-mode #project-pile { width: 90vw; max-width: 1400px; display: grid !im
 
 #calendar-content { padding: 20px; background: white; border: none; box-shadow: 0 8px 30px rgba(0,0,0,0.05); width: 100%; box-sizing: border-box; }
 #calendar-content img { width: 100%; max-height: 40vh; object-fit: contain; }
-#magazine-cover-container { padding: 15px; background: white; border: none; box-shadow: 0 8px 30px rgba(0,0,0,0.08); transform: rotate(3deg); transition: 0.3s; width: 100%; max-height: 55vh; overflow: hidden; box-sizing: border-box; }
-#magazine-cover-container img { width: 100%; height: 100%; object-fit: contain; }
+
+/* THE VACUUM BAG PACKAGING */
+#magazine-cover-container { 
+    position: relative;
+    padding: 15px; 
+    background: rgba(255, 255, 255, 0.4); /* Frosted base */
+    backdrop-filter: blur(2px);
+    border: 1px solid rgba(255,255,255,0.6);
+    outline: 2px dashed rgba(255,255,255,0.4); /* Heat sealed edge */
+    outline-offset: -8px;
+    box-shadow: 
+        inset 0 0 15px rgba(255,255,255,0.9), /* inner plastic rim */
+        0 8px 30px rgba(0,0,0,0.08); /* outer drop shadow */
+    transform: rotate(3deg); transition: 0.3s; width: 100%; max-height: 55vh; overflow: hidden; box-sizing: border-box; 
+}
+/* The Plastic Glare and Crinkles */
+#magazine-cover-container::after {
+    content: ''; position: absolute; inset: 0; z-index: 10; pointer-events: none;
+    background: 
+        linear-gradient(135deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.6) 40%, rgba(255,255,255,0) 50%),
+        linear-gradient(45deg, rgba(255,255,255,0) 60%, rgba(255,255,255,0.4) 70%, rgba(255,255,255,0) 80%);
+    mix-blend-mode: overlay;
+}
+#magazine-cover-container img { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; }
+
 .magazine-scene { perspective: 2500px; width: 45vw; height: 70vh; position: relative; display: flex; align-items: center; justify-content: center; }
 .book-leaf { position: absolute; width: 50%; height: 100%; right: 0; transform-origin: left center; transform-style: preserve-3d; transition: 0.8s; cursor: pointer; }
 .book-leaf.flipped { transform: rotateY(-180deg); }
