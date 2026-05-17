@@ -85,9 +85,18 @@ function renderDashboard() {
 }
 
 function renderCalendar(data) {
-    const cal = document.getElementById('calendar-content');
     if (data.length > 0) {
+        // Render Calendar Image & Text
+        const cal = document.getElementById('calendar-content');
         cal.innerHTML = `${data[0].image ? `<img src="${getSafeImg(data[0].image)}">` : ''}${data[0].text ? `<div>${data[0].text}</div>` : ''}`;
+        
+        // Render the CMS Marquee text if it exists
+        if (data[0].marquee) {
+            const track = document.getElementById('marquee-track');
+            const spacer = " &nbsp;&nbsp; // &nbsp;&nbsp; ";
+            const fullText = data[0].marquee + spacer;
+            track.innerHTML = `<span>${fullText}</span><span>${fullText}</span><span>${fullText}</span><span>${fullText}</span>`;
+        }
     }
 }
 
@@ -164,14 +173,13 @@ function unfoldProject(id) {
     
     let gridItems = p.images.map(img => `<div class="unfold-grid-item"><img src="${getSafeImg(img)}"></div>`).join('');
     
-    /* FIX: align-items: stretch links column heights. text column pushed to bottom via justify-content: flex-end */
     over.innerHTML = `
         <div class="close-minus" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove()">–</div>
         <div style="margin-bottom:100px; display:flex; gap:40px; align-items:stretch; width:100%; margin-top:40px;">
             <div style="width:50%;">
                 <div class="card-wrapper" style="transform: none !important;">
                     <div class="paper-card" style="padding:25px; cursor:default;">
-                        <img src="${getSafeImg(p.titleImage)}" style="width:100%; display:block;">
+                        <div class="card-inner-frame"><img src="${getSafeImg(p.titleImage)}"></div>
                     </div>
                 </div>
             </div>
