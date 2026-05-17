@@ -85,20 +85,52 @@ function renderDashboard() {
 }
 
 function renderCalendar(data) {
-    if (data.length > 0) {
-        // Render Calendar Image & Text
-        const cal = document.getElementById('calendar-content');
-        cal.innerHTML = `${data[0].image ? `<img src="${getSafeImg(data[0].image)}">` : ''}${data[0].text ? `<div>${data[0].text}</div>` : ''}`;
-        
-        // Render the CMS Marquee text if it exists
+    if (data.length > 0 && data[0]) {
+        const calTxt = document.getElementById('calendar-text');
+        calTxt.innerHTML = '';
+
+        // Render the array of events
+        if (data[0].events && data[0].events.length > 0) {
+            let html = '';
+            data[0].events.forEach(evt => {
+                if (evt.imgId) {
+                    // It has an image, make it clickable
+                    html += `<div class="calendar-event-item has-invite" onclick="openEvent('${evt.imgId}')">${evt.text}</div>`;
+                } else {
+                    // Normal text
+                    html += `<div class="calendar-event-item">${evt.text}</div>`;
+                }
+            });
+            calTxt.innerHTML = html;
+        }
+
+        // Render the CMS Marquee text
         if (data[0].marquee) {
             const track = document.getElementById('marquee-track');
             const spacer = " &nbsp;&nbsp; // &nbsp;&nbsp; ";
             const fullText = data[0].marquee + spacer;
-            track.innerHTML = `<span>${fullText}</span><span>${fullText}</span><span>${fullText}</span><span>${fullText}</span>`;
+            track.innerHTML = `<span>${fullText.repeat(10)}</span>`;
         }
     }
 }
+
+// Function to open the specific event poster
+window.openEvent = function(imgId) {
+    document.body.classList.add('spread-open');
+    const over = document.createElement('div');
+    over.id = 'event-overlay';
+    
+    // Direct drive viewing link
+    const imgSrc = `https://drive.google.com/uc?export=view&id=${imgId}`;
+    
+    over.innerHTML = `
+        <div class="close-minus" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove()">–</div>
+        <div class="event-poster-container">
+            <img src="${imgSrc}">
+        </div>
+    `;
+    document.body.appendChild(over);
+};
 
 function renderMagazineCover(data) {
     const mag = document.getElementById('magazine-cover-container');
