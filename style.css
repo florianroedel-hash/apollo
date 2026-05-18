@@ -25,7 +25,6 @@ body.magazine-open #main-header { opacity: 0; pointer-events: none; transition: 
 
 .title-wrapper { display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
 .menu-content { display: flex; align-items: center; justify-content: flex-end; width: 12vw; padding-right: 15px; position: relative; }
-#col-archive .menu-content { justify-content: center; width: auto; padding-right: 0; }
 
 .title-anchor { position: relative; display: inline-flex; justify-content: center; align-items: center; }
 .big-header-title { font-size: 3.8rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; line-height: 1; white-space: nowrap; transition: opacity 0.2s; }
@@ -45,7 +44,6 @@ body.magazine-open #main-header { opacity: 0; pointer-events: none; transition: 
 .marquee-track span { padding-right: 10px; }
 @keyframes scrolling-text { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
-/* FIX 5: Z-Index increased to 100005 so it floats on top of the spread overlay */
 #main-footer { position: fixed; bottom: 0; left: 0; width: 100%; display: flex; justify-content: center; padding: 40px 5%; box-sizing: border-box; z-index: 100005; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
 body.active-state #main-footer { opacity: 1; pointer-events: auto; }
 #filter-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; max-width: 900px; }
@@ -103,22 +101,21 @@ body.grid-mode .note-title { font-size: 11px; }
 #unfold-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: white; z-index: 100000; box-sizing: border-box; overflow: hidden; }
 .close-minus { position: fixed; top: 40px; right: 40px; font-size: 3.8rem; font-weight: bold; cursor: pointer; z-index: 100002; line-height: 1; }
 
-/* FIX 1 & 2: The 25/75 Split and Grid Row Architecture */
 .spread-layout {
     display: grid;
     grid-template-columns: 1fr 3fr; 
-    grid-template-rows: auto 1fr; /* Title strictly Row 1, Columns strictly Row 2 */
+    grid-template-rows: auto 1fr;
     gap: 20px 60px;
     width: 100%;
-    height: calc(100vh - 160px); 
-    margin-top: 100px;
+    height: calc(85vh - 60px); 
+    margin-top: 15vh;
     padding: 0 5%;
     box-sizing: border-box;
 }
 
 .spread-title-block {
     grid-column: 1;
-    grid-row: 1; /* Locked to top */
+    grid-row: 1; 
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -128,35 +125,32 @@ body.grid-mode .note-title { font-size: 11px; }
     height: 100%; 
     overflow-y: auto; 
     overflow-x: hidden; 
-    padding-bottom: 120px; /* Padding increased so footer doesn't hide content */
+    padding-bottom: 120px; 
     scrollbar-width: none; 
     -ms-overflow-style: none; 
 }
 .spread-col::-webkit-scrollbar { display: none; }
 
 .left-col-scroll { grid-column: 1; grid-row: 2; }
-.right-col-scroll { grid-column: 2; grid-row: 2; } /* Both panes start at the exact same Y-axis */
+.right-col-scroll { grid-column: 2; grid-row: 2; } 
 
-/* FIX 1: The two 37.5% Columns */
 .unfold-gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
 
-/* FIX 3: The physical wall preventing image cutoff */
 .unfold-grid-item { 
     background: white; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border-radius: 2px; 
     display: inline-flex; justify-content: center; align-items: center; 
     width: fit-content; 
-    max-width: 100%; /* The Wall */
+    max-width: 100%; 
     box-sizing: border-box; 
 }
 .unfold-grid-item img { max-width: 100%; max-height: 40vh; width: auto; height: auto; object-fit: contain; cursor: zoom-in; }
 
 .bookmark-note.spread-note { 
     position: relative; bottom: auto; right: auto; transform: none; margin-bottom: 20px; cursor: default; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    display: flex; flex-direction: column; justify-content: flex-start; z-index: 10; font-size: 10.5px;
+    display: flex; flex-direction: column; justify-content: flex-start; z-index: 10; font-size: 10.5px; width: 12vw;
 }
 .bookmark-note.spread-note:hover { transform: none; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
 
-/* FIX 4: Frosted Glass Lightbox */
 #spread-lightbox {
     position: fixed; inset: 0; z-index: 1000000;
     background: rgba(255, 255, 255, 0.75);
