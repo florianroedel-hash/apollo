@@ -18,13 +18,16 @@
 
     <header id="main-header">
         <div class="header-columns">
+            
             <div class="header-col left-col" id="col-apollo">
                 <div class="title-wrapper" onclick="toggleMenu('apollo', this, event)">
                     <div class="menu-content">
-                        <div class="big-header-title">APOLLO</div>
-                        <div class="dropdown-menu">
-                            <a href="#" class="highlight-link">contact</a>
-                            <a href="https://tally.so/r/81P1XY" target="_blank" class="highlight-link">join</a>
+                        <div class="title-anchor">
+                            <div class="big-header-title">APOLLO</div>
+                            <div class="dropdown-menu">
+                                <a href="#" class="highlight-link">contact</a>
+                                <a href="https://tally.so/r/81P1XY" target="_blank" class="highlight-link">join</a>
+                            </div>
                         </div>
                     </div>
                     <span class="menu-toggle plus-apollo">+</span>
@@ -35,11 +38,13 @@
                 <div class="center-col-flex">
                     <div class="title-wrapper" onclick="toggleMenu('archive', this, event)">
                         <div class="menu-content">
-                            <div class="big-header-title archive-title">ARCHIVE</div>
-                            <div class="dropdown-menu">
-                                <a href="https://tally.so/r/LZJPYv" target="_blank" class="highlight-link">submit</a>
-                                <a href="https://www.instagram.com/apollo.review" target="_blank" class="highlight-link">instagram</a>
-                                <a href="https://pin.it/6n3uztWHe" target="_blank" class="highlight-link">pinterest</a>
+                            <div class="title-anchor">
+                                <div class="big-header-title archive-title">ARCHIVE</div>
+                                <div class="dropdown-menu">
+                                    <a href="https://tally.so/r/LZJPYv" target="_blank" class="highlight-link">submit</a>
+                                    <a href="https://www.instagram.com/apollo.review" target="_blank" class="highlight-link">instagram</a>
+                                    <a href="https://pin.it/6n3uztWHe" target="_blank" class="highlight-link">pinterest</a>
+                                </div>
                             </div>
                         </div>
                         <span class="menu-toggle plus-archive">+</span>
@@ -50,33 +55,29 @@
             <div class="header-col right-col" id="col-magazine">
                 <div class="title-wrapper" onclick="toggleMenu('magazine', this, event)">
                     <div class="menu-content">
-                        <div class="big-header-title">MAGAZINE</div>
-                        <div class="dropdown-menu">
-                            <a href="https://tally.so/r/lb7BOX" target="_blank" class="highlight-link">submit</a>
+                        <div class="title-anchor">
+                            <div class="big-header-title">MAGAZINE</div>
+                            <div class="dropdown-menu">
+                                <a href="https://tally.so/r/lb7BOX" target="_blank" class="highlight-link">submit</a>
+                            </div>
                         </div>
                     </div>
                     <span class="menu-toggle plus-magazine">+</span>
                 </div>
             </div>
+
         </div>
 
         <div class="marquee-wrapper">
-            <div class="marquee-track" id="marquee-track">
-                </div>
+            <div class="marquee-track" id="marquee-track"></div>
         </div>
     </header>
 
     <main id="archive-stage">
         <div id="dashboard-wrapper">
-            <div id="calendar-column" class="side-column">
-                <div id="calendar-text"></div>
-            </div>
-            
+            <div id="calendar-column" class="side-column"><div id="calendar-text"></div></div>
             <div id="project-pile"></div>
-            
-            <div id="magazine-column" class="side-column">
-                <div id="magazine-cover-container" onclick="openMagazine()"></div>
-            </div>
+            <div id="magazine-column" class="side-column"><div id="magazine-cover-container" onclick="openMagazine()"></div></div>
         </div>
     </main>
 
