@@ -87,6 +87,7 @@ function renderDashboard() {
     renderMagazineCover(magazineData);
 }
 
+/* FIX: [+] icon dropped to a new line inside the calendar details */
 function renderCalendar(data) {
     if (data.length > 0 && data[0]) {
         const calTxt = document.getElementById('calendar-text');
@@ -101,7 +102,9 @@ function renderCalendar(data) {
 
                 let interactiveClass = evt.imgId ? 'has-invite' : '';
                 let clickAction = evt.imgId ? `onclick="this.querySelector('.calendar-inline-img').classList.toggle('expanded')"` : '';
-                let plusIcon = evt.imgId ? `<span class="invite-indicator">[+]</span>` : '';
+                
+                // Wrapped in a block div with top-margin so it drops below the text naturally
+                let plusIcon = evt.imgId ? `<div style="margin-top: 12px;"><span class="invite-indicator">[+]</span></div>` : '';
                 
                 let imgPayload = evt.imgId ? `
                     <div class="calendar-inline-img">
@@ -114,7 +117,8 @@ function renderCalendar(data) {
                         <div class="cal-row">
                             <div class="cal-date">${dateHtml}</div>
                             <div class="cal-details">
-                                ${detailsHtml} ${plusIcon}
+                                ${detailsHtml}
+                                ${plusIcon}
                                 ${imgPayload}
                             </div>
                         </div>
