@@ -92,22 +92,35 @@ function renderCalendar(data) {
         const calTxt = document.getElementById('calendar-text');
         calTxt.innerHTML = '';
 
+        /* FIX 9: Splitting the text by the first line break to create the two columns */
         if (data[0].events && data[0].events.length > 0) {
             let html = '';
             data[0].events.forEach(evt => {
-                if (evt.imgId) {
-                    html += `
-                    <div class="calendar-event-group">
-                        <div class="calendar-event-item has-invite" onclick="this.nextElementSibling.classList.toggle('expanded')">
-                            ${evt.text} <span class="invite-indicator">[+]</span>
+                let lines = evt.text.split('<br>');
+                let dateHtml = lines.shift() || ''; // The very first line
+                let detailsHtml = lines.join('<br>') || ''; // Everything else
+
+                let interactiveClass = evt.imgId ? 'has-invite' : '';
+                let clickAction = evt.imgId ? `onclick="this.nextElementSibling.classList.toggle('expanded')"` : '';
+                let plusIcon = evt.imgId ? `<span class="invite-indicator">[+]</span>` : '';
+                
+                let imgPayload = evt.imgId ? `
+                    <div class="calendar-inline-img">
+                        <img src="https://drive.google.com/thumbnail?id=${evt.imgId}&sz=w1200">
+                    </div>` : '';
+
+                html += `
+                <div class="calendar-event-group">
+                    <div class="calendar-event-item ${interactiveClass}" ${clickAction}>
+                        <div class="cal-row">
+                            <div class="cal-date">${dateHtml}</div>
+                            <div class="cal-details">
+                                ${detailsHtml} ${plusIcon}
+                            </div>
                         </div>
-                        <div class="calendar-inline-img">
-                            <img src="https://drive.google.com/thumbnail?id=${evt.imgId}&sz=w1200">
-                        </div>
-                    </div>`;
-                } else {
-                    html += `<div class="calendar-event-group"><div class="calendar-event-item">${evt.text}</div></div>`;
-                }
+                    </div>
+                    ${imgPayload}
+                </div>`;
             });
             calTxt.innerHTML = html;
         }
@@ -124,12 +137,28 @@ function renderCalendar(data) {
 function renderMagazineCover(data) {
     const mag = document.getElementById('magazine-cover-container');
     if (data.length > 0) {
+        
+        /* FIX 4 & 5: Time Decay Math for the Foil Bag */
+        const releaseDate = new Date("2026-09-30T00:00:00");
+        const startDate = new Date("2026-05-01T00:00:00");
+        const now = new Date();
+        
+        // Calculate the percentage of time left
+        const totalDuration = releaseDate - startDate;
+        const timeRemaining = releaseDate - now;
+        
+        // Convert to an opacity value between 0 (transparent) and 1 (solid foil)
+        let foilOpacity = Math.max(0, Math.min(1, timeRemaining / totalDuration));
+        
         mag.innerHTML = `
             <img src="${getSafeImg(data[0].images[0])}">
             <div class="vac-stamp">DO NOT OPEN</div>
-            <div class="vac-release">ARCHIVAL MASTER // RELEASE DATE: SEP 2026</div>
+            <div class="vac-release">ARCHIVAL MASTER // RELEASE DATE: SEP 30 2026</div>
             <div class="vac-barcode"></div>
         `;
+        
+        // Inject the opacity directly into the CSS variable
+        mag.style.setProperty('--foil-opacity', foilOpacity.toFixed(3));
     }
 }
 
@@ -154,15 +183,18 @@ function renderPile(data, isGrid = false) {
 function createCard(p) {
     const card = document.createElement('div');
     card.className = 'paper-card';
-    const pad = Math.floor(Math.random() * 10) + 20; 
-    card.style.padding = `${pad}px`;
+    card.style.padding = `${Math.floor(Math.random() * 10) + 20}px`; /* Random padding applied directly to parent */
+    
     let note = p.metadata.description ? `
         <div class="bookmark-note" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
             <img src="logo.png" class="stamp-logo">
             <div class="note-title">[ NOTE TITLE ]</div>
             <div class="note-text-content">${p.metadata.description}</div>
         </div>` : '';
+        
+    /* FIX 8: .paper-card-bg completely isolates the mask from clipping the post-it */
     card.innerHTML = `
+        <div class="paper-card-bg"></div>
         <div class="card-inner-frame"><img src="${getSafeImg(p.titleImage)}"></div>
         ${note}
         <div class="belly-band">
@@ -201,14 +233,15 @@ function unfoldProject(id) {
     
     let gridItems = p.images.map(img => `<div class="unfold-grid-item"><img src="${getSafeImg(img)}"></div>`).join('');
     
-    /* FIX 3: Flexbox strict matching for Post-it Height */
+    /* FIX 1 & 2: max-content applied so spread cards shrink-wrap evenly without forced 100% distortion */
     over.innerHTML = `
         <div class="close-minus" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove()">–</div>
         <div style="margin-bottom:100px; display:flex; gap:40px; align-items:stretch; width:100%; margin-top:40px;">
             
             <div style="width:50%; display:flex; justify-content:flex-end;">
                 <div class="card-wrapper" style="transform: none !important;">
-                    <div class="paper-card" style="padding:25px; cursor:default; max-height: 70vh;">
+                    <div class="paper-card" style="padding:25px; cursor:default; width: max-content;">
+                        <div class="paper-card-bg"></div>
                         <div class="card-inner-frame">
                             <img src="${getSafeImg(p.titleImage)}" style="max-height: calc(70vh - 50px); max-width: 100%; width: auto; height: auto;">
                         </div>
