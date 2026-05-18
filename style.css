@@ -105,7 +105,8 @@ body.grid-mode .note-title { font-size: 11px; }
     display: grid;
     grid-template-columns: 1fr 3fr; 
     grid-template-rows: auto 1fr;
-    gap: 20px 60px;
+    /* FIX: Increased gaps for wider art gallery layout */
+    gap: 20px 100px; 
     width: 100%;
     height: calc(85vh - 60px); 
     margin-top: 15vh;
@@ -134,7 +135,8 @@ body.grid-mode .note-title { font-size: 11px; }
 .left-col-scroll { grid-column: 1; grid-row: 2; }
 .right-col-scroll { grid-column: 2; grid-row: 2; } 
 
-.unfold-gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+/* FIX: Increased gallery gap */
+.unfold-gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
 
 .unfold-grid-item { 
     background: white; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border-radius: 2px; 
@@ -178,7 +180,10 @@ body.grid-mode .note-title { font-size: 11px; }
 .cal-details::first-line { font-size: 1.4em; font-weight: bold; }
 .calendar-event-item.has-invite { cursor: pointer; transition: 0.2s; }
 .calendar-event-item.has-invite:hover { opacity: 0.6; }
-.invite-indicator { color: #C2A878; margin-left: 5px; font-weight: bold; font-size: 1em; }
+
+/* FIX: Removed margin-left to allow flush alignment when dropped below */
+.invite-indicator { color: #C2A878; font-weight: bold; font-size: 1em; }
+
 .calendar-inline-img { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease; width: 90%; margin-top: 0; }
 .calendar-inline-img.expanded { max-height: 500px; opacity: 1; margin-top: 15px; }
 .calendar-inline-img img { width: 100%; display: block; box-shadow: 0 5px 20px rgba(0,0,0,0.1); border-radius: 2px; }
