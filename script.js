@@ -207,48 +207,60 @@ function filterProjects(tag, btn) {
     renderPile(tag === 'All' ? archiveData : archiveData.filter(p => p.metadata.tags.some(t => t.toLowerCase() === tag.toLowerCase())), tag !== 'All');
 }
 
+/* FIX: Editorial Project Spread (Dual-Pane Scrolling) */
 function unfoldProject(id) {
     const p = archiveData.find(proj => proj.id === id);
     document.body.classList.add('spread-open');
     const over = document.createElement('div');
     over.id = 'unfold-overlay';
     
-    let gridItems = p.images.map(img => `<div class="unfold-grid-item"><img src="${getSafeImg(img)}"></div>`).join('');
+    // Wrap each image in a flex-center box so it perfectly shrink-wraps in the gallery
+    let gridItems = p.images.map(img => `
+        <div style="display:flex; justify-content:center;">
+            <div class="unfold-grid-item">
+                <img src="${getSafeImg(img)}">
+            </div>
+        </div>`).join('');
     
-    /* FIX 6 & 7: align-self flex-start stops stretching. justify-content flex-start locks it to the left. */
     over.innerHTML = `
         <div class="close-minus" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove()">–</div>
-        <div style="margin-bottom:100px; display:flex; gap:40px; align-items:stretch; width:100%; margin-top:40px;">
+        
+        <div class="spread-container">
             
-            <div style="width:50%; display:flex; justify-content:flex-start;">
-                <div class="card-wrapper" style="transform: none !important; align-self: flex-start;">
-                    <div class="paper-card" style="padding:25px; cursor:default; width: max-content; height: max-content;">
-                        <div class="paper-card-bg"></div>
-                        <div class="card-inner-frame">
-                            <img src="${getSafeImg(p.titleImage)}" style="max-height: calc(70vh - 50px); max-width: 100%; width: auto; height: auto;">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div style="width:25%; display:flex; flex-direction:column; justify-content:flex-end; padding: 20px 0;">
-                <div class="bookmark-note spread-note">
-                    <img src="logo.png" class="stamp-logo">
-                    <div class="note-title">[ NOTE TITLE ]</div>
-                    <div class="note-text-content">${p.metadata.description || ''}</div>
-                </div>
-                <div style="display:flex; flex-direction:column; gap:8px;">
+            <div class="spread-col">
+                
+                <div style="display:flex; flex-direction:column; gap:8px; margin-bottom: 30px;">
                     <span style="font-size:1.8rem; font-weight:bold;">${p.metadata.name}</span>
                     <span>${p.metadata.author} — ${p.metadata.year}</span>
                 </div>
+
+                <div class="card-wrapper" style="transform: none !important; margin-bottom: 40px; display: flex; justify-content: flex-start;">
+                    <div class="paper-card" style="padding:25px; cursor:default; width: max-content; max-width: 100%;">
+                        <div class="paper-card-bg"></div>
+                        <div class="card-inner-frame">
+                            <img src="${getSafeImg(p.titleImage)}" style="max-width: 100%; height: auto; object-fit: contain;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bookmark-note spread-note" style="width: 100%; height: auto; margin-bottom: 40px;">
+                    <img src="logo.png" class="stamp-logo">
+                    <div class="note-title">[ NOTE TITLE ]</div>
+                    <div class="note-text-content" style="display: block; -webkit-line-clamp: unset; overflow: visible;">${p.metadata.description || ''}</div>
+                </div>
+                
             </div>
 
-            <div style="width:25%;"></div>
+            <div class="spread-col">
+                <div class="unfold-gallery-grid">
+                    ${gridItems}
+                </div>
+            </div>
+
         </div>
-        <div class="unfold-grid">${gridItems}</div>`;
+    `;
     
     document.body.appendChild(over);
-    over.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 window.openMagazine = function() {
