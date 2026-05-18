@@ -26,12 +26,14 @@ body.magazine-open #main-header { opacity: 0; pointer-events: none; transition: 
 .header-col, .side-column, #project-pile { display: flex; justify-content: center; align-items: center; width: 100%; position: relative; }
 .center-col-flex { display: flex; flex-direction: column; align-items: center; width: 100%; }
 
+/* FIX 6: Vertically and Horizontally Centered Menus */
 .title-wrapper { display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
 .menu-content { display: flex; align-items: center; position: relative; }
 .big-header-title { font-size: 3.8rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; line-height: 1; white-space: nowrap; transition: opacity 0.2s; }
 .menu-toggle { font-size: 3.8rem; font-weight: bold; line-height: 1; user-select: none; transition: 0.2s; width: 30px; padding-left: 10px; text-align: left; }
 
-.dropdown-menu { display: flex; flex-direction: row; align-items: center; justify-content: flex-end; gap: 15px; position: absolute; right: 0; opacity: 0; pointer-events: none; transition: opacity 0.2s; white-space: nowrap; }
+/* top 0 and bottom 0 guarantee true vertical centering within the row */
+.dropdown-menu { display: flex; flex-direction: row; align-items: center; justify-content: flex-end; gap: 15px; position: absolute; right: 0; top: 0; bottom: 0; opacity: 0; pointer-events: none; transition: opacity 0.2s; white-space: nowrap; }
 .header-col.menu-open .big-header-title { opacity: 0; pointer-events: none; } 
 .header-col.menu-open .dropdown-menu { opacity: 1; pointer-events: auto; } 
 
@@ -57,49 +59,53 @@ body.grid-mode #archive-stage { height: auto; align-items: flex-start; padding-t
 
 body.grid-mode .side-column { opacity: 0; pointer-events: none; }
 body.grid-mode #dashboard-wrapper { display: flex; justify-content: center; align-items: flex-start; height: auto; }
-
-/* FIX 1: Exact 25vw Grid Spacing */
-body.grid-mode #project-pile { 
-    width: 90vw; max-width: none; display: grid !important; 
-    grid-template-columns: 25vw 25vw 25vw; 
-    justify-content: space-between; /* Mathematically distributes the remaining 15vw */
-    gap: 120px 0; 
-    justify-items: center; align-items: center; 
-}
+body.grid-mode #project-pile { width: 90vw; max-width: none; display: grid !important; grid-template-columns: 25vw 25vw 25vw; justify-content: space-between; gap: 120px 0; justify-items: center; align-items: center; }
 
 .card-wrapper { position: relative; filter: drop-shadow(0 8px 25px rgba(0,0,0,0.15)); transition: 0.5s; display: flex; justify-content: center; align-items: center; } 
 
-/* FIX 2: True Shrink-Wrap Paper Cards */
+/* FIX 8: Decoupling the Mask to prevent Post-It decapitation */
 .paper-card { 
-    background: white; border: 1px solid #eaeaea; display: inline-flex; flex-direction: column; position: relative; cursor: pointer;
-    width: max-content; height: max-content; max-width: 100%; 
+    position: relative; display: inline-flex; flex-direction: column; cursor: pointer;
+    width: max-content; height: max-content; max-width: 100%; padding: 25px; /* Padding moved to outer container */
+}
+/* The Background Layer gets the masking hole-punches so it doesn't affect absolute children */
+.paper-card-bg {
+    position: absolute; inset: 0; background: white; border: 1px solid #eaeaea; z-index: 0;
     -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cmask id='holes'%3E%3Crect width='100%25' height='100%25' fill='white'/%3E%3Ccircle cx='2%25' cy='10%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='30%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='50%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='70%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='90%25' r='1.2%25' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='black' mask='url(%23holes)'/%3E%3C/svg%3E");
     mask-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cmask id='holes'%3E%3Crect width='100%25' height='100%25' fill='white'/%3E%3Ccircle cx='2%25' cy='10%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='30%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='50%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='70%25' r='1.2%25' fill='black'/%3E%3Ccircle cx='2%25' cy='90%25' r='1.2%25' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='black' mask='url(%23holes)'/%3E%3C/svg%3E");
 }
+
 .card-inner-frame { position: relative; z-index: 1; }
 .card-inner-frame img { display: block; width: auto; height: auto; max-width: 100%; max-height: 50vh; object-fit: contain; }
-
-/* Grid specific image constraints to prevent giant scaling */
 body.grid-mode .card-inner-frame img { max-height: 35vh; }
 
 .belly-band { z-index: 3; position: absolute; bottom: 15%; left: -2px; width: calc(100% + 4px); background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(8px); padding: 50px 20px; display: flex; justify-content: center; align-items: center; gap: 10px; box-shadow: inset 6px 0 6px -4px rgba(0,0,0,0.15), inset -6px 0 6px -4px rgba(0,0,0,0.15), 0 5px 15px rgba(0,0,0,0.05); }
 .belly-text { font-size: 11px; text-transform: lowercase; font-weight: bold; white-space: nowrap; }
 .belly-plus { font-size: 2rem; font-weight: bold; cursor: pointer; display: inline-block; line-height: 1; padding-bottom: 2px; }
 
+/* FIX 3 & 7: Post-It Scale Proportions */
 .bookmark-note {
-    position: absolute; bottom: 5%; right: 2%; z-index: 2; width: 12vw; min-width: 160px; height: fit-content; max-height: 80%; 
+    position: absolute; bottom: 5%; right: 2%; z-index: 2; 
+    width: 12vw; min-width: 160px; 
+    height: 50%; /* Strictly ties height to the orientation of the photo */
     background: #fcf9ee; border: 1px solid #eadeb9; box-shadow: 2px 5px 15px rgba(0,0,0,0.06); padding: 15px; 
     font-size: 10.5px; line-height: 1.5; transform: rotate(0deg); overflow: hidden;
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), z-index 0s 0.3s;
+    display: flex; flex-direction: column; box-sizing: border-box;
 }
+
+/* Organized View overrides downscale the width, but keep the 50% height logic */
+body.grid-mode .bookmark-note { width: 6vw; min-width: 100px; font-size: 9px; padding: 10px; }
+
 .bookmark-note:hover { 
     transform: scale(1.35) translateX(-25%) translateY(-10%); box-shadow: 0 15px 35px rgba(0,0,0,0.15); max-height: none; overflow: visible; 
     z-index: 10 !important; 
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), z-index 0s 0s;
 }
-.note-text-content { position: relative; display: -webkit-box; -webkit-line-clamp: 14; -webkit-box-orient: vertical; overflow: hidden; }
+.note-text-content { position: relative; display: -webkit-box; -webkit-line-clamp: 14; -webkit-box-orient: vertical; overflow: hidden; flex-grow: 1; }
 .bookmark-note:hover .note-text-content { -webkit-line-clamp: unset; }
 .note-title { font-size: 14px; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; position: relative; z-index: 2; }
+body.grid-mode .note-title { font-size: 11px; }
 .stamp-logo { position: absolute; top: 10px; right: 5%; width: 90%; opacity: 0.12; transform: rotate(-15deg); z-index: 1; pointer-events: none; }
 
 /* OVERLAYS */
@@ -110,25 +116,30 @@ body.grid-mode .card-inner-frame img { max-height: 35vh; }
 .unfold-grid-item { background: white; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transform: none !important; border-radius: 2px; box-sizing: border-box; display: flex; justify-content: center; align-items: center; }
 .unfold-grid-item img { max-width: 100%; max-height: 40vh; width: auto; height: auto; object-fit: contain; }
 
-/* FIX 3: Project Spread Post-It Dynamics */
 .bookmark-note.spread-note { 
     position: relative; bottom: auto; right: auto; width: 12vw; 
-    height: auto; max-height: none; flex-grow: 1; /* Automatically stretches to fill available height */
+    height: auto; max-height: none; flex-grow: 1; 
     transform: none; margin-bottom: 20px; cursor: default; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    display: flex; flex-direction: column; justify-content: flex-start; z-index: 10;
+    display: flex; flex-direction: column; justify-content: flex-start; z-index: 10; font-size: 10.5px;
 }
 .bookmark-note.spread-note:hover { transform: none; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
 .bookmark-note.spread-note .note-text-content { -webkit-line-clamp: unset; flex-grow: 1; overflow-y: auto; }
 
+/* FIX 9: Two Column Calendar Matrix */
 #calendar-column { display: flex; flex-direction: column; justify-content: center; }
-#calendar-text { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-y: auto; text-align: center; font-size: 11px; line-height: 1.4; gap: 25px; padding: 20px 0; max-height: 50vh; }
+#calendar-text { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow-y: auto; font-size: 11px; line-height: 1.4; gap: 25px; padding: 20px 0; max-height: 50vh; }
 .calendar-event-group { width: 100%; display: flex; flex-direction: column; align-items: center; }
-.calendar-event-item { width: 100%; position: relative; }
-.calendar-event-item::first-line { font-size: 1.4em; }
+.calendar-event-item { width: 100%; position: relative; display: flex; flex-direction: column; gap: 5px; }
+
+/* The Row Splitter for Date vs Details */
+.cal-row { display: flex; width: 100%; gap: 15px; }
+.cal-date { width: 33.33%; text-align: right; opacity: 0.8; }
+.cal-details { width: 66.66%; text-align: left; }
+.cal-details::first-line { font-size: 1.4em; font-weight: bold; } /* Scales up title */
 
 .calendar-event-item.has-invite { cursor: pointer; transition: 0.2s; }
 .calendar-event-item.has-invite:hover { opacity: 0.6; }
-.invite-indicator { color: #C2A878; margin-left: 5px; font-weight: bold; }
+.invite-indicator { color: #C2A878; margin-left: 5px; font-weight: bold; font-size: 1em; }
 
 .calendar-inline-img { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease; width: 90%; margin-top: 0; }
 .calendar-inline-img.expanded { max-height: 500px; opacity: 1; margin-top: 15px; }
@@ -142,10 +153,18 @@ body.grid-mode .card-inner-frame img { max-height: 35vh; }
     transform: rotate(3deg); transition: 0.3s; width: 100%; max-height: 55vh; overflow: hidden; box-sizing: border-box; cursor: pointer;
 }
 #magazine-cover-container::before { content: ''; position: absolute; inset: 4px; z-index: 5; pointer-events: none; border: 2px dashed rgba(0,0,0,0.15); }
+
+/* FIX 4 & 5: Reflective Tin Foil Gradient + Variable Opacity */
 #magazine-cover-container::after {
     content: ''; position: absolute; inset: 0; z-index: 10; pointer-events: none;
-    background: linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.8) 22%, rgba(255,255,255,0.95) 24%, transparent 26%), linear-gradient(105deg, transparent 60%, rgba(255,255,255,0.6) 62%, transparent 64%);
+    background: 
+        repeating-linear-gradient(45deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 5%, rgba(180,180,180,1) 10%, rgba(255,255,255,0) 15%),
+        linear-gradient(135deg, rgba(220,220,220,0.9) 0%, rgba(255,255,255,1) 20%, rgba(120,120,120,0.9) 50%, rgba(255,255,255,1) 80%, rgba(220,220,220,0.9) 100%);
+    mix-blend-mode: hard-light;
+    opacity: var(--foil-opacity, 1);
+    transition: opacity 1s;
 }
+
 .vac-stamp { position: absolute; top: 15%; left: 5%; z-index: 20; color: #d2042d; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: 900; font-size: 1.8rem; border: 4px solid #d2042d; padding: 5px 10px; transform: rotate(-15deg); opacity: 0.8; mix-blend-mode: multiply; pointer-events: none; white-space: nowrap; }
 .vac-release { position: absolute; bottom: 8%; left: 5%; z-index: 20; color: black; font-family: monospace; font-size: 9px; font-weight: bold; background: rgba(255,255,255,0.85); padding: 4px 6px; pointer-events: none; letter-spacing: 0.5px; white-space: nowrap; border: 1px solid black; }
 .vac-barcode { position: absolute; bottom: 8%; right: 5%; z-index: 20; height: 35px; width: 70px; background: repeating-linear-gradient(to right, black 0, black 2px, transparent 2px, transparent 4px, black 4px, black 6px, transparent 6px, transparent 9px, black 9px, black 10px, transparent 10px, transparent 14px); opacity: 0.8; pointer-events: none; }
