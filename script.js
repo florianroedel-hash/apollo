@@ -100,7 +100,7 @@ function renderCalendar(data) {
                 let detailsHtml = lines.join('<br>') || ''; 
 
                 let interactiveClass = evt.imgId ? 'has-invite' : '';
-                let clickAction = evt.imgId ? `onclick="this.nextElementSibling.classList.toggle('expanded')"` : '';
+                let clickAction = evt.imgId ? `onclick="this.querySelector('.calendar-inline-img').classList.toggle('expanded')"` : '';
                 let plusIcon = evt.imgId ? `<span class="invite-indicator">[+]</span>` : '';
                 
                 let imgPayload = evt.imgId ? `
@@ -115,10 +115,10 @@ function renderCalendar(data) {
                             <div class="cal-date">${dateHtml}</div>
                             <div class="cal-details">
                                 ${detailsHtml} ${plusIcon}
+                                ${imgPayload}
                             </div>
                         </div>
                     </div>
-                    ${imgPayload}
                 </div>`;
             });
             calTxt.innerHTML = html;
@@ -207,7 +207,6 @@ function filterProjects(tag, btn) {
     renderPile(tag === 'All' ? archiveData : archiveData.filter(p => p.metadata.tags.some(t => t.toLowerCase() === tag.toLowerCase())), tag !== 'All');
 }
 
-/* FIX 4: The Frosted Glass Detail Viewer (Lightbox) Function */
 window.openLightbox = function(src, event) {
     event.stopPropagation();
     const box = document.createElement('div');
@@ -223,7 +222,6 @@ window.openLightbox = function(src, event) {
     });
 };
 
-/* The Editorial Grid Project Spread */
 function unfoldProject(id) {
     const p = archiveData.find(proj => proj.id === id);
     document.body.classList.add('spread-open');
@@ -258,7 +256,7 @@ function unfoldProject(id) {
                     </div>
                 </div>
 
-                <div class="bookmark-note spread-note" style="width: 100%; height: auto; margin-bottom: 40px;">
+                <div class="bookmark-note spread-note" style="width: 12vw; height: auto; margin-bottom: 40px;">
                     <img src="logo.png" class="stamp-logo">
                     <div class="note-title">[ NOTE TITLE ]</div>
                     <div class="note-text-content" style="display: block; -webkit-line-clamp: unset; overflow: visible;">${p.metadata.description || ''}</div>
