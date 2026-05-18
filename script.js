@@ -207,38 +207,53 @@ function filterProjects(tag, btn) {
     renderPile(tag === 'All' ? archiveData : archiveData.filter(p => p.metadata.tags.some(t => t.toLowerCase() === tag.toLowerCase())), tag !== 'All');
 }
 
-/* FIX: Editorial Project Spread (Dual-Pane Scrolling) */
+/* FIX 4: The Frosted Glass Detail Viewer (Lightbox) Function */
+window.openLightbox = function(src, event) {
+    event.stopPropagation();
+    const box = document.createElement('div');
+    box.id = 'spread-lightbox';
+    box.innerHTML = `<img src="${src}">`;
+    box.onclick = () => {
+        box.style.opacity = '0';
+        setTimeout(() => box.remove(), 300);
+    };
+    document.body.appendChild(box);
+    requestAnimationFrame(() => {
+        box.style.opacity = '1';
+    });
+};
+
+/* The Editorial Grid Project Spread */
 function unfoldProject(id) {
     const p = archiveData.find(proj => proj.id === id);
     document.body.classList.add('spread-open');
     const over = document.createElement('div');
     over.id = 'unfold-overlay';
     
-    // Wrap each image in a flex-center box so it perfectly shrink-wraps in the gallery
     let gridItems = p.images.map(img => `
-        <div style="display:flex; justify-content:center;">
+        <div style="display:flex; justify-content:flex-start;">
             <div class="unfold-grid-item">
-                <img src="${getSafeImg(img)}">
+                <img src="${getSafeImg(img)}" onclick="openLightbox('${getSafeImg(img)}', event)">
             </div>
         </div>`).join('');
     
     over.innerHTML = `
         <div class="close-minus" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove()">–</div>
         
-        <div class="spread-container">
+        <div class="spread-layout">
             
-            <div class="spread-col">
-                
-                <div style="display:flex; flex-direction:column; gap:8px; margin-bottom: 30px;">
-                    <span style="font-size:1.8rem; font-weight:bold;">${p.metadata.name}</span>
-                    <span>${p.metadata.author} — ${p.metadata.year}</span>
-                </div>
+            <div class="spread-title-block">
+                <span style="font-size:1.8rem; font-weight:bold; line-height: 1.1; margin-bottom: 5px;">${p.metadata.name}</span>
+                <span>${p.metadata.author} — ${p.metadata.year}</span>
+            </div>
 
-                <div class="card-wrapper" style="transform: none !important; margin-bottom: 40px; display: flex; justify-content: flex-start;">
+            <div class="spread-col left-col-scroll">
+                
+                <div class="card-wrapper" style="transform: none !important; margin-bottom: 40px; display: flex; justify-content: flex-start; align-self: flex-start;">
                     <div class="paper-card" style="padding:25px; cursor:default; width: max-content; max-width: 100%;">
                         <div class="paper-card-bg"></div>
                         <div class="card-inner-frame">
-                            <img src="${getSafeImg(p.titleImage)}" style="max-width: 100%; height: auto; object-fit: contain;">
+                            <img src="${getSafeImg(p.titleImage)}" style="max-width: 100%; height: auto; object-fit: contain; cursor: zoom-in;" onclick="openLightbox('${getSafeImg(p.titleImage)}', event)">
                         </div>
                     </div>
                 </div>
@@ -251,7 +266,7 @@ function unfoldProject(id) {
                 
             </div>
 
-            <div class="spread-col">
+            <div class="spread-col right-col-scroll">
                 <div class="unfold-gallery-grid">
                     ${gridItems}
                 </div>
