@@ -1,11 +1,12 @@
 const URL_PROJECTS = 'https://script.google.com/macros/s/AKfycby3AgRD49QItpR6M3oKG0id58QCZN0a7zQbrm91Z1ZmjwvhBwJzLNI3xBuANUzsWaiVfA/exec';
 const URL_CALENDAR = 'https://script.google.com/macros/s/AKfycbz5THEJ7sno1qcFbPaA0FWmtcXy3kEj4nbGGThGvHb9zRjWox57VDQghuOgdiFCbTfIIw/exec';
 const URL_MAGAZINE = 'https://script.google.com/macros/s/AKfycbyxSddhc-ntCVewfsAFXLcvStqnEN14VAJ-UtMuUxYt1zttxh8C39YelbeY5-pGsvZ6mg/exec';
+const URL_HISTORY = 'INSERT_YOUR_NEW_HISTORY_URL_HERE';
 
 const pile = document.getElementById('project-pile');
 const filterBar = document.getElementById('filter-bar');
 
-let archiveData = [], calendarData = [], magazineData = [];
+let archiveData = [], calendarData = [], magazineData = [], historyData = [];
 let isLoaded = false, isWaitingToStart = true, magCurrentPage = 0;
 
 function getSafeImg(url) {
@@ -26,7 +27,7 @@ window.toggleMenu = function(id, wrapper, event) {
     
     if (!isOpen) {
         col.classList.add('menu-open');
-        btn.innerText = '–';
+        btn.innerText = 'â€“';
     }
 };
 
@@ -47,14 +48,16 @@ window.checkPasscode = function(e) {
 
 async function init() {
     try {
-        const [resProj, resCal, resMag] = await Promise.all([
+        const [resProj, resCal, resMag, resHist] = await Promise.all([
             fetch(URL_PROJECTS, { redirect: 'follow' }),
             fetch(URL_CALENDAR, { redirect: 'follow' }),
-            fetch(URL_MAGAZINE, { redirect: 'follow' })
+            fetch(URL_MAGAZINE, { redirect: 'follow' }),
+            fetch(URL_HISTORY, { redirect: 'follow' }).catch(() => null)
         ]);
         archiveData = await resProj.json();
         calendarData = await resCal.json();
         magazineData = await resMag.json();
+        if (resHist && resHist.ok) historyData = await resHist.json().catch(() => []);
         generateDynamicTags();
         isLoaded = true;
         if (!document.getElementById('passcode-overlay')) liftFog();
@@ -108,7 +111,7 @@ function renderCalendar(data) {
                 
                 let imgPayload = evt.imgId ? `
                     <div class="calendar-inline-img">
-                        <img src="https://drive.google.com/thumbnail?id=${evt.imgId}&sz=w1200">
+                        <img src="https://drive.google.com/thumbnail?id=${evt.imgId}&sz=w1200" alt="Calendar Event Image">
                     </div>` : '';
 
                 html += `
@@ -141,7 +144,7 @@ function renderMagazineCover(data) {
     const mag = document.getElementById('magazine-cover-container');
     if (data.length > 0) {
         mag.innerHTML = `
-            <img src="${getSafeImg(data[0].images[0])}">
+            <img src="${getSafeImg(data[0].images[0])}" alt="Apollo Magazine Cover">
             <div class="vac-stamp">DO NOT OPEN</div>
             <div class="vac-release">ARCHIVAL MASTER // RELEASE DATE: SEP 2026</div>
             <div class="vac-barcode"></div>
@@ -170,7 +173,7 @@ function renderPile(data, isGrid = false) {
 function createCard(p) {
     const card = document.createElement('div');
     card.className = 'paper-card';
-    card.style.padding = `${Math.floor(Math.random() * 10) + 20}px`; 
+    card.style.padding = `${(Math.floor(Math.random() * 10) + 20) / 10}rem`; 
     
     let note = p.metadata.description ? `
         <div class="bookmark-note" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
@@ -181,10 +184,10 @@ function createCard(p) {
         
     card.innerHTML = `
         <div class="paper-card-bg"></div>
-        <div class="card-inner-frame"><img src="${getSafeImg(p.titleImage)}"></div>
+        <div class="card-inner-frame"><img src="${getSafeImg(p.titleImage)}" alt="${p.metadata.name || 'Project'} by ${p.metadata.author || 'Unknown'}"></div>
         ${note}
         <div class="belly-band">
-            <div class="belly-text">${p.metadata.name} — ${p.metadata.author} — ${p.metadata.year}</div>
+            <div class="belly-text">${p.metadata.name} â€” ${p.metadata.author} â€” ${p.metadata.year}</div>
             <div class="belly-plus" onclick="event.stopPropagation(); unfoldProject('${p.id}')">+</div>
         </div>`;
     return card;
@@ -215,7 +218,7 @@ window.openLightbox = function(src, event) {
     event.stopPropagation();
     const box = document.createElement('div');
     box.id = 'spread-lightbox';
-    box.innerHTML = `<img src="${src}">`;
+    box.innerHTML = `<img src="${src}" alt="Detail View">`;
     box.onclick = () => {
         box.style.opacity = '0';
         setTimeout(() => box.remove(), 300);
@@ -235,32 +238,32 @@ function unfoldProject(id) {
     let gridItems = p.images.map(img => `
         <div style="display:flex; justify-content:flex-start;">
             <div class="unfold-grid-item">
-                <img src="${getSafeImg(img)}" onclick="openLightbox('${getSafeImg(img)}', event)">
+                <img src="${getSafeImg(img)}" alt="${p.metadata.name} detail image" onclick="openLightbox('${getSafeImg(img)}', event)">
             </div>
         </div>`).join('');
     
     over.innerHTML = `
-        <div class="close-minus" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove()">–</div>
+        <div class="close-minus" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove()">â€“</div>
         
         <div class="spread-layout">
             
             <div class="spread-title-block">
-                <span style="font-size:1.8rem; font-weight:bold; line-height: 1.1; margin-bottom: 5px;">${p.metadata.name}</span>
-                <span>${p.metadata.author} — ${p.metadata.year}</span>
+                <span style="font-size:1.8rem; font-weight:bold; line-height: 1.1; margin-bottom: 0.5rem;">${p.metadata.name}</span>
+                <span>${p.metadata.author} â€” ${p.metadata.year}</span>
             </div>
 
             <div class="spread-col left-col-scroll">
                 
-                <div class="card-wrapper" style="transform: none !important; margin-bottom: 40px; display: flex; justify-content: flex-start; align-self: flex-start;">
-                    <div class="paper-card" style="padding:25px; cursor:default; width: max-content; max-width: 100%;">
+                <div class="card-wrapper" style="transform: none !important; margin-bottom: 4rem; display: flex; justify-content: flex-start; align-self: flex-start;">
+                    <div class="paper-card" style="padding:2.5rem; cursor:default; width: max-content; max-width: 100%;">
                         <div class="paper-card-bg"></div>
                         <div class="card-inner-frame">
-                            <img src="${getSafeImg(p.titleImage)}" style="max-width: 100%; height: auto; object-fit: contain; cursor: zoom-in;" onclick="openLightbox('${getSafeImg(p.titleImage)}', event)">
+                            <img src="${getSafeImg(p.titleImage)}" alt="${p.metadata.name} main image" style="max-width: 100%; height: auto; object-fit: contain; cursor: zoom-in;" onclick="openLightbox('${getSafeImg(p.titleImage)}', event)">
                         </div>
                     </div>
                 </div>
 
-                <div class="bookmark-note spread-note" style="width: 12vw; height: auto; margin-bottom: 40px;">
+                <div class="bookmark-note spread-note" style="width: 12vw; height: auto; margin-bottom: 4rem;">
                     <img src="logo.png" class="stamp-logo">
                     <div class="note-title">[ NOTE TITLE ]</div>
                     <div class="note-text-content" style="display: block; -webkit-line-clamp: unset; overflow: visible;">${p.metadata.description || ''}</div>
@@ -298,11 +301,34 @@ function updateMagazineView() {
     let html = '';
     for (let i = 0; i < leaves; i++) {
         html += `<div class="book-leaf ${i < magCurrentPage ? 'flipped' : ''}" style="z-index:${i < magCurrentPage ? i : leaves - i}" onclick="magCurrentPage = (magCurrentPage == ${i} ? ${i+1} : ${i}); updateMagazineView()">
-            <div class="page-front">${mag[i*2] ? `<img src="${getSafeImg(mag[i*2])}">` : ''}</div>
-            <div class="page-back">${mag[i*2+1] ? `<img src="${getSafeImg(mag[i*2+1])}">` : ''}</div>
+            <div class="page-front">${mag[i*2] ? `<img src="${getSafeImg(mag[i*2])}" alt="Magazine Page">` : ''}</div>
+            <div class="page-back">${mag[i*2+1] ? `<img src="${getSafeImg(mag[i*2+1])}" alt="Magazine Page">` : ''}</div>
         </div>`;
     }
-    over.innerHTML = `<div class="close-minus" onclick="document.body.classList.remove('magazine-open'); this.parentElement.remove()">–</div><div class="magazine-scene">${html}</div>`;
+    over.innerHTML = `<div class="close-minus" onclick="document.body.classList.remove('magazine-open'); this.parentElement.remove()">â€“</div><div class="magazine-scene">${html}</div>`;
 }
+
+window.openHistory = function() {
+    document.body.classList.add('spread-open');
+    const over = document.createElement('div');
+    over.id = 'unfold-overlay';
+    
+    let content = "<p style='font-size: 1.4rem; text-align: center; opacity: 0.5;'>History data will appear here once the endpoint is active.</p>";
+    if (historyData && historyData.length > 0) {
+        content = historyData.map(item => `<p style="font-size: 1.4rem; line-height: 1.6; margin-bottom: 2rem;">${item.text || item}</p>`).join('');
+    }
+    
+    over.innerHTML = `
+        <div class="close-minus" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove()">â€“</div>
+        <div style="width: 100%; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 20vh; box-sizing: border-box; overflow-y: auto;">
+            <div style="font-size: 3.8rem; font-weight: bold; margin-bottom: 4rem;">HISTORY</div>
+            <div style="text-align: left; max-width: 60vw; padding: 0 2rem; padding-bottom: 15rem;">
+                ${content}
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(over);
+};
 
 init();
