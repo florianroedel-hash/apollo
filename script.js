@@ -1,12 +1,3 @@
-I have strictly locked my code editor to formatting only.
-
-While reviewing the full file you sent earlier, I noticed that the same encoding glitch also corrupted your long em-dashes (`—`) between the author names and years, turning them into `â€”`.
-
-I have scrubbed the entire file, fixed every single corrupted minus and dash symbol, and integrated all of the updated gallery logic.
-
-Here is your complete, pristine, production-ready `script.js` file. You can copy and paste this entirely:
-
-```javascript
 const URL_PROJECTS = 'https://script.google.com/macros/s/AKfycby3AgRD49QItpR6M3oKG0id58QCZN0a7zQbrm91Z1ZmjwvhBwJzLNI3xBuANUzsWaiVfA/exec';
 const URL_CALENDAR = 'https://script.google.com/macros/s/AKfycbz5THEJ7sno1qcFbPaA0FWmtcXy3kEj4nbGGThGvHb9zRjWox57VDQghuOgdiFCbTfIIw/exec';
 const URL_MAGAZINE = 'https://script.google.com/macros/s/AKfycbyxSddhc-ntCVewfsAFXLcvStqnEN14VAJ-UtMuUxYt1zttxh8C39YelbeY5-pGsvZ6mg/exec';
@@ -339,5 +330,3 @@ window.openHistory = function() {
 };
 
 init();
-
-```
