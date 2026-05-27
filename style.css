@@ -13,7 +13,7 @@ body.grid-mode .left-col, body.grid-mode .right-col { opacity: 0; pointer-events
 body.spread-open .marquee-wrapper, body.grid-mode .marquee-wrapper, body.history-open .marquee-wrapper { display: none !important; }
 body.history-open #filter-bar, body.spread-open #filter-bar { opacity: 0; pointer-events: none; transition: 0.3s; }
 body.audio-library-open #filter-bar { opacity: 1 !important; pointer-events: auto !important; }
-body.spread-open .archive-title { background: transparent; backdrop-filter: none; padding: 0.5rem 2.5rem; position: relative; z-index: 100001; }
+body.spread-open .archive-title, body.spread-open .title-anchor, body.spread-open .highlight-link { background: transparent !important; backdrop-filter: none !important; box-shadow: none !important; }
 body.grid-mode .archive-title, body.grid-mode .title-anchor { background: transparent !important; box-shadow: none !important; }
 body.magazine-open #main-header { opacity: 0; pointer-events: none; transition: 0.3s; }
 /* Hide project filter bar when magazine is open (JS sets opacity; CSS ensures transition) */
@@ -39,7 +39,7 @@ body.magazine-open #main-footer { opacity: 0; pointer-events: none; }
 .menu-toggle { font-size: 4.6rem; font-weight: bold; line-height: 1; user-select: none; transition: 0.2s; width: 3rem; padding-left: 1rem; text-align: left; }
 
 .dropdown-menu { display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 0.4rem; width: 100%; position: absolute; top: 0; bottom: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 0.2s; white-space: nowrap; }
-/* Base dropdown link size â€” JS will scale this up towards 1.2rem as far as possible */
+/* Base dropdown link size — JS will scale this up towards 1.2rem as far as possible */
 .dropdown-menu .highlight-link { font-size: 1.2rem; padding: 0.3rem 0.6rem; }
 .header-col.menu-open .big-header-title { opacity: 0; pointer-events: none; } 
 .header-col.menu-open .dropdown-menu { opacity: 1; pointer-events: auto; } 
@@ -105,7 +105,7 @@ body.grid-mode .side-column { display: none !important; }
     background-image: url('texture%20paper%202.jpg'); background-size: cover;
     opacity: 0.15; z-index: 0; pointer-events: none;
 }
-/* Curved drop shadow below band â€” subtle, stronger in centre, fading at edges */
+/* Curved drop shadow below band — subtle, stronger in centre, fading at edges */
 .belly-band::after {
     content: "";
     position: absolute;
@@ -119,7 +119,7 @@ body.grid-mode .side-column { display: none !important; }
 }
 .belly-band > * { position: relative; z-index: 1; }
 
-/* Belly band seam â€” vertical break line slightly left of centre */
+/* Belly band seam — vertical break line slightly left of centre */
 .belly-seam {
     position: absolute;
     left: 43%;
@@ -231,23 +231,46 @@ body.grid-mode .grid-close-btn { display: block; }
 
 .spread-col { 
     height: 100%; 
-    overflow-y: auto; 
-    overflow-x: hidden; 
-    padding-bottom: 12rem; 
-    scrollbar-width: none; 
-    -ms-overflow-style: none; 
 }
-.spread-col::-webkit-scrollbar { display: none; }
+.left-col-scroll { 
+    grid-column: 1; grid-row: 2; 
+    overflow-y: auto; overflow-x: hidden; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 12rem; 
+}
+.left-col-scroll::-webkit-scrollbar { display: none; }
 
-.left-col-scroll { grid-column: 1; grid-row: 2; }
-.right-col-scroll { grid-column: 2; grid-row: 2; } 
+.right-col-canvas { 
+    grid-column: 2; grid-row: 2; 
+    position: relative; overflow: hidden; width: 100%; height: 100%;
+    cursor: grab; touch-action: none;
+}
+.right-col-canvas:active { cursor: grabbing; }
 
-.unfold-gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6rem; align-items: start; }
+.spread-canvas-content {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    transform-origin: 0 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4rem;
+    pointer-events: none; /* Let container handle drag */
+}
+
+.canvas-row {
+    display: flex;
+    flex-direction: row;
+    gap: 4rem;
+    justify-content: center;
+    align-items: center;
+}
 
 .unfold-grid-item { 
     background: white; padding: 1.5rem; box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.05); border-radius: 0.2rem; 
     display: inline-flex; justify-content: center; align-items: center; 
     width: fit-content; max-width: 100%; box-sizing: border-box; position: relative;
+    pointer-events: auto; /* Re-enable pointer events for clicking */
 }
 .unfold-grid-item::before {
     content: ""; position: absolute; inset: 0;
@@ -258,7 +281,8 @@ body.grid-mode .grid-close-btn { display: block; }
 
 .bookmark-note.spread-note { 
     position: relative; bottom: auto; right: auto; transform: none; margin-bottom: 2rem; cursor: default; box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.05);
-    display: flex; flex-direction: column; justify-content: flex-start; z-index: 10; font-size: 1rem; width: 15vw; height: max-content;
+    display: flex; flex-direction: column; justify-content: flex-start; z-index: 10; 
+    font-size: 0.95rem; width: 17rem; min-width: 17rem; height: max-content;
 }
 .bookmark-note.spread-note:hover { transform: none; box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.05); }
 
@@ -266,14 +290,22 @@ body.grid-mode .grid-close-btn { display: block; }
     position: fixed; inset: 0; z-index: 1000000;
     background: rgba(255, 255, 255, 0.75);
     backdrop-filter: blur(1.5rem); -webkit-backdrop-filter: blur(1.5rem);
-    display: flex; align-items: center; justify-content: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2rem;
     opacity: 0; transition: opacity 0.3s ease; cursor: zoom-out;
     padding: 4rem; box-sizing: border-box;
 }
 #spread-lightbox img {
-    max-width: 90vw; max-height: 90vh;
+    max-width: 90vw; max-height: 75vh;
     box-shadow: 0 1.5rem 4.5rem rgba(0,0,0,0.2);
     border: 1px solid #eaeaea; background: white; padding: 2rem; border-radius: 0.2rem;
+}
+.lightbox-caption {
+    max-width: 800px;
+    background: white; padding: 1.5rem 2.5rem;
+    box-shadow: 0 0.5rem 2rem rgba(0,0,0,0.1);
+    border-radius: 0.2rem;
+    font-size: 0.9rem; line-height: 1.5; color: #333;
+    cursor: auto;
 }
 
 /* ---------------------------------------------------- */
@@ -311,7 +343,7 @@ body.grid-mode .grid-close-btn { display: block; }
     opacity: 0.45; pointer-events: none; z-index: 15; border-radius: inherit;
 }
 
-/* DO NOT OPEN â€” rubber stamp style */
+/* DO NOT OPEN — rubber stamp style */
 .vac-stamp {
     position: absolute;
     top: 1rem;
@@ -354,7 +386,7 @@ body.grid-mode .grid-close-btn { display: block; }
     overflow: hidden;
 }
 
-/* Barcode â€” larger, anchored to bottom-left corner of the packaging */
+/* Barcode — larger, anchored to bottom-left corner of the packaging */
 .vac-barcode {
     position: absolute;
     bottom: 1rem;
@@ -544,7 +576,7 @@ body.grid-mode .grid-close-btn { display: block; }
 }
 
 /* ---------------------------------------------------- 
-   HISTORY â€” A4 PAPER STACK WITH TABBED FOLDER LATCHES
+   HISTORY — A4 PAPER STACK WITH TABBED FOLDER LATCHES
    ---------------------------------------------------- */
 .history-pile-wrapper {
     width: 100%;
@@ -555,7 +587,7 @@ body.grid-mode .grid-close-btn { display: block; }
 }
 
 .history-pile {
-    /* A4: width Ã— âˆš2 = height. Pile area matches magazine column size ~25vw wide */
+    /* A4: width × √2 = height. Pile area matches magazine column size ~25vw wide */
     width: 25vw;
     height: calc(25vw * 1.4142);
     position: relative;
@@ -593,7 +625,7 @@ body.grid-mode .grid-close-btn { display: block; }
     color: #333;
 }
 
-/* The latch â€” a small tab that protrudes above the top edge of the paper.
+/* The latch — a small tab that protrudes above the top edge of the paper.
    Its left position and width are set by inline JS styles.
    Height matches the latch-height variable. */
 .history-latch {
@@ -629,3 +661,4 @@ body.grid-mode .grid-close-btn { display: block; }
     color: #555;
     max-width: 100%;
 }
+body.spread-open .title-wrapper { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
