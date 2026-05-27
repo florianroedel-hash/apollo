@@ -22,6 +22,9 @@
 <body class="focus-state">
     
     <div id="passcode-overlay">
+        <div id="loading-spinner-wrapper" style="display: none; position: absolute; inset: 0; align-items: center; justify-content: center;">
+            <img src="logo.png" id="loading-spinner-logo" style="width: 15rem; opacity: 0.15; mix-blend-mode: multiply;">
+        </div>
         <div class="passcode-box">
             <img src="logo.png" style="width: 18rem; margin-bottom: 2.5rem; display: block; margin-left: auto; margin-right: auto;" alt="Apollo Archive Logo">
             <div style="font-size: 1.2rem; margin-bottom: 1.2rem; font-weight: bold; text-transform: lowercase;">enter archive code</div>
@@ -73,6 +76,8 @@
                             <h2 class="big-header-title" style="margin: 0; padding: 0; border: 0;">MAGAZINE</h2>
                             <div class="dropdown-menu">
                                 <a href="https://tally.so/r/lb7BOX" target="_blank" class="highlight-link">submit</a>
+                                <a href="https://www.instagram.com/apollo.review" target="_blank" class="highlight-link">instagram</a>
+                                <a onclick="openAudioLibrary()" class="highlight-link">audio</a>
                             </div>
                         </div>
                     </div>
@@ -88,6 +93,7 @@
     </header>
 
     <main id="archive-stage">
+        <div class="close-minus grid-close-btn" onclick="exitGridMode()">–</div>
         <div id="dashboard-wrapper">
             <section id="calendar-column" class="side-column"><div id="calendar-text"></div></section>
             <section id="project-pile"></section>
