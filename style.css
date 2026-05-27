@@ -1,4 +1,4 @@
-html { font-size: calc(100vw / 144); }
+html { font-size: calc(100vw / 144); scrollbar-gutter: stable; }
 @font-face { font-family: 'Ufficio'; src: url('fonts/UfficioDisplay-500.woff2') format('woff2'); }
 body { margin: 0; font-family: 'Ufficio', sans-serif; background: white; overflow-x: hidden; }
 
@@ -6,12 +6,18 @@ body { margin: 0; font-family: 'Ufficio', sans-serif; background: white; overflo
 #passcode-input { border: 1px solid #eaeaea; border-radius: 0; padding: 1rem; text-align: center; outline: none; font-family: 'Ufficio', sans-serif; width: 10rem; box-shadow: inset 0 0.2rem 0.5rem rgba(0,0,0,0.02); }
 
 body.focus-state, body.active-state { overflow: hidden; height: 100vh; }
-body.grid-mode { overflow-y: auto; height: auto; }
+body.grid-mode { overflow-y: auto; height: auto; min-height: 100vh; }
 body.focus-state #main-header, body.focus-state #main-footer, body.focus-state #archive-stage { filter: blur(2rem); opacity: 0.2; pointer-events: none; }
-body.spread-open .left-col, body.spread-open .right-col, body.spread-open .marquee-wrapper, body.spread-open .plus-archive { opacity: 0; pointer-events: none; transition: 0.3s; }
-body.grid-mode .left-col, body.grid-mode .right-col, body.grid-mode .marquee-wrapper { opacity: 0; pointer-events: none; transition: 0.3s; }
-body.spread-open .archive-title { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(0.8rem); padding: 0.5rem 2.5rem; box-shadow: 0 0.5rem 2.5rem rgba(0,0,0,0.08); position: relative; border-radius: 0.4rem; z-index: 100001; }
+body.spread-open .left-col, body.spread-open .right-col, body.spread-open .plus-archive { opacity: 0; pointer-events: none; transition: 0.3s; }
+body.grid-mode .left-col, body.grid-mode .right-col { opacity: 0; pointer-events: none; transition: 0.3s; }
+body.spread-open .marquee-wrapper, body.grid-mode .marquee-wrapper, body.history-open .marquee-wrapper { display: none !important; }
+body.history-open #filter-bar, body.spread-open #filter-bar { opacity: 0; pointer-events: none; transition: 0.3s; }
+body.audio-library-open #filter-bar { opacity: 1 !important; pointer-events: auto !important; }
+body.spread-open .archive-title { background: transparent; backdrop-filter: none; padding: 0.5rem 2.5rem; position: relative; z-index: 100001; }
+body.grid-mode .archive-title, body.grid-mode .title-anchor { background: transparent !important; box-shadow: none !important; }
 body.magazine-open #main-header { opacity: 0; pointer-events: none; transition: 0.3s; }
+/* Hide project filter bar when magazine is open (JS sets opacity; CSS ensures transition) */
+body.magazine-open #main-footer { opacity: 0; pointer-events: none; }
 
 .highlight-link { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(0.8rem); padding: 0.4rem 0.8rem; text-decoration: none; color: black; display: inline-block; cursor: pointer; transition: 0.2s; text-transform: lowercase; position: relative; font-weight: normal; white-space: nowrap; border-radius: 0.2rem; }
 .highlight-link::before { content: '[ '; opacity: 0; transition: 0.2s; position: absolute; left: -0.5rem; }
@@ -28,10 +34,13 @@ body.magazine-open #main-header { opacity: 0; pointer-events: none; transition: 
 .menu-content { display: flex; align-items: center; justify-content: flex-end; width: 12vw; padding-right: 1.5rem; position: relative; }
 
 .title-anchor { position: relative; display: inline-flex; justify-content: center; align-items: center; }
-.big-header-title { font-size: 4.2rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; line-height: 1; white-space: nowrap; transition: opacity 0.2s; }
-.menu-toggle { font-size: 4.2rem; font-weight: bold; line-height: 1; user-select: none; transition: 0.2s; width: 3rem; padding-left: 1rem; text-align: left; }
+/* Font is 4.6rem. Dropdown font is calibrated by JS to be max 1.2rem but capped to stay within title width. */
+.big-header-title { font-size: 4.6rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; line-height: 1; white-space: nowrap; transition: opacity 0.2s; }
+.menu-toggle { font-size: 4.6rem; font-weight: bold; line-height: 1; user-select: none; transition: 0.2s; width: 3rem; padding-left: 1rem; text-align: left; }
 
-.dropdown-menu { display: flex; flex-direction: row; justify-content: space-evenly; align-items: center; width: 100%; position: absolute; top: 0; bottom: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 0.2s; white-space: nowrap; }
+.dropdown-menu { display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 0.4rem; width: 100%; position: absolute; top: 0; bottom: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 0.2s; white-space: nowrap; }
+/* Base dropdown link size â€” JS will scale this up towards 1.2rem as far as possible */
+.dropdown-menu .highlight-link { font-size: 1.2rem; padding: 0.3rem 0.6rem; }
 .header-col.menu-open .big-header-title { opacity: 0; pointer-events: none; } 
 .header-col.menu-open .dropdown-menu { opacity: 1; pointer-events: auto; } 
 
@@ -43,69 +52,163 @@ body.magazine-open #main-header { opacity: 0; pointer-events: none; transition: 
 .plus-magazine { color: #B24F44; }
 
 .marquee-wrapper { width: 100%; overflow: hidden; margin-top: 2.5rem; padding: 1rem 0; background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(0.8rem); pointer-events: auto; transition: opacity 0.3s; }
-.marquee-track { display: inline-block; white-space: nowrap; font-size: 1.4rem; font-weight: bold; text-transform: lowercase; animation: scrolling-text 120s linear infinite; }
+.marquee-track { display: inline-block; white-space: nowrap; font-size: 1.2rem; font-weight: bold; text-transform: lowercase; animation: scrolling-text 120s linear infinite; }
 .marquee-track span { padding-right: 1rem; }
 @keyframes scrolling-text { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
 #main-footer { position: fixed; bottom: 0; left: 0; width: 100%; display: flex; justify-content: center; padding: 4rem 5%; box-sizing: border-box; z-index: 100005; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
 body.active-state #main-footer { opacity: 1; pointer-events: auto; }
+body.active-state.history-open #main-footer { opacity: 0; pointer-events: none; }
 #filter-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5rem; max-width: 90rem; }
-.tag-filter { background: white; border: none; box-shadow: 0 0.4rem 1.5rem rgba(0,0,0,0.06); border-radius: 0.4rem; padding: 0.6rem 1.2rem; }
+.tag-filter { border: none; box-shadow: 0 0.4rem 1.5rem rgba(0,0,0,0.06); border-radius: 0.4rem; padding: 0.6rem 1.2rem; }
 
 #archive-stage { height: 100vh; width: 100vw; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-body.grid-mode #archive-stage { height: auto; align-items: flex-start; padding-top: 15rem; padding-bottom: 15rem; }
-#dashboard-wrapper { transition: 0.5s ease; height: 60vh; margin-top: 10vh; }
+body.grid-mode #archive-stage { height: auto; min-height: 100vh; align-items: flex-start; padding-top: 25vh; padding-bottom: 12.5rem; }
+#dashboard-wrapper { height: 60vh; margin-top: 10vh; }
 #calendar-column, #magazine-column { flex-direction: column; align-self: center; height: 100%; }
 
 body.grid-mode .side-column { opacity: 0; pointer-events: none; }
 body.grid-mode #dashboard-wrapper { display: flex; justify-content: center; align-items: flex-start; height: auto; margin-top: 0; }
 
-/* FIX: Centered grid column math. Adjusted widths to 22vw for breathing space, spaced evenly across 90vw */
-body.grid-mode #project-pile { width: 90vw; margin: 0 auto; max-width: none; display: grid ; grid-template-columns: 18vw 18vw 18vw; justify-content: center; gap: 10rem 8vw; justify-items: center; align-items: center; }
-.card-wrapper { position: relative; filter: drop-shadow(0 0.8rem 2.5rem rgba(0,0,0,0.15)); transition: 0.5s; display: flex; justify-content: center; align-items: center; } 
+/* GRID MODE: 3 Equal columns, 80vw total width */
+body.grid-mode #project-pile { width: 90vw; padding: 0 5vw; box-sizing: border-box; margin: 0 auto; max-width: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10rem 8vw; justify-items: center; align-items: center; }
+body.grid-mode .side-column { display: none !important; }
 
+/* Card wrappers: centered inside grid cells */
+.card-wrapper { position: relative; filter: drop-shadow(0 0.8rem 2.5rem rgba(0,0,0,0.15)); transition: 0.5s; display: flex; justify-content: center; align-items: center; will-change: transform, top, left; backface-visibility: hidden; } 
+
+/* paper-card: padding is set dynamically by JS to 5% of image's shortest side */
 .paper-card { 
     position: relative; display: inline-flex; flex-direction: column; cursor: pointer;
-    width: fit-content; height: max-content; max-width: 100%; padding: 2rem !important;
-    min-width: 18rem; 
+    width: fit-content; height: max-content;
+    min-width: 12rem; 
 }
 .paper-card-bg {
-    position: absolute; inset: 0; background: white; border: 1px solid #eaeaea; z-index: 0;
-    -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cmask id='holes'%3E%3Crect width='100%25' height='100%25' fill='white'/%3E%3Ccircle cx='1rem' cy='10%25' r='0.4rem' fill='black'/%3E%3Ccircle cx='1rem' cy='30%25' r='0.4rem' fill='black'/%3E%3Ccircle cx='1rem' cy='50%25' r='0.4rem' fill='black'/%3E%3Ccircle cx='1rem' cy='70%25' r='0.4rem' fill='black'/%3E%3Ccircle cx='1rem' cy='90%25' r='0.4rem' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='black' mask='url(%23holes)'/%3E%3C/svg%3E");
-    mask-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cmask id='holes'%3E%3Crect width='100%25' height='100%25' fill='white'/%3E%3Ccircle cx='1rem' cy='10%25' r='0.4rem' fill='black'/%3E%3Ccircle cx='1rem' cy='30%25' r='0.4rem' fill='black'/%3E%3Ccircle cx='1rem' cy='50%25' r='0.4rem' fill='black'/%3E%3Ccircle cx='1rem' cy='70%25' r='0.4rem' fill='black'/%3E%3Ccircle cx='1rem' cy='90%25' r='0.4rem' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='black' mask='url(%23holes)'/%3E%3C/svg%3E");
+    position: absolute; inset: 0; background: white; z-index: 0;
+    /* Masks are now applied dynamically via JS in sizeCard() to perfectly center the holes in the variable frame */
 }
+.paper-card-bg::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: url('texture%20paper%203.jpg'); background-size: cover;
+    opacity: 0.15; pointer-events: none;
+}
+
+/* NOTE: punhole cx is now 5% (= half of 10% left frame) so they stay centered in the left margin regardless of card width */
 
 .card-inner-frame { position: relative; z-index: 1; }
-.card-inner-frame img { display: block; width: auto; height: auto; max-width: 100%; max-height: 50vh; object-fit: contain; }
-body.grid-mode .card-inner-frame img { max-height: 35vh; }
+.card-inner-frame img { display: block; object-fit: contain; }
 
-.belly-band { z-index: 3; position: absolute; bottom: 15%; left: -0.2rem; width: calc(100% + 0.4rem); background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(0.8rem); padding: 3rem 2rem; display: flex; justify-content: center; align-items: center; gap: 1rem; box-shadow: inset 0.6rem 0 0.6rem -0.4rem rgba(0,0,0,0.15), inset -0.6rem 0 0.6rem -0.4rem rgba(0,0,0,0.15), 0 0.5rem 1.5rem rgba(0,0,0,0.05); box-sizing: border-box; }
-.belly-text { font-size: 1.1rem; text-transform: lowercase; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 85%; }
-.belly-plus { font-size: 2rem; font-weight: bold; cursor: pointer; display: inline-block; line-height: 1; padding-bottom: 0.2rem; }
+/* Belly band: padding and font-size are dynamic via JS to maintain ratio */
+.belly-band { z-index: 3; position: absolute; bottom: 15%; left: -0.2rem; width: calc(100% + 0.4rem); background-color: rgba(255, 255, 255, 0.25); backdrop-filter: blur(1.5rem); -webkit-backdrop-filter: blur(1.5rem); display: flex; justify-content: center; align-items: center; box-shadow: inset 0.6rem 0 0.6rem -0.4rem rgba(0,0,0,0.07), inset -0.6rem 0 0.6rem -0.4rem rgba(0,0,0,0.07); box-sizing: border-box; overflow: visible; }
+.belly-band::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: url('texture%20paper%202.jpg'); background-size: cover;
+    opacity: 0.15; z-index: 0; pointer-events: none;
+}
+/* Curved drop shadow below band â€” subtle, stronger in centre, fading at edges */
+.belly-band::after {
+    content: "";
+    position: absolute;
+    bottom: -0.7rem;
+    left: 12%;
+    width: 76%;
+    height: 0.7rem;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.07) 0%, rgba(0,0,0,0.02) 55%, transparent 100%);
+    pointer-events: none;
+    z-index: -1;
+}
+.belly-band > * { position: relative; z-index: 1; }
 
+/* Belly band seam â€” vertical break line slightly left of centre */
+.belly-seam {
+    position: absolute;
+    left: 43%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.12) 20%, rgba(0,0,0,0.18) 50%, rgba(0,0,0,0.12) 80%, transparent);
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* Circular tape dot holding the seam */
+.belly-tape {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+    opacity: 0.88;
+    box-shadow: 0 0.1rem 0.5rem rgba(0,0,0,0.18), inset 0 0 0 0.08rem rgba(255,255,255,0.15);
+}
+.belly-tape::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background-image: url('cloth%20texture.jpg');
+    background-size: cover;
+    mix-blend-mode: multiply;
+    opacity: 0.85;
+    pointer-events: none;
+}
+
+/* POST-IT NOTE: width and min-width are set dynamically by JS to 28% of image shortest side */
 .bookmark-note {
     position: absolute; bottom: 5%; right: 2%; z-index: 2; 
-    width: 12vw; min-width: 16rem; height: 85%; 
-    background: #fcf9ee; border: 1px solid #eadeb9; box-shadow: 0.2rem 0.5rem 1.5rem rgba(0,0,0,0.06); padding: 1.5rem; 
-    font-size: 0.95rem; line-height: 1.5; transform: rotate(0deg); overflow: hidden;
-    transition: transform 0s, z-index 0s;
+    height: 85%; 
+    background-color: #F1EED7; 
+    backdrop-filter: none; -webkit-backdrop-filter: none; 
+    border: none; 
+    box-shadow: 0.2rem 0.5rem 1.5rem rgba(0,0,0,0.06); 
+    padding: 1.2rem; 
+    line-height: 1.5; transform: rotate(0deg); overflow: hidden;
+    transition: transform 0s, box-shadow 0s, z-index 0s;
     display: flex; flex-direction: column; box-sizing: border-box;
 }
+.bookmark-note::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: url('texture%20paper.jpg'); background-size: cover;
+    opacity: 0.25; z-index: 0; pointer-events: none;
+}
+.bookmark-note > * { position: relative; z-index: 1; }
 
 body.grid-mode .bookmark-note { width: 6vw; min-width: 10rem; font-size: 0.8rem; padding: 1rem; }
 .bookmark-note:hover { transform: scale(1.15) translateX(-15%) translateY(-5%); box-shadow: 0 1.5rem 3.5rem rgba(0,0,0,0.15); max-height: none; overflow: visible; z-index: 10 !important; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.4s, z-index 0s 0.4s; }
-.note-text-content { position: relative; display: -webkit-box; -webkit-line-clamp: 14; -webkit-box-orient: vertical; overflow: hidden; flex-grow: 1; }
+
+/* POST-IT TYPOGRAPHY (Dossier/Receipt Style) */
+.note-ref-code { width: 100%; text-align: right; font-family: monospace; font-size: 0.8em; opacity: 0.6; margin-bottom: 0.4rem; letter-spacing: 0.05em; }
+.note-divider { width: 100%; height: 1px; background: rgba(0,0,0,0.3); margin: 0.4rem 0; flex-shrink: 0; }
+.note-title { font-size: 1.2em; font-weight: bold; margin: 0.4rem 0; text-transform: capitalize; position: relative; z-index: 2; line-height: 1.2; }
+.note-meta-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 0.2rem 1rem; font-family: monospace; font-size: 0.75em; opacity: 0.75; margin: 0.4rem 0; text-transform: uppercase; }
+.note-meta-grid > div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.note-text-content { position: relative; font-size: 0.9em; display: -webkit-box; -webkit-line-clamp: 10; -webkit-box-orient: vertical; overflow: hidden; flex-grow: 1; margin-top: 0.4rem; }
 .bookmark-note:hover .note-text-content { -webkit-line-clamp: unset; }
-.note-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 0.8rem; text-transform: uppercase; position: relative; z-index: 2; }
-body.grid-mode .note-title { font-size: 0.9rem; }
-.stamp-logo { position: absolute; top: 1rem; right: 5%; width: 90%; opacity: 0.12; transform: rotate(-15deg); z-index: 1; pointer-events: none; }
+
+.stamp-logo { 
+    position: absolute; top: 1rem; right: 5%; width: 90%; 
+    opacity: 0.15; 
+    transform: rotate(-15deg); 
+    z-index: 0; 
+    pointer-events: none;
+    mix-blend-mode: multiply;
+    /* Dark embossing: subtle dark shadow top-left, crisp white highlight bottom-right */
+    filter: drop-shadow(-1px -1px 1px rgba(0,0,0,0.3)) 
+            drop-shadow(1px 1px 1px rgba(255,255,255,0.9)); 
+}
 
 /* ----------------------------------------------------
    THE EDITORIAL SPREAD PHYSICS 
    ---------------------------------------------------- */
 #unfold-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: white; z-index: 100000; box-sizing: border-box; overflow: hidden; }
-.close-minus { position: fixed; top: 4rem; right: 4rem; font-size: 3.8rem; font-weight: bold; cursor: pointer; z-index: 100002; line-height: 1; }
-
+#unfold-overlay.glass-overlay { background: rgba(30,30,30,0.35); backdrop-filter: blur(0.8rem); -webkit-backdrop-filter: blur(0.8rem); color: black; }
+.close-minus { position: absolute; top: 3.5rem; right: 4rem; font-size: 5rem; cursor: pointer; user-select: none; color: black; z-index: 10; line-height: 1; transition: opacity 0.2s; }
+.close-minus:hover { opacity: 0.5; }
+.grid-close-btn { display: none; position: fixed; z-index: 100005; }
+body.grid-mode .grid-close-btn { display: block; }
 .spread-layout {
     display: grid;
     grid-template-columns: 1fr 3fr; 
@@ -142,17 +245,20 @@ body.grid-mode .note-title { font-size: 0.9rem; }
 .unfold-gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6rem; align-items: start; }
 
 .unfold-grid-item { 
-    background: white; padding: 2rem; box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.05); border-radius: 0.2rem; 
+    background: white; padding: 1.5rem; box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.05); border-radius: 0.2rem; 
     display: inline-flex; justify-content: center; align-items: center; 
-    width: fit-content; 
-    max-width: 100%; 
-    box-sizing: border-box; 
+    width: fit-content; max-width: 100%; box-sizing: border-box; position: relative;
+}
+.unfold-grid-item::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: url('texture%20paper%203.jpg'); background-size: cover;
+    opacity: 0.15; pointer-events: none; border-radius: inherit;
 }
 .unfold-grid-item img { max-width: 100%; max-height: 40vh; width: auto; height: auto; object-fit: contain; cursor: zoom-in; }
 
 .bookmark-note.spread-note { 
     position: relative; bottom: auto; right: auto; transform: none; margin-bottom: 2rem; cursor: default; box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.05);
-    display: flex; flex-direction: column; justify-content: flex-start; z-index: 10; font-size: 0.95rem; width: 12vw;
+    display: flex; flex-direction: column; justify-content: flex-start; z-index: 10; font-size: 1rem; width: 15vw; height: max-content;
 }
 .bookmark-note.spread-note:hover { transform: none; box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.05); }
 
@@ -193,16 +299,333 @@ body.grid-mode .note-title { font-size: 0.9rem; }
 
 #magazine-reader-overlay { position: fixed; inset: 0; background: rgba(30,30,30,0.7); backdrop-filter: blur(1.5rem); -webkit-backdrop-filter: blur(1.5rem); z-index: 100000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; }
 #magazine-reader-overlay .close-minus { color: white; }
-#magazine-cover-container { position: relative; padding: 1.5rem; background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(0.8rem); border: 1px solid rgba(255,255,255,0.9); box-shadow: inset 0 0 1rem rgba(0,0,0,0.1), 0 1.5rem 3.5rem rgba(0,0,0,0.15); transform: rotate(3deg); transition: 0.3s; width: 100%; max-height: 55vh; overflow: hidden; box-sizing: border-box; cursor: pointer; }
-#magazine-cover-container::before { content: ''; position: absolute; inset: 0.4rem; z-index: 5; pointer-events: none; border: 0.2rem dashed rgba(0,0,0,0.15); }
-#magazine-cover-container::after { content: ''; position: absolute; inset: 0; z-index: 10; pointer-events: none; background: linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.8) 22%, rgba(255,255,255,0.95) 24%, transparent 26%), linear-gradient(105deg, transparent 60%, rgba(255,255,255,0.6) 62%, transparent 64%); mix-blend-mode: screen; }
-.vac-stamp { position: absolute; top: 15%; left: 5%; z-index: 20; color: #d2042d; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: 900; font-size: 1.8rem; border: 0.4rem solid #d2042d; padding: 0.5rem 1rem; transform: rotate(-15deg); opacity: 0.8; mix-blend-mode: multiply; pointer-events: none; white-space: nowrap; }
-.vac-release { position: absolute; bottom: 8%; left: 5%; z-index: 20; color: black; font-family: monospace; font-size: 0.9rem; font-weight: bold; background: rgba(255,255,255,0.85); padding: 0.4rem 0.6rem; pointer-events: none; letter-spacing: 0.05rem; white-space: nowrap; border: 1px solid black; }
-.vac-barcode { position: absolute; bottom: 8%; right: 5%; z-index: 20; height: 3.5rem; width: 7rem; background: repeating-linear-gradient(to right, black 0, black 0.2rem, transparent 0.2rem, transparent 0.4rem, black 0.4rem, black 0.6rem, transparent 0.6rem, transparent 0.9rem, black 0.9rem, black 1rem, transparent 1rem, transparent 1.4rem); opacity: 0.8; pointer-events: none; }
-#magazine-cover-container img { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; }
+#magazine-cover-container { 
+    position: relative; padding: 3rem 2rem 4rem; 
+    background-color: rgba(255, 255, 255, 0.25); 
+    backdrop-filter: blur(0.5rem); -webkit-backdrop-filter: blur(0.5rem); 
+    box-shadow: 0 1.5rem 3.5rem rgba(0,0,0,0.15); transform: rotate(3deg); transition: 0.3s; width: 100%; max-height: 60vh; box-sizing: border-box; cursor: pointer; 
+}
+#magazine-cover-container::after {
+    content: ""; position: absolute; inset: 0;
+    background-image: url('texture%20crumbled%20bag%20.jpg'); background-size: cover;
+    opacity: 0.45; pointer-events: none; z-index: 15; border-radius: inherit;
+}
+
+/* DO NOT OPEN â€” rubber stamp style */
+.vac-stamp {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%) rotate(-8deg);
+    z-index: 20;
+    width: auto;
+    padding: 0.45rem 0.9rem;
+    border: 0.2rem solid #B24F44;
+    outline: 0.08rem solid #B24F44;
+    outline-offset: 0.2rem;
+    color: #B24F44;
+    font-family: monospace;
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 0.18rem;
+    text-align: center;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0.82;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+    /* Slightly uneven/worn ink feel */
+    filter: contrast(1.1);
+}
+.vac-release { 
+    position: absolute; 
+    bottom: 0.5rem; 
+    right: 0.3rem; 
+    z-index: 20; 
+    font-family: monospace; 
+    font-size: 0.66rem; 
+    letter-spacing: 0.05rem; 
+    color: #111; 
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    opacity: 0.4; 
+    white-space: nowrap;
+    max-height: 85%;
+    overflow: hidden;
+}
+
+/* Barcode â€” larger, anchored to bottom-left corner of the packaging */
+.vac-barcode {
+    position: absolute;
+    bottom: 1rem;
+    left: 0.8rem;
+    z-index: 20;
+    width: 7rem;
+    height: 2rem;
+    background: repeating-linear-gradient(
+        to right,
+        #111 0px, #111 2px,
+        transparent 2px, transparent 5px,
+        #111 5px, #111 7px,
+        transparent 7px, transparent 11px,
+        #111 11px, #111 14px,
+        transparent 14px, transparent 17px,
+        #111 17px, #111 20px,
+        transparent 20px, transparent 22px,
+        #111 22px, #111 24px,
+        transparent 24px, transparent 28px,
+        #111 28px, #111 31px,
+        transparent 31px, transparent 35px,
+        #111 35px, #111 38px,
+        transparent 38px, transparent 40px,
+        #111 40px, #111 42px,
+        transparent 42px, transparent 46px,
+        #111 46px, #111 50px,
+        transparent 50px, transparent 52px,
+        #111 52px, #111 55px,
+        transparent 55px, transparent 58px,
+        #111 58px, #111 61px,
+        transparent 61px, transparent 64px,
+        #111 64px, #111 68px,
+        transparent 68px, transparent 70px,
+        #111 70px, #111 73px,
+        transparent 73px, transparent 77px,
+        #111 77px, #111 80px,
+        transparent 80px, transparent 83px,
+        #111 83px, #111 86px,
+        transparent 86px, transparent 89px,
+        #111 89px, #111 92px,
+        transparent 92px, transparent 96px,
+        #111 96px, #111 100px,
+        transparent 100px, transparent 104px,
+        #111 104px, #111 107px,
+        transparent 107px, transparent 110px,
+        #111 110px, #111 112px
+    );
+    opacity: 0.5;
+}
+
+/* Vacuum-seal weld effect: pushed out close to packaging edges */
+.vac-weld {
+    position: absolute;
+    inset: 0.4rem;
+    z-index: 16;
+    border-radius: 0.2rem;
+    pointer-events: none;
+    box-shadow:
+        inset 0 0 0 0.18rem rgba(255,255,255,0.55),
+        inset 0 0 0 0.38rem rgba(200,195,180,0.22),
+        inset 0 0 0 0.55rem rgba(255,255,255,0.12),
+        0 0 0 0.12rem rgba(180,170,150,0.3);
+    mix-blend-mode: screen;
+}
+
+#magazine-cover-container img { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; mix-blend-mode: multiply; opacity: 0.9; }
+
+/* Magazine bottom chapter and audio links */
+.magazine-footer { position: fixed; bottom: 4rem; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; z-index: 100003; pointer-events: auto; }
+.magazine-chapters { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5rem; max-width: 90rem; }
+.magazine-chapters .highlight-link { background: white; backdrop-filter: none; position: relative; z-index: 100004; pointer-events: auto; box-shadow: 0 0.2rem 1rem rgba(0,0,0,0.05); }
+.magazine-audio-btn { font-size: 1rem; font-weight: bold; padding: 0.5rem 1.5rem; background: rgba(255,255,255,0.5); backdrop-filter: blur(0.8rem); border-radius: 0.4rem; cursor: pointer; transition: 0.2s; border: none; box-shadow: 0 0.4rem 1.5rem rgba(0,0,0,0.06); text-transform: lowercase; }
 .magazine-scene { perspective: 250rem; width: 50vw; height: 75vh; position: relative; display: flex; align-items: center; justify-content: center; }
 .book-leaf { position: absolute; width: 50%; height: 100%; right: 0; transform-origin: left center; transform-style: preserve-3d; transition: 0.8s; cursor: pointer; }
 .book-leaf.flipped { transform: rotateY(-180deg); }
-.page-front, .page-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; background: white; box-shadow: inset 0.8rem 0 2rem rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; padding: 1.5rem; box-sizing: border-box; }
+.page-front, .page-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; background: none; box-shadow: none; display: flex; align-items: center; justify-content: center; padding: 0; box-sizing: border-box; }
 .page-back { transform: rotateY(180deg); }
 .page-front img, .page-back img { width: 100%; height: 100%; object-fit: contain; }
+
+/* ---------------------------------------------------- 
+   AUDIO LIBRARY (Split Column)
+   ---------------------------------------------------- */
+.audio-library-wrapper {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 4rem;
+    padding: 0 5%;
+    box-sizing: border-box;
+}
+
+.audio-left-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    text-align: right;
+}
+
+.audio-right-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    text-align: left;
+    transform-origin: center center;
+    animation: popInMiddle 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
+}
+
+@keyframes popInMiddle {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.audio-category {
+    font-size: 2.2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: 0.2s;
+    margin-bottom: 0.5rem;
+}
+.audio-category:hover { opacity: 0.6; }
+
+.audio-sublist {
+    display: none;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+}
+.audio-category.expanded + .audio-sublist { display: flex; }
+
+.audio-track-link {
+    font-size: 1.2rem;
+    text-transform: lowercase;
+    cursor: pointer;
+    transition: 0.2s;
+    opacity: 0.7;
+}
+.audio-track-link:hover, .audio-track-link.active-track { opacity: 1; font-weight: bold; }
+
+.audio-player-ui {
+    position: relative;
+    background-color: #F1EED7; 
+    backdrop-filter: none; -webkit-backdrop-filter: none; 
+    box-shadow: 0 0.5rem 2.5rem rgba(0,0,0,0.1); 
+    padding: 2.5rem;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 25vw;
+    height: 35vw;
+    overflow-y: auto;
+}
+.audio-player-ui::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: url('texture%20paper.jpg'); background-size: cover;
+    opacity: 0.25; z-index: 0; pointer-events: none;
+}
+.audio-player-ui > * { position: relative; z-index: 1; }
+.audio-player-ui::-webkit-scrollbar { display: none; }
+
+.audio-player-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    line-height: 1.1;
+}
+
+.audio-player-desc {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    opacity: 0.8;
+}
+
+.audio-controls-row {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* ---------------------------------------------------- 
+   HISTORY â€” A4 PAPER STACK WITH TABBED FOLDER LATCHES
+   ---------------------------------------------------- */
+.history-pile-wrapper {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.history-pile {
+    /* A4: width Ã— âˆš2 = height. Pile area matches magazine column size ~25vw wide */
+    width: 25vw;
+    height: calc(25vw * 1.4142);
+    position: relative;
+    margin-top: 6rem; /* account for latches above */
+}
+
+.history-sheet {
+    position: absolute;
+    inset: 0;
+    background: #F1EED7;
+    border: 1px solid #e8dfc0;
+    box-shadow: 0.3rem 0.6rem 2rem rgba(0,0,0,0.12);
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: transform 0.5s ease, opacity 0.5s ease;
+    will-change: transform;
+    backface-visibility: hidden;
+}
+.history-sheet::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: url('texture%20paper.jpg'); background-size: cover;
+    opacity: 0.15; z-index: 0; pointer-events: none; border-radius: inherit;
+}
+.history-sheet > * { position: relative; z-index: 1; }
+
+.history-sheet-content {
+    width: 100%;
+    height: 100%;
+    padding: 2rem 2.5rem;
+    padding-top: 3rem;
+    box-sizing: border-box;
+    overflow: hidden;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: #333;
+}
+
+/* The latch â€” a small tab that protrudes above the top edge of the paper.
+   Its left position and width are set by inline JS styles.
+   Height matches the latch-height variable. */
+.history-latch {
+    position: absolute;
+    top: -2.6rem;     /* protrudes above the sheet */
+    height: 2.6rem;
+    background: #F1EED7;
+    border: 1px solid #e8dfc0;
+    border-bottom: none;
+    border-radius: 0.5rem 0.5rem 0 0;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.5rem;
+    box-shadow: -0.1rem -0.2rem 0.5rem rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+.history-latch::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: url('texture%20paper.jpg'); background-size: cover;
+    opacity: 0.15; z-index: 0; pointer-events: none;
+}
+.history-latch > * { position: relative; z-index: 1; }
+
+.history-latch-title {
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: lowercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #555;
+    max-width: 100%;
+}
