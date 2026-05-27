@@ -83,41 +83,53 @@ document.addEventListener('click', function(e) {
     }
 });
 
-let loadingAngle = 0;
+let loadingProgress = 100; // Starts with 100% clipped from the right (empty)
 let loadingAnimReq = null;
+let isSpreadLoading = false;
+let spreadDataReady = false;
+let loadingColorIndex = 0;
+const loadingColors = ['#B24F44', '#A6BBD1', '#F1EED7']; // Red, Blue, Cream
 
 function animateLoadingLogo() {
-    const logo = document.getElementById('loading-spinner-logo');
-    if (!logo) return;
+    const fillLayers = document.querySelectorAll('.loading-fill-layer');
+    if (fillLayers.length === 0) return;
     
-    if (isLoaded && loadingAngle > 0 && loadingAngle % 360 < 3) {
-        logo.style.transform = `rotate(${Math.round(loadingAngle / 360) * 360}deg)`;
-        const overlay = document.getElementById('passcode-overlay');
-        if (overlay) {
-            overlay.style.opacity = '0';
-            setTimeout(() => { overlay.remove(); liftFog(); }, 500);
+    // Determine if the current active loading phase is finished loading its data
+    let isCurrentPhaseReady = isSpreadLoading ? spreadDataReady : isLoaded;
+    
+    if (isCurrentPhaseReady && loadingProgress <= 0) {
+        loadingProgress = 0;
+        fillLayers.forEach(l => l.style.clipPath = `inset(0 0% 0 0)`);
+        
+        if (!isSpreadLoading) {
+            const overlay = document.getElementById('passcode-overlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                setTimeout(() => { overlay.remove(); liftFog(); }, 500);
+            }
         }
-        return;
+        return; // Pause the animation loop at 0% so the UI handlers can pick it up
     }
     
-    loadingAngle += 3;
-    logo.style.transform = `rotate(${loadingAngle}deg)`;
+    // Loop animation if data is NOT ready yet
+    if (loadingProgress <= 0 && !isCurrentPhaseReady) {
+        loadingProgress = 100;
+        loadingColorIndex = (loadingColorIndex + 1) % loadingColors.length;
+        fillLayers.forEach(l => l.style.backgroundColor = loadingColors[loadingColorIndex]);
+    }
+    
+    // Fill up smoothly from left to right (slowed down)
+    loadingProgress -= 0.6; 
+    if (loadingProgress < 0 && isCurrentPhaseReady) loadingProgress = 0;
+    
+    fillLayers.forEach(l => l.style.clipPath = `inset(0 ${Math.max(0, loadingProgress)}% 0 0)`);
     loadingAnimReq = requestAnimationFrame(animateLoadingLogo);
 }
 
-window.checkPasscode = function(e) {
-    if (e.target.value === '1665') {
-        const box = e.target.closest('.passcode-box') || document.querySelector('.passcode-box');
-        if (box) box.style.display = 'none';
-        
-        const spinner = document.getElementById('loading-spinner-wrapper');
-        if (spinner) spinner.style.display = 'flex';
-        
-        animateLoadingLogo();
-    }
-};
+
 
 async function init() {
+    animateLoadingLogo();
     try {
         const [resProj, resCal, resMag, resHist] = await Promise.all([
             fetch(URL_PROJECTS, { redirect: 'follow' }),
@@ -376,11 +388,14 @@ function filterProjects(tag, btn) {
     renderPile(tag === 'All' ? archiveData : archiveData.filter(p => p.metadata.tags.some(t => t.toLowerCase() === tag.toLowerCase())), tag !== 'All');
 }
 
-window.openLightbox = function(src, event) {
-    event.stopPropagation();
+window.openLightbox = function(src, desc, event) {
+    if (event) event.stopPropagation();
     const box = document.createElement('div');
     box.id = 'spread-lightbox';
-    box.innerHTML = `<img src="${src}" alt="Detail View">`;
+    box.innerHTML = `
+        <img src="${src}" alt="Detail View" onclick="event.stopPropagation()">
+        ${desc ? `<div class="lightbox-caption" onclick="event.stopPropagation()">${desc}</div>` : ''}
+    `;
     box.onclick = () => {
         box.style.opacity = '0';
         setTimeout(() => box.remove(), 300);
@@ -391,6 +406,130 @@ window.openLightbox = function(src, event) {
     });
 };
 
+window.openPostitLightbox = function(event) {
+    if (event) event.stopPropagation();
+    const p = window.currentPostitData;
+    if (!p) return;
+    
+    const htmlContent = `
+        <img src="logo.png" class="stamp-logo">
+        <div class="note-ref-code">[ REF: ARC-${p.id.substring(0,6).toUpperCase()} ]</div>
+        <div class="note-divider"></div>
+        <div class="note-title">${p.metadata.name}</div>
+        <div class="note-divider"></div>
+        <div class="note-meta-grid">
+            <div>Year</div><div>${p.metadata.year || '2024'}</div>
+            <div>Course</div><div>Studio Alpha</div>
+            <div>Track</div><div>Laurea Magistrale</div>
+            <div>Prof</div><div>${p.metadata.author || 'Dr. Smith'}</div>
+        </div>
+        <div class="note-divider"></div>
+        <div class="note-text-content" style="display: block; -webkit-line-clamp: unset; overflow: visible;">${p.metadata.description || ''}</div>
+    `;
+
+    // Measure exact post-it height dynamically
+    const dummy = document.createElement('div');
+    dummy.style.visibility = 'hidden';
+    dummy.style.position = 'absolute';
+    dummy.style.width = '272px';
+    dummy.className = 'bookmark-note spread-note';
+    dummy.innerHTML = htmlContent;
+    document.body.appendChild(dummy);
+    let nativeHeight = dummy.offsetHeight;
+    document.body.removeChild(dummy);
+    if (!nativeHeight || nativeHeight < 100) nativeHeight = 400;
+
+    const box = document.createElement('div');
+    box.id = 'spread-lightbox';
+    
+    // Calculate scale factor to make it fill the screen just like the images do (85vh max)
+    let vh = window.innerHeight;
+    let vw = window.innerWidth;
+    let scaleH = (vh * 0.85) / nativeHeight;
+    let scaleW = (vw * 0.90) / 272;
+    let optimalScale = Math.min(scaleH, scaleW, 4); // Cap at 4x to prevent extreme zooming
+    
+    // Use the existing lightbox styles, but center the post-it content and scale it up to fullscreen
+    box.innerHTML = `
+        <div style="transform: scale(${optimalScale}); transform-origin: center; cursor: default;" onclick="event.stopPropagation()">
+            <div class="bookmark-note spread-note" style="margin:0; width:272px; min-width:unset; transform:none;">
+                ${htmlContent}
+            </div>
+        </div>
+    `;
+    box.onclick = () => {
+        box.style.opacity = '0';
+        setTimeout(() => box.remove(), 300);
+    };
+    document.body.appendChild(box);
+    requestAnimationFrame(() => {
+        box.style.opacity = '1';
+    });
+};
+
+function initSpreadCanvas(containerId, contentId, contentWidth, contentHeight) {
+    const container = document.getElementById(containerId);
+    const content = document.getElementById(contentId);
+    if (!container || !content) return;
+
+    let scale = 1;
+    let tx = 0, ty = 0;
+    let isDragging = false;
+    let startX = 0, startY = 0;
+
+    // Pan via drag
+    container.addEventListener('mousedown', e => {
+        isDragging = true;
+        startX = e.clientX - tx;
+        startY = e.clientY - ty;
+    });
+    window.addEventListener('mousemove', e => {
+        if (!isDragging) return;
+        tx = e.clientX - startX;
+        ty = e.clientY - startY;
+        content.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    });
+    window.addEventListener('mouseup', () => isDragging = false);
+
+    // Zoom via wheel
+    container.addEventListener('wheel', e => {
+        e.preventDefault();
+        const zoomIntensity = 0.002;
+        const wheel = e.deltaY < 0 ? 1 : -1;
+        const zoom = Math.exp(wheel * zoomIntensity * 30); // Smooth zoom factor
+        
+        // Calculate pointer position relative to content to zoom into pointer
+        const rect = container.getBoundingClientRect();
+        const pointerX = e.clientX - rect.left;
+        const pointerY = e.clientY - rect.top;
+
+        // Calculate offset difference
+        const dx = (pointerX - tx) * (zoom - 1);
+        const dy = (pointerY - ty) * (zoom - 1);
+
+        tx -= dx;
+        ty -= dy;
+        scale *= zoom;
+        
+        // Constrain scale
+        scale = Math.min(Math.max(scale, 0.1), 5);
+        content.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    }, { passive: false });
+    
+    // Initial centering
+    setTimeout(() => {
+        const cRect = container.getBoundingClientRect();
+        const scaleFitX = (cRect.width - 160) / contentWidth;
+        const scaleFitY = (cRect.height - 300) / contentHeight;
+        const initialScale = Math.min(scaleFitX, scaleFitY, 1);
+        
+        scale = initialScale;
+        tx = (cRect.width - (contentWidth * scale)) / 2;
+        ty = (cRect.height - (contentHeight * scale)) / 2;
+        content.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    }, 50);
+}
+
 function unfoldProject(id) {
     const p = archiveData.find(proj => proj.id === id);
     document.body.classList.add('spread-open');
@@ -398,62 +537,277 @@ function unfoldProject(id) {
     filterBar.style.pointerEvents = 'none';
     const over = document.createElement('div');
     over.id = 'unfold-overlay';
+    over.classList.add('glass-overlay');
     
+    // Initialize Spread Loader
+    isSpreadLoading = true;
+    spreadDataReady = false;
+    loadingProgress = 100;
+    loadingColorIndex = 0;
     over.innerHTML = `
         <div class="close-minus" onclick="document.body.classList.remove('spread-open'); filterBar.style.opacity='1'; filterBar.style.pointerEvents='auto'; this.parentElement.remove()">–</div>
         
-        <div class="spread-layout">
-            
-            <div class="spread-col left-col-scroll">
-                
-                <div class="bookmark-note spread-note">
-                    <img src="logo.png" class="stamp-logo">
-                    <div class="note-ref-code">[ REF: ARC-${p.id.substring(0,6).toUpperCase()} ]</div>
-                    <div class="note-divider"></div>
-                    <div class="note-title">${p.metadata.name}</div>
-                    <div class="note-divider"></div>
-                    <div class="note-meta-grid">
-                        <div>Year</div><div>${p.metadata.year || '2024'}</div>
-                        <div>Course</div><div>Studio Alpha</div>
-                        <div>Track</div><div>Laurea Magistrale</div>
-                        <div>Prof</div><div>${p.metadata.author || 'Dr. Smith'}</div>
-                    </div>
-                    <div class="note-divider"></div>
-                    <div class="note-text-content" style="display: block; -webkit-line-clamp: unset; overflow: visible;">${p.metadata.description || ''}</div>
-                </div>
-                
+        <div style="position: absolute; top: 8rem; bottom: 4rem; left: 4rem; right: 4rem; display: flex; align-items: center; justify-content: center;">   <div id="spread-loading" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
+            <div style="position: relative; width: 22rem; display: inline-block;">
+                <img src="apollologonextended.png" style="width: 100%; display: block; filter: brightness(0) invert(1) drop-shadow(-1px -1px 2px rgba(0,0,0,0.5)); opacity: 0.9;" alt="Loading Base">
+                <div class="loading-fill-layer" style="position: absolute; inset: 0; background-color: #B24F44; -webkit-mask-image: url('apollologonextended.png'); -webkit-mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; clip-path: inset(0 100% 0 0);"></div>
             </div>
-
-            <div class="spread-col right-col-scroll">
-                <div class="unfold-gallery-grid" style="padding-top: 4rem;">
-                    <div style="display:flex; flex-direction: column; width: fit-content;">
-                        <div class="unfold-grid-item">
-                            <img src="${getSafeImg(p.titleImage)}" alt="cover drawing" onclick="openLightbox('${getSafeImg(p.titleImage)}', event)" style="position: relative; z-index: 1;">
-                        </div>
-                        <div style="width: 100%; text-align: left; font-size: 0.8rem; margin-top: 1rem; opacity: 0.6; font-weight: bold; text-transform: lowercase;">cover drawing</div>
-                    </div>
-                    ${(p.images || []).map((img, i) => {
-                        let name = "drawing " + (i+1);
-                        if(img && img.title) name = img.title;
-                        else if (typeof img === 'string') {
-                            const parts = img.split('/');
-                            name = parts[parts.length-1].split('.')[0].replace(/[-_]/g, ' ');
-                        }
-                        return `
-                        <div style="display:flex; flex-direction: column; width: fit-content;">
-                            <div class="unfold-grid-item">
-                                <img src="${getSafeImg(img)}" alt="${name}" onclick="openLightbox('${getSafeImg(img)}', event)" style="position: relative; z-index: 1;">
-                            </div>
-                            <div style="width: 100%; text-align: left; font-size: 0.8rem; margin-top: 1rem; opacity: 0.6; font-weight: bold; text-transform: lowercase;">${name}</div>
-                        </div>`;
-                    }).join('')}
-                </div>
-            </div>
-
+        </div>
+        <div class="right-col-canvas" id="canvas-container" style="opacity: 0; transition: opacity 0.5s;">
+            <div class="spread-canvas-content" id="canvas-content" style="position: relative;"></div>
         </div>
     `;
-    
     document.body.appendChild(over);
+
+    // Kick off animation loop now that the element is in the DOM
+    animateLoadingLogo();
+
+    // Measure exact post-it height dynamically to prevent physics bounding box overflow
+    const dummy = document.createElement('div');
+    dummy.style.visibility = 'hidden';
+    dummy.style.position = 'absolute';
+    dummy.style.width = '272px';
+    dummy.className = 'bookmark-note spread-note';
+    dummy.innerHTML = `
+        <img src="logo.png" class="stamp-logo">
+        <div class="note-ref-code">[ REF: ARC-${p.id.substring(0,6).toUpperCase()} ]</div>
+        <div class="note-divider"></div>
+        <div class="note-title">${p.metadata.name}</div>
+        <div class="note-divider"></div>
+        <div class="note-meta-grid">
+            <div>Year</div><div>${p.metadata.year || '2024'}</div>
+            <div>Course</div><div>Studio Alpha</div>
+            <div>Track</div><div>Laurea Magistrale</div>
+            <div>Prof</div><div>${p.metadata.author || 'Dr. Smith'}</div>
+        </div>
+        <div class="note-divider"></div>
+        <div class="note-text-content" style="display: block; -webkit-line-clamp: unset; overflow: visible;">${p.metadata.description || ''}</div>
+    `;
+    document.body.appendChild(dummy);
+    let exactPostitHeight = dummy.offsetHeight;
+    document.body.removeChild(dummy);
+    if (!exactPostitHeight || exactPostitHeight < 100) exactPostitHeight = 400;
+
+    // Collect all items
+    const allItems = [
+        { type: 'postit', p: p },
+        { type: 'image', src: p.titleImage, name: "cover drawing", desc: p.metadata.description || '' }
+    ];
+    (p.images || []).forEach((img, i) => {
+        let name = "drawing " + (i+1);
+        if(img && img.title) name = img.title;
+        else if (typeof img === 'string') {
+            const parts = img.split('/');
+            name = parts[parts.length-1].split('.')[0].replace(/[-_]/g, ' ');
+        }
+        allItems.push({ type: 'image', src: img, name: name, desc: name });
+    });
+
+    // 1. Preload images
+    Promise.all(allItems.map(item => {
+        if (item.type === 'postit') {
+            item.width = 272; // 17rem approx width
+            item.height = exactPostitHeight; // Measured exact height
+            return Promise.resolve();
+        } else {
+            return new Promise(resolve => {
+                const img = new Image();
+                img.src = getSafeImg(item.src);
+                img.onload = () => { item.width = img.naturalWidth; item.height = img.naturalHeight; resolve(); };
+                img.onerror = () => { item.width = 300; item.height = 300; resolve(); };
+            });
+        }
+    })).then(() => {
+        
+        // 2. Statistical Analysis & Scaling Rules
+        const normalItems = allItems.filter(i => i.type !== 'postit');
+        const areas = normalItems.map(i => i.width * i.height).sort((a,b) => a-b);
+        const medianArea = areas[Math.floor(areas.length / 2)] || 100000;
+        
+        normalItems.forEach(item => {
+            let targetArea = medianArea;
+            const ar = item.width / item.height;
+            const initialScale = Math.sqrt(medianArea / (item.width * item.height));
+            
+            // Outlier Handling
+            if (ar > 1.8 || ar < 0.6 || initialScale < 0.85) {
+                targetArea *= 2; 
+            }
+            
+            item.targetWidth = Math.sqrt(targetArea * ar);
+            item.targetHeight = item.targetWidth / ar;
+            item.rotation = 0;
+        });
+
+        // Calculate median target height of images to scale the post-it correctly
+        const targetHeights = normalItems.map(i => i.targetHeight).sort((a,b) => a-b);
+        const medianTargetHeight = targetHeights[Math.floor(targetHeights.length / 2)] || 400;
+
+        const postitItem = allItems.find(i => i.type === 'postit');
+        if (postitItem) {
+            // Scale it to 75% of the median vertical edge, using its exact native height.
+            postitItem.scaleFactor = Math.max(0.5, (medianTargetHeight / exactPostitHeight) * 0.75);
+            
+            // Keep physics bounding box matching the scaled visual size
+            postitItem.targetWidth = 272 * postitItem.scaleFactor;
+            postitItem.targetHeight = exactPostitHeight * postitItem.scaleFactor; 
+            postitItem.rotation = 0;
+        }
+
+        // 3. Initialize items in a rough grid
+        let cols = Math.ceil(Math.sqrt(allItems.length));
+        let startX = 0, startY = 0, maxH = 0;
+        allItems.forEach((item, i) => {
+            if (i > 0 && i % cols === 0) { 
+                startX = 0; 
+                startY += maxH + 60; 
+                maxH = 0; 
+            }
+            item.x = startX; 
+            item.y = startY;
+            startX += item.targetWidth + 60;
+            maxH = Math.max(maxH, item.targetHeight);
+        });
+        
+        // Center initial cluster roughly at 0,0
+        let cx = allItems.reduce((sum, i) => sum + i.x, 0) / allItems.length;
+        let cy = allItems.reduce((sum, i) => sum + i.y, 0) / allItems.length;
+        allItems.forEach(item => { 
+            item.x -= cx; 
+            item.y -= cy; 
+            item.vx = 0; 
+            item.vy = 0; 
+        });
+
+        // 4. Force-Directed Simulation (Relaxation Loop)
+        for (let step = 0; step < 150; step++) {
+            // Center attraction
+            allItems.forEach(item => {
+                item.vx -= item.x * 0.003;
+                item.vy -= item.y * 0.003;
+            });
+            
+            // Repulsion
+            for (let i = 0; i < allItems.length; i++) {
+                for (let j = i + 1; j < allItems.length; j++) {
+                    let a = allItems[i], b = allItems[j];
+                    let dx = a.x - b.x;
+                    let dy = a.y - b.y;
+                    
+                    if (dx === 0 && dy === 0) { dx = Math.random(); dy = Math.random(); }
+                    
+                    // Maintain hard minimum gap (no overlap allowed, increased spacing)
+                    let w = (a.targetWidth + b.targetWidth) / 2 + 140; // 140px gap minimum
+                    let h = (a.targetHeight + b.targetHeight) / 2 + 140;
+                    
+                    if (Math.abs(dx) < w && Math.abs(dy) < h) {
+                        let overlapX = w - Math.abs(dx);
+                        let overlapY = h - Math.abs(dy);
+                        if (overlapX < overlapY) {
+                            let push = overlapX * 0.15 * Math.sign(dx);
+                            a.vx += push; b.vx -= push;
+                        } else {
+                            let push = overlapY * 0.15 * Math.sign(dy);
+                            a.vy += push; b.vy -= push;
+                        }
+                    }
+                }
+            }
+            // Integration & Friction
+            allItems.forEach(item => {
+                item.x += item.vx; 
+                item.y += item.vy;
+                item.vx *= 0.6; 
+                item.vy *= 0.6; 
+            });
+        }
+        
+        // Explicitly align the Post-It's bottom edge to the Cover Image's bottom edge
+        if (allItems.length > 1 && allItems[0].type === 'postit' && allItems[1].type === 'image') {
+            let postit = allItems[0];
+            let cover = allItems[1];
+            
+            // The user wants to align with the bottom of the card ITSELF, not the text caption below it.
+            let coverVisualBottom = cover.y + cover.targetHeight/2;
+            
+            // Set post-it y so its bottom exactly matches the cover's image bottom.
+            // We subtract 12px to compensate for the visual weight of the post-it's 0.8rem drop shadow!
+            postit.y = coverVisualBottom - postit.targetHeight/2 - 12;
+        }
+
+        spreadDataReady = true; // Signal the animation loop that it can stop when it reaches 0%
+
+        // Wait for the logo loading animation to complete its current loop
+        const checkDone = setInterval(() => {
+            if (loadingProgress <= 0) {
+                clearInterval(checkDone);
+                isSpreadLoading = false; 
+                spreadDataReady = false;
+
+                // 5. Calculate final bounding box and render
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                allItems.forEach(item => {
+                    minX = Math.min(minX, item.x - item.targetWidth/2);
+                    minY = Math.min(minY, item.y - item.targetHeight/2);
+                    maxX = Math.max(maxX, item.x + item.targetWidth/2);
+                    maxY = Math.max(maxY, item.y + item.targetHeight/2);
+                });
+
+                let contentWidth = maxX - minX;
+                let contentHeight = maxY - minY;
+                let html = '';
+                
+                allItems.forEach(item => {
+                    let left = (item.x - item.targetWidth/2) - minX;
+                    let top = (item.y - item.targetHeight/2) - minY;
+                    let style = `position: absolute; left: ${left}px; top: ${top}px; width: ${item.targetWidth}px; height: ${item.targetHeight}px; transform: rotate(${item.rotation}deg); display: flex; flex-direction: column; align-items: center;`;
+                    
+                    if (item.type === 'postit') {
+                        window.currentPostitData = item.p;
+                        html += `
+                        <div style="${style}">
+                            <div class="bookmark-note spread-note" style="position: absolute !important; bottom: 0 !important; margin:0; width:272px; min-width:unset; transform: scale(${item.scaleFactor}); transform-origin: bottom center; cursor: pointer; transition: transform 0.2s;" onclick="openPostitLightbox(event)">
+                                <img src="logo.png" class="stamp-logo">
+                                <div class="note-ref-code">[ REF: ARC-${item.p.id.substring(0,6).toUpperCase()} ]</div>
+                                <div class="note-divider"></div>
+                                <div class="note-title">${item.p.metadata.name}</div>
+                                <div class="note-divider"></div>
+                                <div class="note-meta-grid">
+                                    <div>Year</div><div>${item.p.metadata.year || '2024'}</div>
+                                    <div>Course</div><div>Studio Alpha</div>
+                                    <div>Track</div><div>Laurea Magistrale</div>
+                                    <div>Prof</div><div>${item.p.metadata.author || 'Dr. Smith'}</div>
+                                </div>
+                                <div class="note-divider"></div>
+                                <div class="note-text-content" style="display: block; -webkit-line-clamp: unset; overflow: visible;">${item.p.metadata.description || ''}</div>
+                            </div>
+                        </div>`;
+                    } else {
+                        html += `
+                        <div style="${style}">
+                            <div class="unfold-grid-item" style="width:100%; height:auto;">
+                                <img src="${getSafeImg(item.src)}" alt="${item.name}" onclick="openLightbox('${getSafeImg(item.src)}', '${item.desc.replace(/'/g, "\\'")}', event)" style="position: relative; z-index: 1; width: 100%; max-height:none; height:auto; object-fit: contain; display: block;">
+                            </div>
+                            <div style="width: 100%; text-align: center; font-size: 1.2rem; margin-top: 1.5rem; opacity: 0.6; font-weight: bold; text-transform: lowercase; font-family: monospace;">${item.name}</div>
+                        </div>`;
+                    }
+                });
+
+                const content = document.getElementById('canvas-content');
+                if(!content) return;
+                content.style.width = `${contentWidth}px`;
+                content.style.height = `${contentHeight}px`;
+                content.innerHTML = html;
+
+                const loadingMsg = document.getElementById('spread-loading');
+                if(loadingMsg) loadingMsg.remove();
+                
+                document.getElementById('canvas-container').style.opacity = '1';
+                
+                initSpreadCanvas('canvas-container', 'canvas-content', contentWidth, contentHeight);
+            }
+        }, 30);
+    });
 }
 
 // ---------------------------------------------------------------------------
@@ -549,7 +903,7 @@ function updateMagazineView() {
     
     over.innerHTML = `
         <div class="close-minus" onclick="closeMagazine()">–</div>
-        <h1 class="big-header-title" style="position: fixed; top: 4rem; left: 50%; transform: translateX(-50%); margin: 0; color: black; z-index: 100003; pointer-events: none;">APOLLO MAGAZINE</h1>
+        
         <div class="magazine-scene">${html}</div>
         <div class="magazine-footer">
             <div class="magazine-chapters">${chaptersHtml}</div>
