@@ -1,7 +1,7 @@
 const URL_PROJECTS = 'https://script.google.com/macros/s/AKfycby3AgRD49QItpR6M3oKG0id58QCZN0a7zQbrm91Z1ZmjwvhBwJzLNI3xBuANUzsWaiVfA/exec';
 const URL_CALENDAR = 'https://script.google.com/macros/s/AKfycbz5THEJ7sno1qcFbPaA0FWmtcXy3kEj4nbGGThGvHb9zRjWox57VDQghuOgdiFCbTfIIw/exec';
 const URL_MAGAZINE = 'https://script.google.com/macros/s/AKfycbyxSddhc-ntCVewfsAFXLcvStqnEN14VAJ-UtMuUxYt1zttxh8C39YelbeY5-pGsvZ6mg/exec';
-const URL_HISTORY = 'INSERT_YOUR_NEW_HISTORY_URL_HERE';
+const URL_HISTORY = 'https://script.google.com/macros/s/AKfycbxe-gDHESBabJCX6fZNS-VLkYHS-CnJz8rlx-AB017bwXn8cPcpIOqvKkw4DerfKWSd/exec';
 // We'll need a URL for audio eventually
 // const URL_AUDIO = 'INSERT_AUDIO_URL_HERE';
 
