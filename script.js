@@ -2,13 +2,12 @@ const URL_PROJECTS = 'https://script.google.com/macros/s/AKfycby3AgRD49QItpR6M3o
 const URL_CALENDAR = 'https://script.google.com/macros/s/AKfycbz5THEJ7sno1qcFbPaA0FWmtcXy3kEj4nbGGThGvHb9zRjWox57VDQghuOgdiFCbTfIIw/exec';
 const URL_MAGAZINE = 'https://script.google.com/macros/s/AKfycbyxSddhc-ntCVewfsAFXLcvStqnEN14VAJ-UtMuUxYt1zttxh8C39YelbeY5-pGsvZ6mg/exec';
 const URL_HISTORY = 'https://script.google.com/macros/s/AKfycbxe-gDHESBabJCX6fZNS-VLkYHS-CnJz8rlx-AB017bwXn8cPcpIOqvKkw4DerfKWSd/exec';
-// We'll need a URL for audio eventually
-// const URL_AUDIO = 'INSERT_AUDIO_URL_HERE';
+const URL_AUDIO = 'https://script.google.com/macros/s/AKfycbxOj-Am3DcTcNrRXO3o77FIt7I4D99DUo-A2AZ9SlIQ9XL25jbWCRV1hTkujQSu_oVgXw/exec';
 
 const pile = document.getElementById('project-pile');
 const filterBar = document.getElementById('filter-bar');
 
-let archiveData = [], calendarData = [], magazineData = [], historyData = [];
+let archiveData = [], calendarData = [], magazineData = [], historyData = [], audioData = [];
 let isLoaded = false, isWaitingToStart = true, magCurrentPage = 0;
 
 function getSafeImg(url) {
@@ -131,16 +130,18 @@ function animateLoadingLogo() {
 async function init() {
     animateLoadingLogo();
     try {
-        const [resProj, resCal, resMag, resHist] = await Promise.all([
+        const [resProj, resCal, resMag, resHist, resAud] = await Promise.all([
             fetch(URL_PROJECTS, { redirect: 'follow' }),
             fetch(URL_CALENDAR, { redirect: 'follow' }),
             fetch(URL_MAGAZINE, { redirect: 'follow' }),
-            fetch(URL_HISTORY, { redirect: 'follow' }).catch(() => null)
+            fetch(URL_HISTORY, { redirect: 'follow' }).catch(() => null),
+            fetch(URL_AUDIO, { redirect: 'follow' }).catch(() => null)
         ]);
         archiveData = await resProj.json();
         calendarData = await resCal.json();
         magazineData = await resMag.json();
         if (resHist && resHist.ok) historyData = await resHist.json().catch(() => []);
+        if (resAud && resAud.ok) audioData = await resAud.json().catch(() => []);
         generateDynamicTags();
         isLoaded = true;
         if (!document.getElementById('passcode-overlay')) liftFog();
@@ -943,6 +944,12 @@ window.openHistory = function() {
     over.id = 'unfold-overlay';
     over.classList.add('glass-overlay'); // Adds the blur effect matching magazine
     
+    const filterBar = document.getElementById('filter-bar');
+    if (filterBar) {
+        filterBar.style.opacity = '0';
+        filterBar.style.pointerEvents = 'none';
+    }
+    
     const dummyHistory = [
         { title: "Founding 2019", text: "Apollo was founded in 2019 as a student initiative to create a space for architectural discourse..." },
         { title: "First Exhibition 2020", text: "The first major exhibition took place in 2020, showcasing works from over forty students across three universities..." },
@@ -976,7 +983,7 @@ window.openHistory = function() {
     }).join('');
     
     over.innerHTML = `
-        <div class="close-minus" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove(); document.getElementById('col-archive').style.opacity = '1'; const mq=document.querySelector('.marquee-wrapper'); if(mq) mq.style.opacity='1';">–</div>
+        <div class="close-minus" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove(); document.getElementById('col-archive').style.opacity = '1'; const mq=document.querySelector('.marquee-wrapper'); if(mq) mq.style.opacity='1'; const fb=document.getElementById('filter-bar'); if(fb){ fb.style.opacity=''; fb.style.pointerEvents=''; }">–</div>
         <div class="history-pile-wrapper">
             <div class="history-pile">
                 ${sheetsHtml}
@@ -1023,14 +1030,6 @@ window.historyShuffleToBack = function(sheet, event) {
 // ---------------------------------------------------------------------------
 // AUDIO LIBRARY (Deep Linked)
 // ---------------------------------------------------------------------------
-// Dummy structure until API is ready:
-const dummyAudioLibrary = [
-    { title: "magazine_article1", file: "magazine_article1", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", desc: "Short description of this track. Eventually pulled from a Google Doc." },
-    { title: "magazine_interview", file: "magazine_interview", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", desc: "Short description of this interview track." },
-    { title: "exhibition_opening", file: "exhibition_opening", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", desc: "Opening speech from the 2024 exhibition." },
-    { title: "exhibition_ambient", file: "exhibition_ambient", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3", desc: "Ambient soundscape." }
-];
-
 let globalAudio = null;
 
 window.openAudioLibrary = function() {
@@ -1047,20 +1046,20 @@ window.openAudioLibrary = function() {
     filterBar.style.opacity = '';
     filterBar.style.pointerEvents = '';
     
-    // Group dummy data by prefix (before the first underscore)
+    // Group real data by Category
     const grouped = {};
-    dummyAudioLibrary.forEach(item => {
-        const parts = item.title.split('_');
-        const category = parts[0];
-        const subname = parts.slice(1).join('_') || item.title;
+    const safeAudioData = (audioData && audioData.length > 0) ? audioData : [];
+    
+    safeAudioData.forEach(item => {
+        const category = item.category || 'misc';
         if (!grouped[category]) grouped[category] = [];
-        grouped[category].push({ ...item, subname });
+        grouped[category].push(item);
     });
 
     let listHtml = '';
     for (const cat in grouped) {
         let subItems = grouped[cat].map(item => `
-            <div class="audio-track-link" id="audio-link-${item.file}" onclick="playAudioTrack('${item.file}')">${item.subname}</div>
+            <div class="audio-track-link" id="audio-link-${item.file}" onclick="playAudioTrack('${item.file}')">${item.title}</div>
         `).join('');
         listHtml += `
             <div>
@@ -1086,7 +1085,8 @@ window.openAudioLibrary = function() {
 };
 
 window.playAudioTrack = function(fileId) {
-    const track = dummyAudioLibrary.find(t => t.file === fileId);
+    const safeAudioData = (audioData && audioData.length > 0) ? audioData : [];
+    const track = safeAudioData.find(t => t.file === fileId);
     if (!track) return;
     
     if (globalAudio) {
@@ -1096,6 +1096,8 @@ window.playAudioTrack = function(fileId) {
 
     const container = document.getElementById('audio-player-container');
     if (!container) return;
+    
+    globalAudio = new Audio(getSafeImg(track.url));
     
     // Highlight active track
     document.querySelectorAll('.audio-track-link').forEach(el => el.classList.remove('active-track'));
@@ -1111,10 +1113,10 @@ window.playAudioTrack = function(fileId) {
             <div class="note-title" style="font-size: 1.8em; margin: 1rem 0;">${track.title}</div>
             <div class="note-divider"></div>
             <div class="note-meta-grid">
-                <div>Year</div><div>2024</div>
-                <div>Category</div><div>Archive</div>
-                <div>Type</div><div>Audio</div>
-                <div>Format</div><div>MP3</div>
+                <div>Year</div><div>${track.year || '2026'}</div>
+                <div>Category</div><div>${track.category || 'Archive'}</div>
+                <div>Type</div><div>${track.type || 'Audio'}</div>
+                <div>Format</div><div>${track.format || 'MP3'}</div>
             </div>
             <div class="note-divider"></div>
             <div class="note-text-content" style="display: block; -webkit-line-clamp: unset; overflow: visible; font-size: 1.1em; line-height: 1.6; margin-top: 1rem;">${track.desc}</div>
