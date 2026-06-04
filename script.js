@@ -1,8 +1,5 @@
-const URL_PROJECTS = 'https://script.google.com/macros/s/AKfycby3AgRD49QItpR6M3oKG0id58QCZN0a7zQbrm91Z1ZmjwvhBwJzLNI3xBuANUzsWaiVfA/exec';
-const URL_CALENDAR = 'https://script.google.com/macros/s/AKfycbx4nDabR1zvlbIAyQCZ0FIg4PjAM_MmNVIWQNcVvxcvGHu_cDvKBnp29nqV7KRrL2Ee/exec';
-const URL_MAGAZINE = 'https://script.google.com/macros/s/AKfycbyxSddhc-ntCVewfsAFXLcvStqnEN14VAJ-UtMuUxYt1zttxh8C39YelbeY5-pGsvZ6mg/exec';
-const URL_HISTORY = 'https://script.google.com/macros/s/AKfycbxe-gDHESBabJCX6fZNS-VLkYHS-CnJz8rlx-AB017bwXn8cPcpIOqvKkw4DerfKWSd/exec';
-const URL_AUDIO = 'https://script.google.com/macros/s/AKfycbxOj-Am3DcTcNrRXO3o77FIt7I4D99DUo-A2AZ9SlIQ9XL25jbWCRV1hTkujQSu_oVgXw/exec';
+// IMPORTANT: You only need ONE URL now. Paste the URL for your Master Control Center script here!
+const URL_MASTER = 'https://script.google.com/macros/s/AKfycbx4nDabR1zvlbIAyQCZ0FIg4PjAM_MmNVIWQNcVvxcvGHu_cDvKBnp29nqV7KRrL2Ee/exec';
 
 const pile = document.getElementById('project-pile');
 const filterBar = document.getElementById('filter-bar');
@@ -13,6 +10,33 @@ let isLoaded = false, isWaitingToStart = true, magCurrentPage = 0;
 function getSafeImg(url) {
     const id = url.match(/id=([^&]+)/);
     return id ? `https://drive.google.com/thumbnail?id=${id[1]}&sz=w1200` : url;
+}
+
+function getHDImageUrl(url) {
+    if (!url) return '';
+    const id = url.match(/(?:id=|\/d\/)([a-zA-Z0-9_-]+)/);
+    return id ? `https://drive.google.com/uc?export=view&id=${id[1]}` : url;
+}
+
+function getNoteGridHtml(p) {
+    const isEvent = p.metadata && p.metadata.tags && p.metadata.tags.includes('Event');
+    
+    let lbl2 = "Course", val2 = (p.metadata && p.metadata.course) || "Studio Alpha";
+    let lbl3 = "Track", val3 = (p.metadata && p.metadata.track) || "Laurea Magistrale";
+    let lbl4 = "Prof", val4 = (p.metadata && p.metadata.author) || "Dr. Smith";
+    
+    if (isEvent) {
+        lbl2 = "Date"; val2 = (p.metadata && p.metadata.dateOverride) || (p.metadata && p.metadata.name) || "TBA";
+        lbl3 = "Event"; val3 = (p.metadata && p.metadata.course) || "Special";
+        lbl4 = "Note"; val4 = (p.metadata && p.metadata.author) || "Apollo";
+    }
+    
+    return `
+        <div>Year</div><div>${(p.metadata && p.metadata.year) || '2024'}</div>
+        <div>${lbl2}</div><div>${val2}</div>
+        <div>${lbl3}</div><div>${val3}</div>
+        <div>${lbl4}</div><div>${val4}</div>
+    `;
 }
 
 // ---------------------------------------------------------------------------
@@ -130,22 +154,23 @@ function animateLoadingLogo() {
 async function init() {
     animateLoadingLogo();
     try {
-        const [resProj, resCal, resMag, resHist, resAud] = await Promise.all([
-            fetch(URL_PROJECTS, { redirect: 'follow' }),
-            fetch(URL_CALENDAR, { redirect: 'follow' }),
-            fetch(URL_MAGAZINE, { redirect: 'follow' }),
-            fetch(URL_HISTORY, { redirect: 'follow' }).catch(() => null),
-            fetch(URL_AUDIO, { redirect: 'follow' }).catch(() => null)
-        ]);
-        archiveData = await resProj.json();
-        calendarData = await resCal.json();
-        magazineData = await resMag.json();
-        if (resHist && resHist.ok) historyData = await resHist.json().catch(() => []);
-        if (resAud && resAud.ok) audioData = await resAud.json().catch(() => []);
+        const res = await fetch(URL_MASTER, { redirect: 'follow' });
+        const masterData = await res.json();
+        
+        // The master script sends { archive, calendar, magazine, history, audio }
+        archiveData = masterData.archive || [];
+        calendarData = masterData.calendar || [];
+        magazineData = masterData.magazine || [];
+        historyData = masterData.history || [];
+        audioData = masterData.audio || [];
+        
         generateDynamicTags();
         isLoaded = true;
         if (!document.getElementById('passcode-overlay')) liftFog();
-    } catch (e) { isLoaded = true; }
+    } catch (e) {
+        console.error("Master API Error:", e);
+        isLoaded = true; 
+    }
 
     // Deep linking for Audio Library
     const urlParams = new URLSearchParams(window.location.search);
@@ -195,24 +220,54 @@ function renderCalendar(data) {
 
         if (data[0].events && data[0].events.length > 0) {
             let html = '';
-            data[0].events.forEach(evt => {
+            data[0].events.forEach((evt, idx) => {
                 let lines = evt.text.split('<br>');
                 let dateHtml = lines.shift() || ''; 
                 let detailsHtml = lines.join('<br>') || ''; 
 
-                let interactiveClass = evt.imgId ? 'has-invite' : '';
-                let clickAction = evt.imgId ? `onclick="this.querySelector('.calendar-inline-img').classList.toggle('expanded')"` : '';
+                let interactiveClass = '';
+                let clickAction = '';
+                let plusIcon = '';
+                let imgPayload = '';
                 
-                let plusIcon = evt.imgId ? `<div style="margin-top: 12px;"><span class="invite-indicator">[+]</span></div>` : '';
+                let minisHtml = '';
                 
-                let imgPayload = evt.imgId ? `
+                if (evt.isPast && evt.spreadData) {
+                    interactiveClass = 'has-invite is-past';
+                    clickAction = `onclick="unfoldCalendarEvent(${idx})"`;
+                    
+                    let allImages = [];
+                    if (evt.spreadData.titleImage) allImages.push(evt.spreadData.titleImage);
+                    if (evt.spreadData.images) allImages = allImages.concat(evt.spreadData.images);
+                    let maxImages = Math.min(5, allImages.length);
+                    for(let k=0; k<maxImages; k++) {
+                        let idMatch = allImages[k].match(/(?:id=|\/d\/)([a-zA-Z0-9_-]+)/);
+                        if(idMatch) {
+                           minisHtml += `<img src="https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=h100" style="height: 1.1em; width: auto; object-fit: cover; border-radius: 2px;">`;
+                        }
+                    }
+                    plusIcon = `<div style="margin-top: 12px;"><span class="invite-indicator" style="display: inline-flex; align-items: center; gap: 4px;">[ ${minisHtml} <span>+</span> ]</span></div>`;
+                } else if (evt.isPast) {
+                    interactiveClass = 'is-past';
+                } else if (evt.imgId) {
+                    interactiveClass = 'has-invite';
+                    clickAction = `onclick="this.querySelector('.calendar-inline-img').classList.toggle('expanded')"`;
+                    
+                    minisHtml = `<img src="https://drive.google.com/thumbnail?id=${evt.imgId}&sz=h100" style="height: 1.1em; width: auto; object-fit: cover; border-radius: 2px;">`;
+                    plusIcon = `<div style="margin-top: 12px;"><span class="invite-indicator" style="display: inline-flex; align-items: center; gap: 4px;">[ ${minisHtml} <span>+</span> ]</span></div>`;
+                    
+                    imgPayload = `
                     <div class="calendar-inline-img">
+                         ${evt.imgId ? `
                         <img src="https://drive.google.com/thumbnail?id=${evt.imgId}&sz=w1200" alt="Calendar Event Image">
-                    </div>` : '';
+                    ` : ''}</div>`;
+                }
+
+                let idAttr = (evt.isNextUpcoming) ? `id="next-upcoming-event"` : '';
 
                 html += `
                 <div class="calendar-event-group">
-                    <div class="calendar-event-item ${interactiveClass}" ${clickAction}>
+                    <div class="calendar-event-item ${interactiveClass}" ${clickAction} ${idAttr}>
                         <div class="cal-row">
                             <div class="cal-date">${dateHtml}</div>
                             <div class="cal-details">
@@ -225,6 +280,14 @@ function renderCalendar(data) {
                 </div>`;
             });
             calTxt.innerHTML = html;
+            
+            // Scroll closest upcoming event to center
+            setTimeout(() => {
+                const nextEvent = document.getElementById('next-upcoming-event');
+                if (nextEvent) {
+                    nextEvent.scrollIntoView({ block: 'center' });
+                }
+            }, 100);
         }
 
         if (data[0].marquee) {
@@ -235,6 +298,18 @@ function renderCalendar(data) {
         }
     }
 }
+
+window.unfoldCalendarEvent = function(idx) {
+    const evt = calendarData[0].events[idx];
+    if (!evt || !evt.spreadData) return;
+    
+    // Inject the calendar spread payload into archiveData so the physics engine can render it
+    const p = evt.spreadData;
+    if (!archiveData.find(x => x.id === p.id)) {
+        archiveData.push(p);
+    }
+    unfoldProject(p.id);
+};
 
 function renderMagazineCover(data) {
     const mag = document.getElementById('magazine-cover-container');
@@ -338,10 +413,7 @@ function createCard(p, isGrid) {
             <div class="note-title">${p.metadata.name}</div>
             <div class="note-divider"></div>
             <div class="note-meta-grid">
-                <div>Year</div><div>${p.metadata.year || '2024'}</div>
-                <div>Course</div><div>Studio Alpha</div>
-                <div>Track</div><div>Laurea Magistrale</div>
-                <div>Prof</div><div>${p.metadata.author || 'Dr. Smith'}</div>
+                ${getNoteGridHtml(p)}
             </div>
             <div class="note-divider"></div>
             <div class="note-text-content">${p.metadata.description}</div>
@@ -389,22 +461,75 @@ function filterProjects(tag, btn) {
     renderPile(tag === 'All' ? archiveData : archiveData.filter(p => p.metadata.tags.some(t => t.toLowerCase() === tag.toLowerCase())), tag !== 'All');
 }
 
-window.openLightbox = function(src, desc, event) {
+window.openLightbox = function(index, event) {
     if (event) event.stopPropagation();
-    const box = document.createElement('div');
-    box.id = 'spread-lightbox';
+    const gallery = window.currentLightboxGallery;
+    if (!gallery || !gallery[index]) return;
+    
+    let box = document.getElementById('spread-lightbox');
+    const isNew = !box;
+    if (isNew) {
+        box = document.createElement('div');
+        box.id = 'spread-lightbox';
+        document.body.appendChild(box);
+        
+        box._keyHandler = (e) => {
+            if (e.key === 'Escape') window.closeLightbox();
+            else if (e.key === 'ArrowLeft') window.prevSlide(e);
+            else if (e.key === 'ArrowRight') window.nextSlide(e);
+        };
+        document.addEventListener('keydown', box._keyHandler);
+    }
+    
+    const item = gallery[index];
+    const safeSrc = getSafeImg(item.src);
+    const desc = item.desc;
+    const showArrows = gallery.length > 1;
+    
     box.innerHTML = `
-        <img src="${src}" alt="Detail View" onclick="event.stopPropagation()">
+        <div class="close-minus" style="position: absolute; top: 3.5rem; right: 4rem; color: white; z-index: 1000005;" onclick="window.closeLightbox(event)">–</div>
+        ${showArrows ? '<div class="lightbox-nav lightbox-prev" onclick="prevSlide(event)">&#10094;</div>' : ''}
+        <img src="${safeSrc}" alt="Detail View" onclick="event.stopPropagation()">
         ${desc ? `<div class="lightbox-caption" onclick="event.stopPropagation()">${desc}</div>` : ''}
+        ${showArrows ? '<div class="lightbox-nav lightbox-next" onclick="nextSlide(event)">&#10095;</div>' : ''}
     `;
-    box.onclick = () => {
+    
+    box.onclick = window.closeLightbox;
+    window.currentLightboxIndex = index;
+    
+    if (isNew) {
+        requestAnimationFrame(() => {
+            box.style.opacity = '1';
+        });
+    }
+};
+
+window.closeLightbox = function(event) {
+    if (event) event.stopPropagation();
+    const box = document.getElementById('spread-lightbox');
+    if (box) {
+        if (box._keyHandler) document.removeEventListener('keydown', box._keyHandler);
         box.style.opacity = '0';
         setTimeout(() => box.remove(), 300);
-    };
-    document.body.appendChild(box);
-    requestAnimationFrame(() => {
-        box.style.opacity = '1';
-    });
+    }
+};
+
+window.prevSlide = function(event) {
+    if (event) event.stopPropagation();
+    const gallery = window.currentLightboxGallery;
+    if (!gallery) return;
+    let idx = window.currentLightboxIndex - 1;
+    if (idx < 0) idx = gallery.length - 1;
+    window.openLightbox(idx, event);
+};
+
+window.nextSlide = function(event) {
+    if (event) event.stopPropagation();
+    const gallery = window.currentLightboxGallery;
+    if (!gallery) return;
+    let idx = window.currentLightboxIndex + 1;
+    if (idx >= gallery.length) idx = 0;
+    window.openLightbox(idx, event);
 };
 
 window.openPostitLightbox = function(event) {
@@ -419,10 +544,7 @@ window.openPostitLightbox = function(event) {
         <div class="note-title">${p.metadata.name}</div>
         <div class="note-divider"></div>
         <div class="note-meta-grid">
-            <div>Year</div><div>${p.metadata.year || '2024'}</div>
-            <div>Course</div><div>Studio Alpha</div>
-            <div>Track</div><div>Laurea Magistrale</div>
-            <div>Prof</div><div>${p.metadata.author || 'Dr. Smith'}</div>
+            ${getNoteGridHtml(p)}
         </div>
         <div class="note-divider"></div>
         <div class="note-text-content" style="display: block; -webkit-line-clamp: unset; overflow: visible;">${p.metadata.description || ''}</div>
@@ -540,13 +662,26 @@ function unfoldProject(id) {
     over.id = 'unfold-overlay';
     over.classList.add('glass-overlay');
     
+    window._spreadEscHandler = (e) => {
+        if (e.key === 'Escape') {
+            if (document.getElementById('spread-lightbox')) return; // Let lightbox handle its own Escape
+            document.body.classList.remove('spread-open');
+            filterBar.style.opacity='1';
+            filterBar.style.pointerEvents='auto';
+            const ov = document.getElementById('unfold-overlay');
+            if(ov) ov.remove();
+            document.removeEventListener('keydown', window._spreadEscHandler);
+        }
+    };
+    document.addEventListener('keydown', window._spreadEscHandler);
+    
     // Initialize Spread Loader
     isSpreadLoading = true;
     spreadDataReady = false;
     loadingProgress = 100;
     loadingColorIndex = 0;
     over.innerHTML = `
-        <div class="close-minus" onclick="document.body.classList.remove('spread-open'); filterBar.style.opacity='1'; filterBar.style.pointerEvents='auto'; this.parentElement.remove()">–</div>
+        <div class="close-minus" onclick="document.body.classList.remove('spread-open'); filterBar.style.opacity='1'; filterBar.style.pointerEvents='auto'; this.parentElement.remove(); document.removeEventListener('keydown', window._spreadEscHandler)">–</div>
         
         <div style="position: absolute; top: 8rem; bottom: 4rem; left: 4rem; right: 4rem; display: flex; align-items: center; justify-content: center;">   <div id="spread-loading" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
             <div style="position: relative; width: 22rem; display: inline-block;">
@@ -576,10 +711,7 @@ function unfoldProject(id) {
         <div class="note-title">${p.metadata.name}</div>
         <div class="note-divider"></div>
         <div class="note-meta-grid">
-            <div>Year</div><div>${p.metadata.year || '2024'}</div>
-            <div>Course</div><div>Studio Alpha</div>
-            <div>Track</div><div>Laurea Magistrale</div>
-            <div>Prof</div><div>${p.metadata.author || 'Dr. Smith'}</div>
+            ${getNoteGridHtml(p)}
         </div>
         <div class="note-divider"></div>
         <div class="note-text-content" style="display: block; -webkit-line-clamp: unset; overflow: visible;">${p.metadata.description || ''}</div>
@@ -597,7 +729,9 @@ function unfoldProject(id) {
     (p.images || []).forEach((img, i) => {
         let name = "drawing " + (i+1);
         if(img && img.title) name = img.title;
-        else if (typeof img === 'string') {
+        else if (typeof img === 'string' && img.includes('drive.google.com')) {
+            name = "drawing " + (i+1);
+        } else if (typeof img === 'string') {
             const parts = img.split('/');
             name = parts[parts.length-1].split('.')[0].replace(/[-_]/g, ' ');
         }
@@ -758,6 +892,8 @@ function unfoldProject(id) {
                 let contentHeight = maxY - minY;
                 let html = '';
                 
+                window.currentLightboxGallery = allItems.filter(i => i.type === 'image');
+                
                 allItems.forEach(item => {
                     let left = (item.x - item.targetWidth/2) - minX;
                     let top = (item.y - item.targetHeight/2) - minY;
@@ -774,22 +910,20 @@ function unfoldProject(id) {
                                 <div class="note-title">${item.p.metadata.name}</div>
                                 <div class="note-divider"></div>
                                 <div class="note-meta-grid">
-                                    <div>Year</div><div>${item.p.metadata.year || '2024'}</div>
-                                    <div>Course</div><div>Studio Alpha</div>
-                                    <div>Track</div><div>Laurea Magistrale</div>
-                                    <div>Prof</div><div>${item.p.metadata.author || 'Dr. Smith'}</div>
+                                    ${getNoteGridHtml(item.p)}
                                 </div>
                                 <div class="note-divider"></div>
                                 <div class="note-text-content" style="display: block; -webkit-line-clamp: unset; overflow: visible;">${item.p.metadata.description || ''}</div>
                             </div>
                         </div>`;
                     } else {
+                        const imgIndex = window.currentLightboxGallery.findIndex(g => g.src === item.src);
                         html += `
                         <div style="${style}">
                             <div class="unfold-grid-item" style="width:100%; height:auto;">
-                                <img src="${getSafeImg(item.src)}" alt="${item.name}" onclick="openLightbox('${getSafeImg(item.src)}', '${item.desc.replace(/'/g, "\\'")}', event)" style="position: relative; z-index: 1; width: 100%; max-height:none; height:auto; object-fit: contain; display: block;">
+                                <img src="${getSafeImg(item.src)}" alt="${item.name}" onclick="openLightbox(${imgIndex}, event)" style="position: relative; z-index: 1; width: 100%; max-height:none; height:auto; object-fit: contain; display: block;">
                             </div>
-                            <div style="width: 100%; text-align: center; font-size: 1.2rem; margin-top: 1.5rem; opacity: 0.6; font-weight: bold; text-transform: lowercase; font-family: monospace;">${item.name}</div>
+                            <div style="width: 100%; text-align: center; font-size: 1.2rem; margin-top: 1.5rem; opacity: 0.8; font-weight: bold; text-transform: lowercase; font-family: monospace; color: black; text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(255,255,255,0.8);">${item.name}</div>
                         </div>`;
                     }
                 });
@@ -827,6 +961,12 @@ window.openMagazine = function() {
     const over = document.createElement('div');
     over.id = 'magazine-reader-overlay';
     document.body.appendChild(over);
+    
+    window._magEscHandler = (e) => {
+        if (e.key === 'Escape') window.closeMagazine();
+    };
+    document.addEventListener('keydown', window._magEscHandler);
+    
     updateMagazineView();
 };
 
@@ -839,6 +979,8 @@ window.closeMagazine = function() {
         magAudio = null;
     }
     magAudioState = 'audio';
+    
+    if (window._magEscHandler) document.removeEventListener('keydown', window._magEscHandler);
     
     // Restore filter bar
     filterBar.style.opacity = '1';
