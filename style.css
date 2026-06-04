@@ -52,7 +52,7 @@ body.magazine-open #main-footer { opacity: 0; pointer-events: none; }
 .plus-magazine { color: #B24F44; }
 
 .marquee-wrapper { width: 100%; overflow: hidden; margin-top: 2.5rem; padding: 1rem 0; background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(0.8rem); pointer-events: auto; transition: opacity 0.3s; }
-.marquee-track { display: inline-block; white-space: nowrap; font-size: 1.2rem; font-weight: bold; text-transform: lowercase; animation: scrolling-text 120s linear infinite; }
+.marquee-track { display: inline-block; white-space: nowrap; font-size: 1.2rem; font-weight: bold; animation: scrolling-text 120s linear infinite; }
 .marquee-track span { padding-right: 1rem; }
 @keyframes scrolling-text { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
@@ -315,12 +315,15 @@ body.grid-mode .grid-close-btn { display: block; }
 #calendar-text { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; font-size: 0.9rem; line-height: 1.4; gap: 2.5rem; padding: 2rem 0; max-height: 50vh; }
 .calendar-event-group { width: 100%; display: flex; flex-direction: column; align-items: center; }
 .calendar-event-item { width: 100%; position: relative; display: flex; flex-direction: column; gap: 0.5rem; }
-.cal-row { display: flex; width: 100%; gap: 1.5rem; }
-.cal-date { width: 33.33%; text-align: right; opacity: 0.8; font-size: 1.4em; font-weight: bold; }
-.cal-details { width: 66.66%; text-align: left; }
+.cal-row { display: flex; width: 100%; gap: 1rem; justify-content: flex-start; }
+.cal-date { flex: 0 0 30%; text-align: left; opacity: 0.8; font-size: 1.4em; font-weight: bold; }
+.cal-details { flex: 0 0 65%; text-align: left; word-break: break-word; overflow-wrap: break-word; }
 .cal-details::first-line { font-size: 1.4em; font-weight: bold; }
 .calendar-event-item.has-invite { cursor: pointer; transition: 0.2s; }
 .calendar-event-item.has-invite:hover { opacity: 0.6; }
+.calendar-event-item.is-past .cal-date,
+.calendar-event-item.is-past .cal-details { color: #888; }
+.calendar-event-item.is-past .invite-indicator { color: #888; }
 
 /* FIX: Changed calendar plus indicator to solid black */
 .invite-indicator { color: black; font-weight: bold; font-size: 1em; }
@@ -662,3 +665,26 @@ body.grid-mode .grid-close-btn { display: block; }
     max-width: 100%;
 }
 body.spread-open .title-wrapper { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+
+.lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 3.5rem;
+    color: rgba(0,0,0,0.5);
+    cursor: pointer;
+    user-select: none;
+    padding: 2rem;
+    z-index: 1000001;
+    transition: color 0.2s, transform 0.2s;
+}
+.lightbox-nav:hover {
+    color: rgba(0,0,0,0.9);
+    transform: translateY(-50%) scale(1.1);
+}
+.lightbox-prev {
+    left: 2vw;
+}
+.lightbox-next {
+    right: 2vw;
+}
