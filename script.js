@@ -172,18 +172,24 @@ async function init() {
         isLoaded = true; 
     }
 
-    // Deep linking for Audio Library
+    // Deep linking for Audio Library and Projects
     const urlParams = new URLSearchParams(window.location.search);
     const audioParam = urlParams.get('audio');
+    const projectParam = urlParams.get('project');
+    
     if (audioParam) {
-        // We lift fog immediately if passcode is not there
-        // If there's an audio param, open it right away
         setTimeout(() => {
             if (isLoaded) {
                 openAudioLibrary();
                 playAudioTrack(audioParam);
             }
-        }, 600); // Give dashboard time to render
+        }, 600);
+    } else if (projectParam) {
+        setTimeout(() => {
+            if (isLoaded) {
+                unfoldProject(projectParam);
+            }
+        }, 600);
     }
 }
 
@@ -191,14 +197,96 @@ function generateDynamicTags() {
     let tags = new Set();
     archiveData.forEach(p => p.metadata.tags.forEach(t => tags.add(t.trim().toLowerCase())));
     filterBar.innerHTML = '';
+    
+    // Add Search Button
+    const searchBtn = document.createElement('span');
+    searchBtn.className = 'tag-filter highlight-link';
+    searchBtn.innerText = 'search';
+    searchBtn.onclick = () => openSearchOverlay();
+    filterBar.appendChild(searchBtn);
+
     tags.forEach(tag => {
         const btn = document.createElement('span');
         btn.className = 'tag-filter highlight-link';
         btn.innerText = tag;
-        btn.onclick = () => filterProjects(tag, btn);
+        btn.onclick = () => {
+            const overlay = document.getElementById('search-overlay');
+            if (overlay) {
+                overlay.remove();
+                document.removeEventListener('keydown', window._searchEscHandler);
+                document.body.classList.remove('search-open');
+            }
+            filterProjects(tag, btn);
+        };
         filterBar.appendChild(btn);
     });
 }
+
+window.openSearchOverlay = function() {
+    const over = document.createElement('div');
+    over.id = 'search-overlay';
+    over.classList.add('glass-overlay');
+    over.style.display = 'flex';
+    over.style.flexDirection = 'column';
+    over.style.alignItems = 'center';
+    over.style.justifyContent = 'flex-start';
+    over.style.paddingTop = '20vh';
+    over.style.zIndex = '9999';
+
+    document.body.classList.add('search-open');
+
+    over.innerHTML = `
+        <div class="close-minus" onclick="this.parentElement.remove(); document.removeEventListener('keydown', window._searchEscHandler); document.body.classList.remove('search-open');">–</div>
+        <input type="text" id="project-search-input" placeholder="search archive..." autocomplete="off" spellcheck="false">
+        <div id="search-results-grid"></div>
+    `;
+
+    document.body.appendChild(over);
+
+    window._searchEscHandler = (e) => {
+        if (e.key === 'Escape') {
+            over.remove();
+            document.removeEventListener('keydown', window._searchEscHandler);
+            document.body.classList.remove('search-open');
+        }
+    };
+    document.addEventListener('keydown', window._searchEscHandler);
+
+    const input = document.getElementById('project-search-input');
+    const grid = document.getElementById('search-results-grid');
+    
+    input.focus();
+
+    input.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        grid.innerHTML = '';
+        if (!query) return;
+
+        let matches = archiveData.filter(p => {
+            const name = (p.metadata.name || '').toLowerCase();
+            const desc = (p.metadata.description || '').toLowerCase();
+            return name.includes(query) || desc.includes(query);
+        });
+
+        matches = matches.slice(0, 5);
+
+        matches.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'search-result-card';
+            card.innerHTML = `
+                <img src="${getSafeImg(p.titleImage)}" alt="${p.metadata.name}">
+                <div class="search-result-title">${p.metadata.name}</div>
+            `;
+            card.onclick = () => {
+                over.remove();
+                document.removeEventListener('keydown', window._searchEscHandler);
+                document.body.classList.remove('search-open');
+                unfoldProject(p.id);
+            };
+            grid.appendChild(card);
+        });
+    });
+};
 
 function liftFog() {
     document.body.classList.remove('focus-state');
@@ -740,6 +828,22 @@ function unfoldProject(id) {
         </div>
         <div class="right-col-canvas" id="canvas-container" style="opacity: 0; transition: opacity 0.5s;">
             <div class="spread-canvas-content" id="canvas-content" style="position: relative;"></div>
+            <div style="position: absolute; bottom: 2rem; width: 100%; display: flex; justify-content: center; z-index: 1000000;">
+                <span class="tag-filter highlight-link" style="cursor: pointer; background: #e8e4d9;" onmousedown="event.stopPropagation();" onclick="
+                    const url = window.location.origin + window.location.pathname + '?project=${p.id}';
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(url);
+                    } else {
+                        const temp = document.createElement('input');
+                        temp.value = url;
+                        document.body.appendChild(temp);
+                        temp.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(temp);
+                    }
+                    this.innerText='copied!'; setTimeout(()=>this.innerText='share', 2000);
+                ">share</span>
+            </div>
         </div>
     `;
     document.body.appendChild(over);
@@ -1374,3 +1478,23 @@ window.exitGridMode = function() {
     window.scrollTo(0, 0);
     renderPile(archiveData, false);
 };
+
+window.toggleMenu = function() {
+    const headerCol = document.querySelector('.header-col');
+    if (!headerCol) return;
+    if (headerCol.classList.contains('menu-open')) {
+        headerCol.classList.remove('menu-open');
+    } else {
+        if (!document.body.classList.contains('magazine-open')) {
+            headerCol.classList.add('menu-open');
+        }
+    }
+};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (document.body.classList.contains('grid-mode')) {
+            renderPile(archiveData, false);
+        }
+    }
+});
