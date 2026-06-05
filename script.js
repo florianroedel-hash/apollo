@@ -220,10 +220,54 @@ function renderCalendar(data) {
 
         if (data[0].events && data[0].events.length > 0) {
             let html = '';
+            let now = new Date();
+            now.setHours(0,0,0,0);
+            let nowTime = now.getTime();
+            let lastWasPast = false;
+
             data[0].events.forEach((evt, idx) => {
+                if (evt.isPast && !lastWasPast) {
+                    // Inject separator before the first past event
+                    html += `
+                    <div class="calendar-event-group calendar-separator" style="margin: 2rem 0;">
+                        <div class="cal-row">
+                            <div class="cal-date"></div>
+                            <div class="cal-details separator-details" style="display: flex; align-items: center; justify-content: center; opacity: 0.8; gap: 1rem; width: 100%;">
+                                <div style="flex-grow: 1; border-top: 1px dashed black;"></div>
+                                <div style="font-size: 0.8em; letter-spacing: 0.5px;">DISCOVER PAST EVENTS</div>
+                                <div style="flex-grow: 1; border-top: 1px dashed black;"></div>
+                            </div>
+                        </div>
+                    </div>`;
+                    lastWasPast = true;
+                }
+
                 let lines = evt.text.split('<br>');
                 let dateHtml = lines.shift() || ''; 
-                let detailsHtml = lines.join('<br>') || ''; 
+                
+                // Details: First line is normal, remaining lines are wrapped in smaller font
+                let detailsHtml = '';
+                if (lines.length > 0) {
+                    detailsHtml = lines.shift();
+                    if (lines.length > 0) {
+                        detailsHtml += `<br><div style="font-size: 0.9em; margin-top: 0.2rem;">${lines.join('<br>')}</div>`;
+                    }
+                }
+
+                let idAttr = '';
+                if (evt.timestamp) {
+                    let daysDiff = Math.ceil((evt.timestamp - nowTime) / (1000*60*60*24));
+                    let countdownHtml = '';
+                    if (daysDiff === 0) {
+                        countdownHtml = `<div style="font-size: 0.6em; margin-top: 0.3rem;">today!</div>`;
+                        idAttr = `id="today-event"`;
+                    } else if (daysDiff > 0) {
+                        countdownHtml = `<div style="font-size: 0.6em; margin-top: 0.3rem;">in ${daysDiff} days</div>`;
+                    }
+                    if (countdownHtml) {
+                        dateHtml = `<div style="display: inline-block; text-align: right;">${dateHtml}${countdownHtml}</div>`;
+                    }
+                }
 
                 let interactiveClass = '';
                 let clickAction = '';
@@ -263,8 +307,6 @@ function renderCalendar(data) {
                     ` : ''}</div>`;
                 }
 
-                let idAttr = (evt.isNextUpcoming) ? `id="next-upcoming-event"` : '';
-
                 html += `
                 <div class="calendar-event-group">
                     <div class="calendar-event-item ${interactiveClass}" ${clickAction} ${idAttr}>
@@ -281,11 +323,11 @@ function renderCalendar(data) {
             });
             calTxt.innerHTML = html;
             
-            // Scroll closest upcoming event to center
+            // Scroll today's event to center
             setTimeout(() => {
-                const nextEvent = document.getElementById('next-upcoming-event');
-                if (nextEvent) {
-                    nextEvent.scrollIntoView({ block: 'center' });
+                const todayEvent = document.getElementById('today-event');
+                if (todayEvent) {
+                    todayEvent.scrollIntoView({ block: 'center' });
                 }
             }, 100);
         }
@@ -302,13 +344,7 @@ function renderCalendar(data) {
 window.unfoldCalendarEvent = function(idx) {
     const evt = calendarData[0].events[idx];
     if (!evt || !evt.spreadData) return;
-    
-    // Inject the calendar spread payload into archiveData so the physics engine can render it
-    const p = evt.spreadData;
-    if (!archiveData.find(x => x.id === p.id)) {
-        archiveData.push(p);
-    }
-    unfoldProject(p.id);
+    unfoldProject(evt.spreadData.id);
 };
 
 function renderMagazineCover(data) {
@@ -444,8 +480,10 @@ function shuffleToBack(w) {
     w.style.transform = 'translate(60%, -20%) rotate(20deg)';
     w.style.opacity = '0';
     setTimeout(() => {
-        pile.prepend(w);
-        Array.from(pile.querySelectorAll('.card-wrapper')).forEach((el, idx) => el.style.zIndex = idx);
+        pile.append(w);
+        let cards = Array.from(pile.querySelectorAll('.card-wrapper'));
+        let len = cards.length;
+        cards.forEach((el, idx) => el.style.zIndex = len - idx);
         w.style.opacity = '1';
         w.style.transform = `rotate(${Math.random() * 6 - 3}deg)`;
         w.style.pointerEvents = 'auto';
@@ -654,7 +692,18 @@ function initSpreadCanvas(containerId, contentId, contentWidth, contentHeight) {
 }
 
 function unfoldProject(id) {
-    const p = archiveData.find(proj => proj.id === id);
+    let p = archiveData.find(proj => proj.id === id);
+    if (!p) {
+        // Fallback to searching calendar data
+        for (let i = 0; i < calendarData[0].events.length; i++) {
+            if (calendarData[0].events[i].spreadData && calendarData[0].events[i].spreadData.id === id) {
+                p = calendarData[0].events[i].spreadData;
+                break;
+            }
+        }
+    }
+    if (!p) return;
+
     document.body.classList.add('spread-open');
     filterBar.style.opacity = '0';
     filterBar.style.pointerEvents = 'none';
@@ -814,12 +863,17 @@ function unfoldProject(id) {
             item.vy = 0; 
         });
 
+        // Calculate dynamic gravity based on project size
+        // Normal gravity is 0.003. For projects over 10 items, gravity weakens linearly
+        // so massive projects don't crush their centers.
+        let gravity = 0.003 * Math.min(1, 10 / allItems.length);
+
         // 4. Force-Directed Simulation (Relaxation Loop)
         for (let step = 0; step < 150; step++) {
             // Center attraction
             allItems.forEach(item => {
-                item.vx -= item.x * 0.003;
-                item.vy -= item.y * 0.003;
+                item.vx -= item.x * gravity;
+                item.vy -= item.y * gravity;
             });
             
             // Repulsion
