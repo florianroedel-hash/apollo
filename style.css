@@ -312,18 +312,17 @@ body.grid-mode .grid-close-btn { display: block; }
 
 #calendar-column { display: flex; flex-direction: column; justify-content: center; }
 #calendar-text::-webkit-scrollbar { display: none; }
-#calendar-text { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; font-size: 0.9rem; line-height: 1.4; gap: 2.5rem; padding: 2rem 0; max-height: 50vh; }
-.calendar-event-group { width: 100%; display: flex; flex-direction: column; align-items: center; }
+#calendar-text { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; font-size: 0.9rem; line-height: 1.4; gap: 2.5rem; padding: 2rem 0; max-height: 50vh; scroll-snap-type: y mandatory; }
+.calendar-event-group { width: 100%; display: flex; flex-direction: column; align-items: center; scroll-snap-align: center; }
 .calendar-event-item { width: 100%; position: relative; display: flex; flex-direction: column; gap: 0.5rem; }
 .cal-row { display: flex; width: 100%; gap: 1rem; justify-content: flex-start; }
-.cal-date { flex: 0 0 30%; text-align: left; opacity: 0.8; font-size: 1.4em; font-weight: bold; }
-.cal-details { flex: 0 0 65%; text-align: left; word-break: break-word; overflow-wrap: break-word; }
+.cal-date { flex: 0 0 35%; text-align: left; font-size: 1.4em; font-weight: normal; padding-left: 3ch; box-sizing: border-box; }
+#today-event .cal-date { font-weight: bold; padding-left: 0; }
+.cal-details { flex: 0 0 60%; text-align: left; word-break: break-word; overflow-wrap: break-word; box-sizing: border-box; }
 .cal-details::first-line { font-size: 1.4em; font-weight: bold; }
 .calendar-event-item.has-invite { cursor: pointer; transition: 0.2s; }
 .calendar-event-item.has-invite:hover { opacity: 0.6; }
-.calendar-event-item.is-past .cal-date,
-.calendar-event-item.is-past .cal-details { color: #888; }
-.calendar-event-item.is-past .invite-indicator { color: #888; }
+.calendar-event-item.is-past .invite-indicator { opacity: 0.8; }
 
 /* FIX: Changed calendar plus indicator to solid black */
 .invite-indicator { color: black; font-weight: bold; font-size: 1em; }
