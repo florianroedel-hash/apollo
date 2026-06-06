@@ -20,28 +20,33 @@ function getHDImageUrl(url) {
 
 window.copyProjectUrl = function(id, btn) {
     const url = window.location.origin + window.location.pathname + '?project=' + id;
-    const fallbackCopy = () => {
-        const temp = document.createElement('textarea');
-        temp.value = url;
-        temp.style.position = 'fixed';
-        temp.style.opacity = '0';
-        document.body.appendChild(temp);
-        temp.focus();
-        temp.select();
-        try { document.execCommand('copy'); } catch(e) {}
-        document.body.removeChild(temp);
-        btn.innerText = 'copied!';
-        setTimeout(() => btn.innerText = 'share', 2000);
-    };
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url).then(() => {
-            btn.innerText = 'copied!';
-            setTimeout(() => btn.innerText = 'share', 2000);
-        }).catch(() => fallbackCopy());
-    } else {
-        fallbackCopy();
+    
+    const el = document.createElement('textarea');
+    el.value = url;
+    el.setAttribute('readonly', '');
+    el.style.position = 'absolute';
+    el.style.left = '-9999px';
+    document.body.appendChild(el);
+    
+    el.select();
+    el.setSelectionRange(0, 99999);
+    
+    let success = false;
+    try {
+        success = document.execCommand('copy');
+    } catch(err) {
+        success = false;
     }
+    
+    document.body.removeChild(el);
+    
+    if (success) {
+        btn.innerText = 'copied!';
+    } else {
+        btn.innerText = 'failed';
+        prompt("Automatic copy blocked by browser. You can manually copy the link here:", url);
+    }
+    setTimeout(() => { btn.innerText = 'share'; }, 2000);
 };
 
 function getNoteGridHtml(p) {
@@ -304,9 +309,9 @@ window.openSearchOverlay = function() {
                 <div class="search-result-title">${p.metadata.name}</div>
             `;
             card.onclick = () => {
-                over.remove();
                 document.removeEventListener('keydown', window._searchEscHandler);
                 document.body.classList.remove('search-open');
+                window.cameFromSearch = true;
                 unfoldProject(p.id);
             };
             grid.appendChild(card);
@@ -806,6 +811,7 @@ function initSpreadCanvas(containerId, contentId, contentWidth, contentHeight) {
 }
 
 function unfoldProject(id) {
+    window.history.pushState({ projectId: id }, '', '?project=' + id);
     let p = archiveData.find(proj => proj.id === id);
     if (!p) {
         // Fallback to searching calendar data
@@ -834,6 +840,12 @@ function unfoldProject(id) {
             const ov = document.getElementById('unfold-overlay');
             if(ov) ov.remove();
             document.removeEventListener('keydown', window._spreadEscHandler);
+            window.history.pushState({}, '', window.location.pathname);
+            if (window.cameFromSearch) {
+                window.cameFromSearch = false;
+                document.body.classList.add('search-open');
+                document.addEventListener('keydown', window._searchEscHandler);
+            }
         }
     };
     document.addEventListener('keydown', window._spreadEscHandler);
@@ -844,19 +856,21 @@ function unfoldProject(id) {
     loadingProgress = 100;
     loadingColorIndex = 0;
     over.innerHTML = `
-        <div class="close-minus" onclick="document.body.classList.remove('spread-open'); filterBar.style.opacity='1'; filterBar.style.pointerEvents='auto'; this.parentElement.remove(); document.removeEventListener('keydown', window._spreadEscHandler)">–</div>
+        <div class="close-minus" onclick="document.body.classList.remove('spread-open'); filterBar.style.opacity='1'; filterBar.style.pointerEvents='auto'; this.parentElement.remove(); document.removeEventListener('keydown', window._spreadEscHandler); window.history.pushState({}, '', window.location.pathname); if(window.cameFromSearch){ window.cameFromSearch=false; document.body.classList.add('search-open'); document.addEventListener('keydown', window._searchEscHandler); }">–</div>
         
-        <div style="position: absolute; top: 8rem; bottom: 4rem; left: 4rem; right: 4rem; display: flex; align-items: center; justify-content: center;">   <div id="spread-loading" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
-            <div style="position: relative; width: 22rem; display: inline-block;">
-                <img src="apollologonextended.png" style="width: 100%; display: block; filter: brightness(0) invert(1) drop-shadow(-1px -1px 2px rgba(0,0,0,0.5)); opacity: 0.9;" alt="Loading Base">
-                <div class="loading-fill-layer" style="position: absolute; inset: 0; background-color: #B24F44; -webkit-mask-image: url('apollologonextended.png'); -webkit-mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; clip-path: inset(0 100% 0 0);"></div>
+        <div style="position: absolute; top: 8rem; bottom: 4rem; left: 4rem; right: 4rem; display: flex; align-items: center; justify-content: center; pointer-events: none;">
+            <div id="spread-loading" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
+                <div style="position: relative; width: 22rem; display: inline-block;">
+                    <img src="apollologonextended.png" style="width: 100%; display: block; filter: brightness(0) invert(1) drop-shadow(-1px -1px 2px rgba(0,0,0,0.5)); opacity: 0.9;" alt="Loading Base">
+                    <div class="loading-fill-layer" style="position: absolute; inset: 0; background-color: #B24F44; -webkit-mask-image: url('apollologonextended.png'); -webkit-mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; clip-path: inset(0 100% 0 0);"></div>
+                </div>
             </div>
         </div>
         <div class="right-col-canvas" id="canvas-container" style="opacity: 0; transition: opacity 0.5s;">
             <div class="spread-canvas-content" id="canvas-content" style="position: relative;"></div>
-            <div style="position: absolute; bottom: 2rem; width: 100%; display: flex; justify-content: center; z-index: 1000000;">
-                <span class="tag-filter highlight-link" style="cursor: pointer; background: #e8e4d9;" onmousedown="event.stopPropagation();" ontouchstart="event.stopPropagation();" onclick="window.copyProjectUrl('${p.id}', this)">share</span>
-            </div>
+        </div>
+        <div style="position: absolute; bottom: 2rem; width: 100%; display: flex; justify-content: center; z-index: 1000000; pointer-events: none;">
+            <button class="tag-filter highlight-link" style="cursor: pointer; background: #e8e4d9; pointer-events: auto; border: none; font-family: inherit; font-size: inherit; color: inherit; padding: 0.3rem 0.6rem; text-transform: lowercase;" onclick="window.copyProjectUrl('${p.id}', this)">share</button>
         </div>
     `;
     document.body.appendChild(over);
@@ -1492,17 +1506,7 @@ window.exitGridMode = function() {
     renderPile(archiveData, false);
 };
 
-window.toggleMenu = function() {
-    const headerCol = document.querySelector('.header-col');
-    if (!headerCol) return;
-    if (headerCol.classList.contains('menu-open')) {
-        headerCol.classList.remove('menu-open');
-    } else {
-        if (!document.body.classList.contains('magazine-open')) {
-            headerCol.classList.add('menu-open');
-        }
-    }
-};
+
 
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
