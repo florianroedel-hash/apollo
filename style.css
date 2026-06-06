@@ -338,7 +338,7 @@ body.grid-mode .grid-close-btn { display: block; }
 /* SEARCH OVERLAY STYLES */
 #project-search-input { width: 60%; max-width: 800px; font-size: 4.6rem; font-weight: bold; font-family: inherit; color: inherit; text-transform: uppercase; border: none; outline: none; background: transparent; text-align: center; border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 1rem; margin-bottom: 4rem; }
 #project-search-input::placeholder { color: rgba(0,0,0,0.2); }
-#search-results-grid { display: flex; flex-wrap: wrap; gap: 3rem; justify-content: center; width: 90%; max-width: 1200px; overflow-y: auto; padding-bottom: 5rem; }
+#search-results-grid { position: absolute; top: calc(50% + 5rem); left: 50%; transform: translateX(-50%); display: flex; flex-wrap: wrap; gap: 3rem; justify-content: center; width: 90%; max-width: 1200px; overflow-y: visible; padding-bottom: 5rem; }
 .search-result-card { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.3s; width: 200px; }
 .search-result-card:hover { transform: scale(1.05); }
 .search-result-card img { width: 100%; height: 260px; object-fit: cover; filter: drop-shadow(0 0.5rem 1rem rgba(0,0,0,0.1)); margin-bottom: 1rem; border-radius: 2px; }
