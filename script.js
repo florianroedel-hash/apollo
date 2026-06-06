@@ -18,6 +18,32 @@ function getHDImageUrl(url) {
     return id ? `https://drive.google.com/uc?export=view&id=${id[1]}` : url;
 }
 
+window.copyProjectUrl = function(id, btn) {
+    const url = window.location.origin + window.location.pathname + '?project=' + id;
+    const fallbackCopy = () => {
+        const temp = document.createElement('textarea');
+        temp.value = url;
+        temp.style.position = 'fixed';
+        temp.style.opacity = '0';
+        document.body.appendChild(temp);
+        temp.focus();
+        temp.select();
+        try { document.execCommand('copy'); } catch(e) {}
+        document.body.removeChild(temp);
+        btn.innerText = 'copied!';
+        setTimeout(() => btn.innerText = 'share', 2000);
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => {
+            btn.innerText = 'copied!';
+            setTimeout(() => btn.innerText = 'share', 2000);
+        }).catch(() => fallbackCopy());
+    } else {
+        fallbackCopy();
+    }
+};
+
 function getNoteGridHtml(p) {
     const isEvent = p.metadata && p.metadata.tags && p.metadata.tags.includes('Event');
     
@@ -229,8 +255,8 @@ window.openSearchOverlay = function() {
     over.style.display = 'flex';
     over.style.flexDirection = 'column';
     over.style.alignItems = 'center';
-    over.style.justifyContent = 'flex-start';
-    over.style.paddingTop = '20vh';
+    over.style.justifyContent = 'center';
+    over.style.paddingTop = '0';
     over.style.zIndex = '9999';
 
     document.body.classList.add('search-open');
@@ -829,20 +855,7 @@ function unfoldProject(id) {
         <div class="right-col-canvas" id="canvas-container" style="opacity: 0; transition: opacity 0.5s;">
             <div class="spread-canvas-content" id="canvas-content" style="position: relative;"></div>
             <div style="position: absolute; bottom: 2rem; width: 100%; display: flex; justify-content: center; z-index: 1000000;">
-                <span class="tag-filter highlight-link" style="cursor: pointer; background: #e8e4d9;" onmousedown="event.stopPropagation();" onclick="
-                    const url = window.location.origin + window.location.pathname + '?project=${p.id}';
-                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                        navigator.clipboard.writeText(url);
-                    } else {
-                        const temp = document.createElement('input');
-                        temp.value = url;
-                        document.body.appendChild(temp);
-                        temp.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(temp);
-                    }
-                    this.innerText='copied!'; setTimeout(()=>this.innerText='share', 2000);
-                ">share</span>
+                <span class="tag-filter highlight-link" style="cursor: pointer; background: #e8e4d9;" onmousedown="event.stopPropagation();" ontouchstart="event.stopPropagation();" onclick="window.copyProjectUrl('${p.id}', this)">share</span>
             </div>
         </div>
     `;
