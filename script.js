@@ -194,14 +194,18 @@ async function init() {
         magazineData = masterData.magazine || [];
         historyData = masterData.history || [];
         audioData = masterData.audio || [];
-        
-        generateDynamicTags();
-        isLoaded = true;
-        if (!document.getElementById('passcode-overlay')) liftFog();
     } catch (e) {
         console.error("Master API Error:", e);
-        isLoaded = true; 
     }
+
+    // Always attempt to generate tags and lift fog to prevent loading screen freeze
+    try {
+        generateDynamicTags();
+    } catch (err) {
+        console.error("Error generating tags:", err);
+    }
+    isLoaded = true;
+    if (!document.getElementById('passcode-overlay')) liftFog();
 
     // Deep linking for Audio Library and Projects
     const urlParams = new URLSearchParams(window.location.search);
@@ -226,19 +230,60 @@ async function init() {
 
 function generateDynamicTags() {
     let tags = new Set();
-    archiveData.forEach(p => p.metadata.tags.forEach(t => tags.add(t.trim().toLowerCase())));
+    if (Array.isArray(archiveData)) {
+        archiveData.forEach(p => {
+            if (p && p.metadata && Array.isArray(p.metadata.tags)) {
+                p.metadata.tags.forEach(t => {
+                    if (t) tags.add(t.trim().toLowerCase());
+                });
+            }
+        });
+    }
     filterBar.innerHTML = '';
     
     // Add Search Button
     const searchBtn = document.createElement('span');
+    searchBtn.id = 'filter-bar-search-btn';
     searchBtn.className = 'tag-filter highlight-link';
     searchBtn.innerText = 'search';
     searchBtn.onclick = () => openSearchOverlay();
     filterBar.appendChild(searchBtn);
 
+    // Add All Button (Returns to chaotic stack)
+    const allBtn = document.createElement('span');
+    allBtn.id = 'filter-bar-all-btn';
+    allBtn.className = 'tag-filter highlight-link';
+    allBtn.innerText = 'all';
+    allBtn.onclick = () => {
+        exitGridMode();
+        if (window.innerWidth <= 900) {
+            const centerLine = filterBar.getBoundingClientRect().width / 2;
+            const rect = allBtn.getBoundingClientRect();
+            const btnCenter = rect.left - filterBar.getBoundingClientRect().left + rect.width / 2;
+            filterBar.scrollBy({ left: btnCenter - centerLine, behavior: 'smooth' });
+        }
+    };
+    filterBar.appendChild(allBtn);
+
+    // Add Filters Button (Mobile trigger, desktop hover target)
+    const filtersBtn = document.createElement('span');
+    filtersBtn.id = 'filter-bar-filters-btn';
+    filtersBtn.className = 'tag-filter highlight-link filters-toggle-btn';
+    filtersBtn.innerText = 'filters';
+    filtersBtn.onclick = () => {
+        if (window.innerWidth <= 900) {
+            const centerLine = filterBar.getBoundingClientRect().width / 2;
+            const rect = filtersBtn.getBoundingClientRect();
+            const btnCenter = rect.left - filterBar.getBoundingClientRect().left + rect.width / 2;
+            filterBar.scrollBy({ left: btnCenter - centerLine, behavior: 'smooth' });
+        }
+    };
+    filterBar.appendChild(filtersBtn);
+
+    // Add Dynamic Tags
     tags.forEach(tag => {
         const btn = document.createElement('span');
-        btn.className = 'tag-filter highlight-link';
+        btn.className = 'tag-filter highlight-link dynamic-tag-item';
         btn.innerText = tag;
         btn.onclick = () => {
             const overlay = document.getElementById('search-overlay');
@@ -248,9 +293,56 @@ function generateDynamicTags() {
                 document.body.classList.remove('search-open');
             }
             filterProjects(tag, btn);
+            if (window.innerWidth <= 900) {
+                const centerLine = filterBar.getBoundingClientRect().width / 2;
+                const rect = btn.getBoundingClientRect();
+                const btnCenter = rect.left - filterBar.getBoundingClientRect().left + rect.width / 2;
+                filterBar.scrollBy({ left: btnCenter - centerLine, behavior: 'smooth' });
+            }
         };
         filterBar.appendChild(btn);
     });
+
+    // Initialize state & Bind hover listeners
+    if (window.innerWidth <= 900) {
+        filterBar.classList.add('tags-collapsed');
+        filterBar.classList.remove('tags-expanded');
+    } else {
+        let hoverTimeout = null;
+        
+        filtersBtn.addEventListener('mouseenter', () => {
+            clearTimeout(hoverTimeout);
+            filterBar.classList.add('hover-expanded');
+        });
+        
+        filterBar.addEventListener('mouseenter', () => {
+            clearTimeout(hoverTimeout);
+        });
+        
+        filterBar.addEventListener('mouseleave', () => {
+            clearTimeout(hoverTimeout);
+            hoverTimeout = setTimeout(() => {
+                filterBar.classList.remove('hover-expanded');
+            }, 300);
+        });
+    }
+
+    // Auto-scroll to "all" on load if on mobile
+    if (window.innerWidth <= 900) {
+        setTimeout(() => {
+            try {
+                if (filterBar && allBtn) {
+                    const centerLine = filterBar.getBoundingClientRect().width / 2;
+                    const allRect = allBtn.getBoundingClientRect();
+                    const allCenter = allRect.left - filterBar.getBoundingClientRect().left + allRect.width / 2;
+                    filterBar.scrollBy({ left: allCenter - centerLine, behavior: 'instant' });
+                    filterBar.dispatchEvent(new Event('scroll'));
+                }
+            } catch (e) {
+                console.error('Auto-scroll failed', e);
+            }
+        }, 50);
+    }
 }
 
 window.openSearchOverlay = function() {
@@ -262,12 +354,11 @@ window.openSearchOverlay = function() {
     over.style.alignItems = 'center';
     over.style.justifyContent = 'center';
     over.style.paddingTop = '0';
-    over.style.zIndex = '9999';
+    over.style.zIndex = '100004';
 
     document.body.classList.add('search-open');
 
     over.innerHTML = `
-        <div class="close-minus" onclick="this.parentElement.remove(); document.removeEventListener('keydown', window._searchEscHandler); document.body.classList.remove('search-open');">–</div>
         <input type="text" id="project-search-input" placeholder="search archive..." autocomplete="off" spellcheck="false">
         <div id="search-results-grid"></div>
     `;
@@ -496,8 +587,18 @@ function sizeCard(img, card, isGrid) {
     const targetArea = isGrid ? 500 : 1455;
     const randomScale = isGrid ? (0.95 + Math.random() * 0.05) : 1.0;
 
-    const hRem = Math.sqrt(targetArea / R) * randomScale;
-    const wRem = Math.sqrt(targetArea * R) * randomScale;
+    let hRem = Math.sqrt(targetArea / R) * randomScale;
+    let wRem = Math.sqrt(targetArea * R) * randomScale;
+
+    // Cap horizontal width on mobile so it doesn't overflow wildly
+    if (window.innerWidth <= 900) {
+        const maxMobileWidthRem = (window.innerWidth / getRemPx()) * 1.35; // Allow minor overflow due to scaling
+        if (wRem > maxMobileWidthRem) {
+            const scaleDown = maxMobileWidthRem / wRem;
+            wRem *= scaleDown;
+            hRem *= scaleDown;
+        }
+    }
 
     img.style.width = `${wRem}rem`;
     img.style.height = `${hRem}rem`;
@@ -561,7 +662,7 @@ function createCard(p, isGrid) {
     card.className = 'paper-card';
     
     let note = p.metadata.description ? `
-        <div class="bookmark-note" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
+        <div class="bookmark-note" onclick="handleMobileTap(event, '${p.id}', this.closest('.card-wrapper'))">
             <img src="logo.png" class="stamp-logo">
             <div class="note-ref-code">[ REF: ARC-${p.id.substring(0,6).toUpperCase()} ]</div>
             <div class="note-divider"></div>
@@ -578,7 +679,7 @@ function createCard(p, isGrid) {
         <div class="paper-card-bg"></div>
         <div class="card-inner-frame"></div>
         ${note}
-        <div class="belly-band" onclick="event.stopPropagation(); unfoldProject('${p.id}')">
+        <div class="belly-band" onclick="handleMobileTap(event, '${p.id}', this.closest('.card-wrapper'))">
             <div class="belly-seam"></div>
             <div class="belly-tape" style="background-color: #e8e4d9"></div>
         </div>`;
@@ -610,13 +711,21 @@ function shuffleToBack(w) {
 }
 
 function filterProjects(tag, btn) {
+    window._blockTagDialActions = true;
+    setTimeout(() => { window._blockTagDialActions = false; }, 500); // Auto-unlock tag dial actions after reflow
     const over = document.getElementById('unfold-overlay');
     if (over) { document.body.classList.remove('spread-open'); over.remove(); }
     document.querySelectorAll('.tag-filter').forEach(b => b.classList.remove('active-tag'));
     btn.classList.add('active-tag');
+    
+    // Force scroll to top immediately and after DOM/layout updates settle
     window.scrollTo(0, 0);
+    setTimeout(() => window.scrollTo(0, 0), 50);
+    setTimeout(() => window.scrollTo(0, 0), 150);
+    
     renderPile(tag === 'All' ? archiveData : archiveData.filter(p => p.metadata.tags.some(t => t.toLowerCase() === tag.toLowerCase())), tag !== 'All');
 }
+
 
 window.openLightbox = function(index, event) {
     if (event) event.stopPropagation();
@@ -644,7 +753,7 @@ window.openLightbox = function(index, event) {
     const showArrows = gallery.length > 1;
     
     box.innerHTML = `
-        <div class="close-minus" style="position: absolute; top: 3.5rem; right: 4rem; color: white; z-index: 1000005;" onclick="window.closeLightbox(event)">–</div>
+        <div class="close-minus" style="position: absolute; top: 3.5rem; right: 4rem; color: white; z-index: 1000005;" onclick="window.closeLightbox(event)" ontouchstart="window.closeLightbox(event)">–</div>
         ${showArrows ? '<div class="lightbox-nav lightbox-prev" onclick="prevSlide(event)">&#10094;</div>' : ''}
         <img src="${safeSrc}" alt="Detail View" onclick="event.stopPropagation()">
         ${desc ? `<div class="lightbox-caption" onclick="event.stopPropagation()">${desc}</div>` : ''}
@@ -850,13 +959,31 @@ function unfoldProject(id) {
     };
     document.addEventListener('keydown', window._spreadEscHandler);
     
+    window.closeMobileSpread = function(btn) {
+        document.body.classList.remove('spread-open');
+        const fb = document.getElementById('filter-bar');
+        if(fb){ fb.style.opacity='1'; fb.style.pointerEvents='auto'; }
+        
+        // Find the overlay wrapper and remove it
+        let overlay = btn.closest('#unfold-overlay') || btn.parentElement;
+        if(overlay) overlay.remove();
+        
+        document.removeEventListener('keydown', window._spreadEscHandler);
+        window.history.pushState({}, '', window.location.pathname);
+        if(window.cameFromSearch){ 
+            window.cameFromSearch=false; 
+            document.body.classList.add('search-open'); 
+            document.addEventListener('keydown', window._searchEscHandler); 
+        }
+    };
+
     // Initialize Spread Loader
     isSpreadLoading = true;
     spreadDataReady = false;
     loadingProgress = 100;
     loadingColorIndex = 0;
     over.innerHTML = `
-        <div class="close-minus" onclick="document.body.classList.remove('spread-open'); filterBar.style.opacity='1'; filterBar.style.pointerEvents='auto'; this.parentElement.remove(); document.removeEventListener('keydown', window._spreadEscHandler); window.history.pushState({}, '', window.location.pathname); if(window.cameFromSearch){ window.cameFromSearch=false; document.body.classList.add('search-open'); document.addEventListener('keydown', window._searchEscHandler); }">–</div>
+        <div class="close-minus" onclick="if(window.closeMobileSpread) window.closeMobileSpread(this); else { document.body.classList.remove('spread-open'); const fb = document.getElementById('filter-bar'); if(fb){ fb.style.opacity='1'; fb.style.pointerEvents='auto'; } this.parentElement.remove(); document.removeEventListener('keydown', window._spreadEscHandler); window.history.pushState({}, '', window.location.pathname); if(window.cameFromSearch){ window.cameFromSearch=false; document.body.classList.add('search-open'); document.addEventListener('keydown', window._searchEscHandler); } }" ontouchstart="if(window.closeMobileSpread) window.closeMobileSpread(this); else { document.body.classList.remove('spread-open'); const fb = document.getElementById('filter-bar'); if(fb){ fb.style.opacity='1'; fb.style.pointerEvents='auto'; } this.parentElement.remove(); document.removeEventListener('keydown', window._spreadEscHandler); window.history.pushState({}, '', window.location.pathname); if(window.cameFromSearch){ window.cameFromSearch=false; document.body.classList.add('search-open'); document.addEventListener('keydown', window._searchEscHandler); } }">–</div>
         
         <div style="position: absolute; top: 8rem; bottom: 4rem; left: 4rem; right: 4rem; display: flex; align-items: center; justify-content: center; pointer-events: none;">
             <div id="spread-loading" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
@@ -869,9 +996,7 @@ function unfoldProject(id) {
         <div class="right-col-canvas" id="canvas-container" style="opacity: 0; transition: opacity 0.5s;">
             <div class="spread-canvas-content" id="canvas-content" style="position: relative;"></div>
         </div>
-        <div style="position: absolute; bottom: 2rem; width: 100%; display: flex; justify-content: center; z-index: 1000000; pointer-events: none;">
-            <button class="tag-filter highlight-link" style="cursor: pointer; background: #e8e4d9; pointer-events: auto; border: none; font-family: inherit; font-size: inherit; color: inherit; padding: 0.3rem 0.6rem; text-transform: lowercase;" onclick="window.copyProjectUrl('${p.id}', this)">share</button>
-        </div>
+        <!-- SHARE BUTTON COMPLETELY REMOVED -->
     `;
     document.body.appendChild(over);
 
@@ -904,7 +1029,7 @@ function unfoldProject(id) {
     // Collect all items
     const allItems = [
         { type: 'postit', p: p },
-        { type: 'image', src: p.titleImage, name: "cover drawing", desc: p.metadata.description || '' }
+        { type: 'image', src: p.titleImage, name: "cover drawing", desc: 'cover drawing' }
     ];
     (p.images || []).forEach((img, i) => {
         let name = "drawing " + (i+1);
@@ -940,7 +1065,7 @@ function unfoldProject(id) {
         const medianArea = areas[Math.floor(areas.length / 2)] || 100000;
         
         normalItems.forEach(item => {
-            let targetArea = medianArea;
+            let targetArea = medianArea * 0.55; // Shrink drawings significantly to give them more room to breathe
             const ar = item.width / item.height;
             const initialScale = Math.sqrt(medianArea / (item.width * item.height));
             
@@ -1079,52 +1204,113 @@ function unfoldProject(id) {
                 
                 window.currentLightboxGallery = allItems.filter(i => i.type === 'image');
                 
-                allItems.forEach(item => {
-                    let left = (item.x - item.targetWidth/2) - minX;
-                    let top = (item.y - item.targetHeight/2) - minY;
-                    let style = `position: absolute; left: ${left}px; top: ${top}px; width: ${item.targetWidth}px; height: ${item.targetHeight}px; transform: rotate(${item.rotation}deg); display: flex; flex-direction: column; align-items: center;`;
+                if (window.innerWidth <= 900) {
+                    const postitItem = allItems.find(i => i.type === 'postit');
+                    const imageItems = window.currentLightboxGallery;
+
+                    html += '<div class="mobile-project-layout" style="display: flex; flex-direction: column; width: 100vw; height: 100vh; overflow: hidden;">';
                     
-                    if (item.type === 'postit') {
-                        window.currentPostitData = item.p;
+                    // Add a mobile-specific close minus button that is guaranteed to be on top of the layout!
+                    html += '<div class="close-minus" style="position: absolute; top: 3.5rem; right: 4rem; z-index: 1000000; color: black;" onclick="window.closeMobileSpread(this)" ontouchstart="window.closeMobileSpread(this)">–</div>';
+
+                    // Top Gallery (Swipeable)
+                    html += '<div class="mobile-swipe-gallery" style="flex: 1; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; align-items: center; padding-top: 10rem;">';
+                    imageItems.forEach((item, idx) => {
+                        const isWide = item.width > item.height * 1.2;
+                        const widthStyle = isWide ? 'width: 150vw;' : 'width: 100vw;';
                         html += `
-                        <div style="${style}">
-                            <div class="bookmark-note spread-note" style="position: absolute !important; bottom: 0 !important; margin:0; width:272px; min-width:unset; transform: scale(${item.scaleFactor}); transform-origin: bottom center; cursor: pointer; transition: transform 0.2s;" onclick="openPostitLightbox(event)">
-                                <img src="logo.png" class="stamp-logo">
-                                <div class="note-ref-code">[ REF: ARC-${item.p.id.substring(0,6).toUpperCase()} ]</div>
-                                <div class="note-divider"></div>
-                                <div class="note-title">${item.p.metadata.name}</div>
-                                <div class="note-divider"></div>
-                                <div class="note-meta-grid">
-                                    ${getNoteGridHtml(item.p)}
-                                </div>
-                                <div class="note-divider"></div>
-                                <div class="note-text-content" style="display: block; -webkit-line-clamp: unset; overflow: visible;">${item.p.metadata.description || ''}</div>
+                        <div class="mobile-gallery-box" style="flex-shrink: 0; scroll-snap-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; ${widthStyle}">
+                            <div class="mobile-img-container" style="width: 100%; height: 50%; ${isWide ? 'overflow-x: auto; overflow-y: hidden;' : ''} display: flex; align-items: center; justify-content: center;">
+                                <img src="${getSafeImg(item.src)}" alt="${item.name}" style="${isWide ? 'height: 100%; width: max-content; max-width: none;' : 'width: 90%; height: 100%; object-fit: contain;'}" onclick="event.stopPropagation(); openLightbox(${idx})">
                             </div>
+                            <div class="mobile-img-title" style="margin-top: 1rem; font-family: monospace; font-size: 1.2rem; font-weight: bold;">${item.name}</div>
                         </div>`;
-                    } else {
-                        const imgIndex = window.currentLightboxGallery.findIndex(g => g.src === item.src);
+                    });
+                    html += '</div>';
+
+                    // Bottom Post-it and Share Button
+                    if (postitItem) {
+                        window.currentPostitData = postitItem.p;
                         html += `
-                        <div style="${style}">
-                            <div class="unfold-grid-item" style="width:100%; height:auto;">
-                                <img src="${getSafeImg(item.src)}" alt="${item.name}" onclick="openLightbox(${imgIndex}, event)" style="position: relative; z-index: 1; width: 100%; max-height:none; height:auto; object-fit: contain; display: block;">
+                        <div class="mobile-postit-wrapper" style="width: 100vw; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10;">
+                            <div class="bookmark-note" style="position: relative; width: 90%; max-width: 400px; transform: none; box-shadow: none; padding: 1.5rem; max-height: 30vh; display: flex; flex-direction: column; margin-bottom: 1rem;">
+                                <div style="overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; touch-action: pan-y; z-index: 1; width: 100%; font-size: clamp(0.7rem, 2.5vw, 1rem); word-break: break-word;">
+                                    <img src="logo.png" class="stamp-logo">
+                                    <div class="note-ref-code">[ REF: ARC-${postitItem.p.id.substring(0,6).toUpperCase()} ]</div>
+                                    <div class="note-divider"></div>
+                                    <div class="note-title" style="word-break: break-word; hyphens: auto;">${postitItem.p.metadata.name}</div>
+                                    <div class="note-divider"></div>
+                                    <div class="note-meta-grid" style="width: 100%; overflow: hidden;">${getNoteGridHtml(postitItem.p)}</div>
+                                    <div class="note-divider"></div>
+                                    <div class="note-text-content" style="word-break: break-word;">${postitItem.p.metadata.description || ''}</div>
+                                </div>
                             </div>
-                            <div style="width: 100%; text-align: center; font-size: 1.2rem; margin-top: 1.5rem; opacity: 0.8; font-weight: bold; text-transform: lowercase; font-family: monospace; color: black; text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(255,255,255,0.8);">${item.name}</div>
+                            <button class="tag-filter highlight-link" style="cursor: pointer; background: transparent; border: none; font-family: inherit; font-size: 1rem; color: #000; text-transform: lowercase; font-weight: bold;" onclick="window.copyProjectUrl('${postitItem.p.id}', this)">share</button>
                         </div>`;
                     }
-                });
+                    html += '</div>';
 
-                const content = document.getElementById('canvas-content');
-                if(!content) return;
-                content.style.width = `${contentWidth}px`;
-                content.style.height = `${contentHeight}px`;
-                content.innerHTML = html;
+                    const content = document.getElementById('canvas-content');
+                    if(content) {
+                        content.style.width = '100vw';
+                        content.style.height = '100vh';
+                        content.style.overflow = 'hidden';
+                        content.innerHTML = html;
+                    }
 
-                const loadingMsg = document.getElementById('spread-loading');
-                if(loadingMsg) loadingMsg.remove();
-                
-                document.getElementById('canvas-container').style.opacity = '1';
-                
-                initSpreadCanvas('canvas-container', 'canvas-content', contentWidth, contentHeight);
+                    const loadingMsg = document.getElementById('spread-loading');
+                    if(loadingMsg) loadingMsg.remove();
+                    document.getElementById('canvas-container').style.opacity = '1';
+                    
+                    // Do NOT init physics engine
+                } else {
+                    allItems.forEach(item => {
+                        let left = (item.x - item.targetWidth/2) - minX;
+                        let top = (item.y - item.targetHeight/2) - minY;
+                        let style = `position: absolute; left: ${left}px; top: ${top}px; width: ${item.targetWidth}px; height: ${item.targetHeight}px; transform: rotate(${item.rotation}deg); display: flex; flex-direction: column; align-items: center;`;
+                        
+                        if (item.type === 'postit') {
+                            window.currentPostitData = item.p;
+                            html += `
+                            <div style="${style}">
+                                <div class="bookmark-note spread-note" style="position: absolute !important; bottom: 0 !important; margin:0; width:272px; min-width:unset; transform: scale(${item.scaleFactor}); transform-origin: bottom center; cursor: pointer; transition: transform 0.2s;" onclick="openPostitLightbox(event)">
+                                    <img src="logo.png" class="stamp-logo">
+                                    <div class="note-ref-code">[ REF: ARC-${item.p.id.substring(0,6).toUpperCase()} ]</div>
+                                    <div class="note-divider"></div>
+                                    <div class="note-title">${item.p.metadata.name}</div>
+                                    <div class="note-divider"></div>
+                                    <div class="note-meta-grid">
+                                        ${getNoteGridHtml(item.p)}
+                                    </div>
+                                    <div class="note-divider"></div>
+                                    <div class="note-text-content" style="display: block; -webkit-line-clamp: unset; overflow: visible;">${item.p.metadata.description || ''}</div>
+                                </div>
+                            </div>`;
+                        } else {
+                            const imgIndex = window.currentLightboxGallery.findIndex(g => g.src === item.src);
+                            html += `
+                            <div style="${style}">
+                                <div class="unfold-grid-item" style="width:100%; height:auto;">
+                                    <img src="${getSafeImg(item.src)}" alt="${item.name}" onclick="openLightbox(${imgIndex}, event)" style="position: relative; z-index: 1; width: 100%; max-height:none; height:auto; object-fit: contain; display: block;">
+                                </div>
+                                <div style="width: 100%; text-align: center; font-size: 0.6rem; margin-top: 1.5rem; opacity: 0.8; font-weight: bold; text-transform: lowercase; font-family: monospace; color: black; text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(255,255,255,0.8);">${item.name}</div>
+                            </div>`;
+                        }
+                    });
+
+                    const content = document.getElementById('canvas-content');
+                    if(!content) return;
+                    content.style.width = `${contentWidth}px`;
+                    content.style.height = `${contentHeight}px`;
+                    content.innerHTML = html;
+
+                    const loadingMsg = document.getElementById('spread-loading');
+                    if(loadingMsg) loadingMsg.remove();
+                    
+                    document.getElementById('canvas-container').style.opacity = '1';
+                    
+                    initSpreadCanvas('canvas-container', 'canvas-content', contentWidth, contentHeight);
+                }
             }
         }, 30);
     });
@@ -1206,11 +1392,41 @@ function updateMagazineView() {
     if (magAudio) { magAudio.pause(); magAudio = null; magAudioState = 'audio'; }
 
     let html = '';
-    for (let i = 0; i < leaves; i++) {
-        html += `<div class="book-leaf ${i < magCurrentPage ? 'flipped' : ''}" style="z-index:${i < magCurrentPage ? i : 1000 - i}" onclick="magCurrentPage = (magCurrentPage == ${i} ? ${i+1} : ${i}); updateMagazineView()">
-            <div class="page-front">${mag[i*2] ? `<img src="${getSafeImg(mag[i*2])}" alt="Magazine Page" style="background: #e0e0e0;">` : ''}</div>
-            <div class="page-back">${mag[i*2+1] ? `<img src="${getSafeImg(mag[i*2+1])}" alt="Magazine Page" style="background: #e0e0e0;">` : ''}</div>
+    if (window.innerWidth <= 900) {
+        window._magSpreadView = window._magSpreadView || false;
+        html += '<div class="mobile-magazine-feed" style="width: 100vw; height: 100vh; overflow-y: auto; padding-top: 5rem; padding-bottom: 5rem; z-index: 10;">';
+        
+        html += `
+        <div style="position: fixed; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 1000000;">
+            <button onclick="window._magSpreadView = !window._magSpreadView; updateMagazineView()" style="padding: 0.5rem 1rem; font-family: monospace; background: #e8e4d9; border: none; font-size: 1rem; cursor: pointer; border-radius: 20px;">
+                ${window._magSpreadView ? 'view single pages' : 'view spreads'}
+            </button>
         </div>`;
+
+        if (window._magSpreadView) {
+            html += '<div style="display: flex; flex-direction: column; align-items: center; gap: 2rem;">';
+            for (let i = 0; i < leaves; i++) {
+                html += '<div style="display: flex; width: 95vw; justify-content: center;">';
+                if (mag[i*2]) html += `<img src="${getSafeImg(mag[i*2])}" style="width: 50%; height: auto;">`;
+                if (mag[i*2+1]) html += `<img src="${getSafeImg(mag[i*2+1])}" style="width: 50%; height: auto;">`;
+                html += '</div>';
+            }
+            html += '</div>';
+        } else {
+            html += '<div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">';
+            mag.forEach(imgUrl => {
+                if(imgUrl) html += `<img src="${getSafeImg(imgUrl)}" style="width: 90vw; height: auto;">`;
+            });
+            html += '</div>';
+        }
+        html += '</div>';
+    } else {
+        for (let i = 0; i < leaves; i++) {
+            html += `<div class="book-leaf ${i < magCurrentPage ? 'flipped' : ''}" style="z-index:${i < magCurrentPage ? i : 1000 - i}" onclick="magCurrentPage = (magCurrentPage == ${i} ? ${i+1} : ${i}); updateMagazineView()">
+                <div class="page-front">${mag[i*2] ? `<img src="${getSafeImg(mag[i*2])}" alt="Magazine Page" style="background: #e0e0e0;">` : ''}</div>
+                <div class="page-back">${mag[i*2+1] ? `<img src="${getSafeImg(mag[i*2+1])}" alt="Magazine Page" style="background: #e0e0e0;">` : ''}</div>
+            </div>`;
+        }
     }
     
     let chaptersData = (magazineData[0].chapters && magazineData[0].chapters.length > 0)
@@ -1230,7 +1446,7 @@ function updateMagazineView() {
     let audioBtnHtml = `<div class="magazine-audio-btn" onclick="event.stopPropagation(); toggleMagazineAudio()">${magAudioState}</div>`;
     
     over.innerHTML = `
-        <div class="close-minus" onclick="closeMagazine()">–</div>
+        <div class="close-minus" onclick="closeMagazine()" ontouchstart="closeMagazine()">–</div>
         
         <div class="magazine-scene">${html}</div>
         <div class="magazine-footer">
@@ -1310,7 +1526,7 @@ window.openHistory = function() {
     }).join('');
     
     over.innerHTML = `
-        <div class="close-minus" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove(); document.getElementById('col-archive').style.opacity = '1'; const mq=document.querySelector('.marquee-wrapper'); if(mq) mq.style.opacity='1'; const fb=document.getElementById('filter-bar'); if(fb){ fb.style.opacity=''; fb.style.pointerEvents=''; }">–</div>
+        <div class="close-minus" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove(); document.getElementById('col-archive').style.opacity = '1'; const mq=document.querySelector('.marquee-wrapper'); if(mq) mq.style.opacity='1'; const fb=document.getElementById('filter-bar'); if(fb){ fb.style.opacity=''; fb.style.pointerEvents=''; }" ontouchstart="document.body.classList.remove('spread-open'); this.parentElement.remove(); document.getElementById('col-archive').style.opacity = '1'; const mq=document.querySelector('.marquee-wrapper'); if(mq) mq.style.opacity='1'; const fb=document.getElementById('filter-bar'); if(fb){ fb.style.opacity=''; fb.style.pointerEvents=''; }">–</div>
         <div class="history-pile-wrapper">
             <div class="history-pile">
                 ${sheetsHtml}
@@ -1397,7 +1613,7 @@ window.openAudioLibrary = function() {
     }
 
     over.innerHTML = `
-        <div class="close-minus" onclick="closeAudioLibrary()">–</div>
+        <div class="close-minus" onclick="closeAudioLibrary()" ontouchstart="closeAudioLibrary()">–</div>
         <div class="audio-library-wrapper">
             <div class="audio-left-col">
                 ${listHtml}
@@ -1483,12 +1699,18 @@ window.closeAudioLibrary = function() {
         globalAudio = null;
     }
     
+    // Rebuild the tag bar that was overwritten by the audio controls!
+    const filterBar = document.getElementById('filter-bar');
+    if (filterBar) {
+        filterBar.innerHTML = '';
+        generateDynamicTags();
+    }
+    
     // Restore ARCHIVE header and filter tags
     const colArch = document.getElementById('col-archive');
     if (colArch) { colArch.style.opacity = '1'; colArch.style.pointerEvents = 'auto'; }
     filterBar.style.opacity = '1';
     filterBar.style.pointerEvents = 'auto';
-    generateDynamicTags();
     
     // In case there is a URL param, remove it without reloading
     if (window.history.pushState) {
@@ -1500,10 +1722,37 @@ window.closeAudioLibrary = function() {
 init();
 
 window.exitGridMode = function() {
+    window._blockTagDialActions = true;
+    setTimeout(() => { window._blockTagDialActions = false; }, 500); // Auto-unlock tag dial actions after reflow
+    
+    // Collapse dynamic tags
+    filterBar.classList.remove('tags-expanded', 'hover-expanded');
+    filterBar.classList.add('tags-collapsed');
+    
     document.body.classList.remove('grid-mode');
     document.querySelectorAll('.tag-filter').forEach(b => b.classList.remove('active-tag'));
-    window.scrollTo(0, 0);
+    window._lastFilteredTag = null; // Allow re-dialing the same tag after returning to 'all'
+    
+    // Also close the search overlay if it's currently open
+    const searchOverlay = document.getElementById('search-overlay');
+    if (searchOverlay) {
+        searchOverlay.remove();
+        document.removeEventListener('keydown', window._searchEscHandler);
+        document.body.classList.remove('search-open');
+    }
+    
     renderPile(archiveData, false);
+    
+    // Force synchronous layout update and instant scroll to prevent visual flash of calendar slide
+    mobileWrapper.style.scrollBehavior = 'auto';
+    const forceReflow = mobileWrapper.offsetHeight; 
+    mobileWrapper.scrollLeft = window.innerWidth;
+    updateMobileTitles();
+    
+    // Force scroll to top immediately and after DOM/layout updates settle
+    window.scrollTo(0, 0);
+    setTimeout(() => window.scrollTo(0, 0), 50);
+    setTimeout(() => window.scrollTo(0, 0), 150);
 };
 
 
@@ -1515,3 +1764,196 @@ document.addEventListener('keydown', (e) => {
         }
     }
 });
+// ============================================================================
+// MOBILE ADAPTATION LOGIC
+// ============================================================================
+const mobileWrapper = document.getElementById('dashboard-wrapper');
+const mobileCols = [
+    document.getElementById('col-apollo'),
+    document.getElementById('col-archive'),
+    document.getElementById('col-magazine')
+];
+
+
+function updateMobileTitles() {
+    if (window.innerWidth > 900) {
+        // Reset styles for desktop
+        mobileCols.forEach(col => {
+            if(col) {
+                col.style.opacity = '';
+                col.style.transform = '';
+                col.style.pointerEvents = '';
+            }
+        });
+        return;
+    }
+
+    // In grid-mode, titles are driven by transform-based slide index, not scrollLeft
+    if (document.body.classList.contains('grid-mode')) return;
+
+    const scrollLeft = mobileWrapper.scrollLeft;
+    const w = window.innerWidth;
+
+    mobileCols.forEach((col, i) => {
+        if (!col) return;
+        const centerPos = i * w;
+        const dist = scrollLeft - centerPos;
+        const ratio = Math.min(1, Math.abs(dist) / w);
+
+        const scaleX = Math.max(0, 1 - ratio);
+        const opacity = Math.max(0, 1 - (ratio * 1.5));
+
+        col.style.transform = `translateX(${-dist}px) scaleX(${scaleX})`;
+        col.style.opacity = opacity;
+        col.style.pointerEvents = opacity > 0.5 ? 'auto' : 'none';
+        
+        // Hide filter bar if not on center slide
+        const filterBar = document.getElementById('filter-bar');
+        if (filterBar && !document.body.classList.contains('spread-open')) {
+            const ratioCenter = Math.abs(scrollLeft - w) / w;
+            filterBar.style.opacity = Math.max(0, 1 - (ratioCenter * 2));
+            filterBar.style.pointerEvents = ratioCenter < 0.5 ? 'auto' : 'none';
+        }
+        
+        // Remove menu-open if scrolled away
+        if (ratio > 0.5) col.classList.remove('menu-open');
+    });
+}
+
+mobileWrapper.addEventListener('scroll', updateMobileTitles);
+window.addEventListener('resize', updateMobileTitles);
+
+// Initialize mobile view
+window.addEventListener('load', () => {
+    if (window.innerWidth <= 900) {
+        // Scroll exactly to the center column (Archive) on load
+        setTimeout(() => {
+            mobileWrapper.scrollLeft = window.innerWidth;
+            updateMobileTitles();
+        }, 100);
+    }
+});
+
+
+window.handleMobileTap = function(e, id, wrapper) {
+    e.stopPropagation();
+    if (window.innerWidth > 900 || document.body.classList.contains('grid-mode')) {
+        unfoldProject(id);
+        return;
+    }
+    
+    if (window._activeMobilePostIt === wrapper) {
+        unfoldProject(id);
+    } else {
+        if (window._activeMobilePostIt) {
+            window._activeMobilePostIt.style.transform = window._activeMobilePostIt.dataset.origTransform || '';
+            window._activeMobilePostIt.style.zIndex = window._activeMobilePostIt.dataset.origZIndex || '';
+        }
+        
+        window._activeMobilePostIt = wrapper;
+        wrapper.dataset.origTransform = wrapper.style.transform || '';
+        wrapper.dataset.origZIndex = wrapper.style.zIndex || '';
+        
+        wrapper.style.transform = wrapper.dataset.origTransform + ' scale(1.1)';
+        wrapper.style.zIndex = '999';
+        
+        // 2-second swipe lock
+        mobileWrapper.style.overflowX = 'hidden';
+        setTimeout(() => {
+            if (mobileWrapper.style.overflowX === 'hidden') {
+                mobileWrapper.style.overflowX = 'auto';
+            }
+        }, 2000);
+    }
+};
+
+// --- Mobile Tag Filter Swipe Logic ---
+let _tagScrollTimeout;
+let _tagActionTimeout;
+if (filterBar) {
+    // Enable tag dial actions when the user physically touches or clicks/drags the dial
+    filterBar.addEventListener('touchstart', () => {
+        window._blockTagDialActions = false;
+    }, { passive: true });
+    filterBar.addEventListener('mousedown', () => {
+        window._blockTagDialActions = false;
+    });
+
+    filterBar.addEventListener('scroll', () => {
+        if (window.innerWidth > 900) return;
+        
+        const tags = Array.from(filterBar.children);
+        
+        // Find the center tag
+        const centerLine = filterBar.getBoundingClientRect().width / 2;
+        let closestTag = null;
+        let minDiff = Infinity;
+        
+        tags.forEach(tag => {
+            const rect = tag.getBoundingClientRect();
+            // Tag center relative to the filterBar's bounding box
+            const tagCenter = rect.left - filterBar.getBoundingClientRect().left + rect.width / 2;
+            const diff = Math.abs(tagCenter - centerLine);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closestTag = tag;
+            }
+            // Strip active state from all tags
+            tag.classList.remove('active-swipe-tag');
+        });
+        
+        // Instantly apply the active state to the centered tag during scroll!
+        if (closestTag) {
+            closestTag.classList.add('active-swipe-tag');
+            
+            // Toggle dynamic tags visibility
+            const tagText = closestTag.textContent.toLowerCase();
+            if (tagText === 'filters') {
+                if (filterBar.classList.contains('tags-collapsed')) {
+                    filterBar.classList.remove('tags-collapsed');
+                    filterBar.classList.add('tags-expanded');
+                }
+            } else if (tagText === 'all' || tagText === 'search') {
+                if (filterBar.classList.contains('tags-expanded')) {
+                    filterBar.classList.remove('tags-expanded');
+                    filterBar.classList.add('tags-collapsed');
+                }
+            }
+            
+            // Auto-close search overlay if we dial away from 'search'
+            if (tagText !== 'search') {
+                const searchOverlay = document.getElementById('search-overlay');
+                if (searchOverlay) {
+                    searchOverlay.remove();
+                    document.removeEventListener('keydown', window._searchEscHandler);
+                    document.body.classList.remove('search-open');
+                }
+            }
+        }
+        
+        // Clear both timeouts on every scroll frame
+        clearTimeout(_tagScrollTimeout);
+        clearTimeout(_tagActionTimeout);
+        
+        // Wait 150ms after scroll STOPS to perfectly lock in the center tag and start the 500ms cooldown
+        _tagScrollTimeout = setTimeout(() => {
+            if (closestTag) {
+                // Start a secondary 500ms cooldown before actually triggering the action
+                _tagActionTimeout = setTimeout(() => {
+                    if (window._blockTagDialActions) return; // Block trigger from layout-reflow scroll adjustments
+                    
+                    if (closestTag.textContent !== window._lastFilteredTag) {
+                        window._lastFilteredTag = closestTag.textContent;
+                        if (closestTag.textContent.toLowerCase() === 'search') {
+                            openSearchOverlay();
+                        } else if (closestTag.textContent.toLowerCase() === 'all') {
+                            exitGridMode();
+                        } else {
+                            filterProjects(closestTag.textContent, closestTag);
+                        }
+                    }
+                }, 500);
+            }
+        }, 150); // 150ms debounce for stopping
+    });
+}
