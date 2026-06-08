@@ -5,8 +5,8 @@ body { margin: 0; font-family: 'Ufficio', sans-serif; background: white; overflo
 #passcode-overlay { position: fixed; inset: 0; background: white; z-index: 100000; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
 #passcode-input { border: 1px solid #eaeaea; border-radius: 0; padding: 1rem; text-align: center; outline: none; font-family: 'Ufficio', sans-serif; width: 10rem; box-shadow: inset 0 0.2rem 0.5rem rgba(0,0,0,0.02); }
 
-body.focus-state, body.active-state { overflow: hidden; height: 100vh; }
-body.grid-mode { overflow-y: auto; height: auto; min-height: 100vh; }
+body.focus-state, body.active-state { overflow: hidden; height: 100vh; height: 100svh; }
+body.grid-mode { overflow-y: auto; height: auto; min-height: 100vh; min-height: 100svh; }
 body.focus-state #main-header, body.focus-state #main-footer, body.focus-state #archive-stage { filter: blur(2rem); opacity: 0.2; pointer-events: none; }
 body.spread-open .left-col, body.spread-open .right-col, body.spread-open .plus-archive { opacity: 0; pointer-events: none; transition: 0.3s; }
 body.spread-open .marquee-wrapper, body.history-open .marquee-wrapper { display: none !important; }
@@ -30,8 +30,17 @@ body.magazine-open #main-footer { opacity: 0; pointer-events: none; }
 @media (min-width: 901px) {
     body.search-open #col-apollo, body.grid-mode #col-apollo,
     body.search-open #col-magazine, body.grid-mode #col-magazine,
+    body.search-open #col-archive,
     body.search-open .marquee-wrapper, body.grid-mode .marquee-wrapper {
         opacity: 0 !important; pointer-events: none !important; transition: 0.3s;
+    }
+
+    /* Keep the tag bar visible: limit search overlay height to not cover the footer */
+    body.search-open #search-overlay {
+        height: auto !important;
+        bottom: 0 !important;
+        top: 0 !important;
+        padding-bottom: 10rem !important; /* enough room for the footer tag bar */
     }
 }
 .header-columns, #dashboard-wrapper { display: grid; grid-template-columns: 1.5fr 4fr 1.5fr; width: 100%; margin: 0; padding: 0 5%; box-sizing: border-box; gap: 5rem; }
@@ -72,8 +81,8 @@ body.active-state.history-open #main-footer { opacity: 0; pointer-events: none; 
 #filter-bar .highlight-link { background: transparent; backdrop-filter: none; box-shadow: none; }
 .tag-filter { border: none; box-shadow: 0 0.4rem 1.5rem rgba(0,0,0,0.06); border-radius: 0.4rem; padding: 0.6rem 1.2rem; }
 
-#archive-stage { height: 100vh; width: 100vw; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-body.grid-mode #archive-stage { height: auto; min-height: 100vh; align-items: flex-start; padding-top: 25vh; padding-bottom: 12.5rem; }
+#archive-stage { height: 100vh; height: 100svh; width: 100vw; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+body.grid-mode #archive-stage { height: auto; min-height: 100vh; min-height: 100svh; align-items: flex-start; padding-top: 25vh; padding-bottom: 12.5rem; }
 #dashboard-wrapper { height: 60vh; margin-top: 10vh; }
 #calendar-column, #magazine-column { flex-direction: column; align-self: center; height: 100%; }
 
@@ -213,7 +222,7 @@ body.grid-mode .bookmark-note { width: 6vw; min-width: 10rem; font-size: 0.8rem;
 /* ----------------------------------------------------
    THE EDITORIAL SPREAD PHYSICS 
    ---------------------------------------------------- */
-#unfold-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: white; z-index: 100000; box-sizing: border-box; overflow: hidden; }
+#unfold-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100svh; background: white; z-index: 100000; box-sizing: border-box; overflow: hidden; }
 #unfold-overlay.glass-overlay { background: rgba(30,30,30,0.35); backdrop-filter: blur(0.8rem); -webkit-backdrop-filter: blur(0.8rem); color: black; }
 .close-minus { position: absolute; top: 3.5rem; right: 4rem; font-size: 5rem; cursor: pointer; user-select: none; color: black; z-index: 10; line-height: 1; transition: opacity 0.2s; }
 .close-minus:hover { opacity: 0.5; }
@@ -341,10 +350,10 @@ body.grid-mode .grid-close-btn { display: block; }
 .calendar-inline-img.expanded { max-height: 50rem; opacity: 1; margin-top: 1.5rem; }
 .calendar-inline-img img { width: 100%; display: block; box-shadow: 0 0.5rem 2rem rgba(0,0,0,0.1); border-radius: 0.2rem; }
 
-#passcode-overlay, .glass-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(232, 228, 217, 0.5); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+#passcode-overlay, .glass-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100svh; background: rgba(232, 228, 217, 0.5); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 1000; display: flex; align-items: center; justify-content: center; }
 
 /* SEARCH OVERLAY STYLES */
-#project-search-input { width: 60%; max-width: 800px; font-size: 4.6rem; font-weight: bold; font-family: inherit; color: inherit; text-transform: uppercase; border: none; outline: none; background: transparent; text-align: center; border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 1rem; margin-bottom: 4rem; }
+#project-search-input { width: 80%; max-width: 800px; font-size: clamp(1.6rem, 8vw, 4.6rem); font-weight: bold; font-family: inherit; color: inherit; text-transform: uppercase; border: none; outline: none; background: transparent; text-align: center; border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 1rem; margin-bottom: 4rem; }
 #project-search-input::placeholder { color: rgba(0,0,0,0.2); }
 #search-results-grid { position: absolute; top: calc(50% + 5rem); left: 50%; transform: translateX(-50%); display: flex; flex-wrap: wrap; gap: 3rem; justify-content: center; width: 90%; max-width: 1200px; overflow-y: visible; padding-bottom: 5rem; }
 .search-result-card { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.3s; width: 200px; }
@@ -495,6 +504,7 @@ body.grid-mode .grid-close-btn { display: block; }
 .audio-library-wrapper {
     width: 100%;
     height: 100vh;
+    height: 100svh;
     display: flex;
     flex-direction: row;
     justify-content: center;
@@ -604,6 +614,7 @@ body.grid-mode .grid-close-btn { display: block; }
 .history-pile-wrapper {
     width: 100%;
     height: 100vh;
+    height: 100svh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -728,6 +739,7 @@ body.spread-open .title-wrapper { opacity: 0; pointer-events: none; transition: 
         gap: 0 !important;
         width: 100vw;
         height: 100vh;
+        height: 100svh;
         -webkit-overflow-scrolling: touch;
         scroll-behavior: smooth;
     }
@@ -737,6 +749,7 @@ body.spread-open .title-wrapper { opacity: 0; pointer-events: none; transition: 
         min-width: 100vw !important;
         max-width: 100vw !important;
         height: 100vh;
+        height: 100svh;
         scroll-snap-align: center;
         scroll-snap-stop: always;
         flex-shrink: 0;
@@ -921,6 +934,7 @@ body.spread-open .title-wrapper { opacity: 0; pointer-events: none; transition: 
     body.grid-mode #archive-stage {
         height: auto !important;
         min-height: 100vh !important;
+        min-height: 100svh !important;
         overflow-y: visible !important;
     }
     body.grid-mode #dashboard-wrapper {
@@ -1349,6 +1363,7 @@ body.spread-open .title-wrapper { opacity: 0; pointer-events: none; transition: 
         overflow: hidden !important;
         pointer-events: none !important;
         display: inline-block !important;
+        scroll-snap-align: none !important; /* remove from snap sequence when hidden */
         transition: max-width 0.4s ease, opacity 0.3s ease, margin 0.4s ease, padding 0.4s ease;
     }
 
@@ -1362,66 +1377,66 @@ body.spread-open .title-wrapper { opacity: 0; pointer-events: none; transition: 
     }
 }
 
-/* Desktop Collapsible Dynamic Tags (Hover Overlay with transition) */
+/* Desktop Collapsible Dynamic Tags — instant swap, no animation */
 @media (min-width: 901px) {
-    #filter-bar {
-        gap: 0 !important; /* override the gap to prevent empty spaces for collapsed items */
-    }
-
-    #filter-bar .tag-filter {
-        display: inline-block !important;
-        vertical-align: middle;
-        box-sizing: border-box;
-        transition: max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), 
-                    opacity 0.3s ease, 
-                    margin 0.4s cubic-bezier(0.25, 1, 0.5, 1), 
-                    padding 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-    }
-
-    /* Base state: static options are visible */
-    #filter-bar-search-btn,
-    #filter-bar-all-btn,
-    #filter-bar .filters-toggle-btn {
-        max-width: 15rem !important; /* Allow enough space for the text */
-        opacity: 1 !important;
-        margin: 0 0.75rem !important;
-        padding: 0.6rem 1.2rem !important;
-        pointer-events: auto !important;
-        overflow: visible !important;
-    }
-
-    /* Base state: dynamic tags are collapsed/hidden */
+    /* Dynamic tags hidden by default */
     #filter-bar .dynamic-tag-item {
-        max-width: 0 !important;
-        opacity: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        pointer-events: none !important;
-        overflow: hidden !important;
+        display: none !important;
     }
 
-    /* Hover expanded state: static options collapse */
+    /* Hover expanded: hide static buttons, show dynamic tags */
     #filter-bar.hover-expanded #filter-bar-search-btn,
     #filter-bar.hover-expanded #filter-bar-all-btn,
     #filter-bar.hover-expanded .filters-toggle-btn {
-        max-width: 0 !important;
-        opacity: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        pointer-events: none !important;
-        overflow: hidden !important;
+        display: none !important;
     }
-
-    /* Hover expanded state: dynamic tags expand */
     #filter-bar.hover-expanded .dynamic-tag-item {
-        max-width: 25rem !important; /* Allow enough space for long tag names */
-        opacity: 1 !important;
-        margin: 0 0.75rem !important;
-        padding: 0.6rem 1.2rem !important;
-        pointer-events: auto !important;
-        overflow: visible !important;
+        display: inline-block !important;
     }
 }
 
+/* ============================================================
+   Mobile Magazine Dial
+   ============================================================ */
+@media (max-width: 900px) {
+    /* Show the footer/filter-bar while magazine is open on mobile */
+    body.magazine-open #main-footer {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
 
-
+    /* Chapter items: collapsed by default */
+    #filter-bar.mag-chapters-collapsed .mag-chapter-item {
+        max-width: 0 !important;
+        opacity: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
+        display: inline-block !important;
+        scroll-snap-align: none !important;
+        transition: max-width 0.35s ease, opacity 0.25s ease, margin 0.35s ease, padding 0.35s ease;
+    }
+    /* Chapter bridge button: hidden when chapters expanded */
+    #filter-bar.mag-chapters-expanded .mag-chapters-toggle {
+        max-width: 0 !important;
+        opacity: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
+        display: inline-block !important;
+        scroll-snap-align: none !important;
+        transition: max-width 0.35s ease, opacity 0.25s ease, margin 0.35s ease, padding 0.35s ease;
+    }
+    /* Chapter items: expanded */
+    #filter-bar.mag-chapters-expanded .mag-chapter-item {
+        max-width: 20rem !important;
+        opacity: 1 !important;
+        padding: 0 0.4rem !important;
+        margin: 0 0.4rem !important;
+        display: inline-block !important;
+        scroll-snap-align: center !important;
+        transition: max-width 0.35s ease, opacity 0.25s ease, margin 0.35s ease, padding 0.35s ease;
+    }
+}
