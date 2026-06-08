@@ -7,6 +7,16 @@ const filterBar = document.getElementById('filter-bar');
 let archiveData = [], calendarData = [], magazineData = [], historyData = [], audioData = [];
 let isLoaded = false, isWaitingToStart = true, magCurrentPage = 0;
 
+// ---- Stable viewport height fix ----
+// Prevents address-bar show/hide from compressing/expanding the layout.
+// Sets --vh once from window.innerHeight (which excludes the browser chrome on most phones),
+// then only updates on genuine orientation changes — never on address-bar toggles.
+(function setStableVH() {
+    const set = () => document.documentElement.style.setProperty('--vh', window.innerHeight * 0.01 + 'px');
+    set();
+    window.addEventListener('orientationchange', () => setTimeout(set, 300));
+})();
+
 function getSafeImg(url) {
     const id = url.match(/id=([^&]+)/);
     return id ? `https://drive.google.com/thumbnail?id=${id[1]}&sz=w1200` : url;
@@ -1208,7 +1218,7 @@ function unfoldProject(id) {
                     const postitItem = allItems.find(i => i.type === 'postit');
                     const imageItems = window.currentLightboxGallery;
 
-                    html += '<div class="mobile-project-layout" style="display: flex; flex-direction: column; width: 100vw; height: 100vh; overflow: hidden;">';
+                    html += '<div class="mobile-project-layout" style="display: flex; flex-direction: column; width: 100vw; height: 100svh; overflow: hidden;">';
                     
                     // Add a mobile-specific close minus button that is guaranteed to be on top of the layout!
                     html += '<div class="close-minus" style="position: absolute; top: 3.5rem; right: 4rem; z-index: 1000000; color: black;" onclick="window.closeMobileSpread(this)" ontouchstart="window.closeMobileSpread(this)">–</div>';
@@ -1253,7 +1263,7 @@ function unfoldProject(id) {
                     const content = document.getElementById('canvas-content');
                     if(content) {
                         content.style.width = '100vw';
-                        content.style.height = '100vh';
+                        content.style.height = '100svh';
                         content.style.overflow = 'hidden';
                         content.innerHTML = html;
                     }
@@ -1354,8 +1364,15 @@ window.closeMagazine = function() {
     if (window._magEscHandler) document.removeEventListener('keydown', window._magEscHandler);
     
     // Restore filter bar
-    filterBar.style.opacity = '1';
-    filterBar.style.pointerEvents = 'auto';
+    if (window.innerWidth <= 900) {
+        // Rebuild the archive tag dial (it was replaced by the magazine dial)
+        filterBar._magDialActive = false;
+        filterBar.classList.remove('mag-chapters-collapsed', 'mag-chapters-expanded');
+        generateDynamicTags();
+    } else {
+        filterBar.style.opacity = '1';
+        filterBar.style.pointerEvents = 'auto';
+    }
 };
 
 window.toggleMagazineAudio = function() {
@@ -1391,17 +1408,17 @@ function updateMagazineView() {
     
     if (magAudio) { magAudio.pause(); magAudio = null; magAudioState = 'audio'; }
 
+    // Only use real chapter data — no fallback. If none, dial shows just "cover".
+    let chaptersData = (magazineData[0].chapters && magazineData[0].chapters.length > 0)
+        ? magazineData[0].chapters
+        : [];
+
     let html = '';
-    if (window.innerWidth <= 900) {
+    const isMobile = window.innerWidth <= 900;
+
+    if (isMobile) {
         window._magSpreadView = window._magSpreadView || false;
-        html += '<div class="mobile-magazine-feed" style="width: 100vw; height: 100vh; overflow-y: auto; padding-top: 5rem; padding-bottom: 5rem; z-index: 10;">';
-        
-        html += `
-        <div style="position: fixed; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 1000000;">
-            <button onclick="window._magSpreadView = !window._magSpreadView; updateMagazineView()" style="padding: 0.5rem 1rem; font-family: monospace; background: #e8e4d9; border: none; font-size: 1rem; cursor: pointer; border-radius: 20px;">
-                ${window._magSpreadView ? 'view single pages' : 'view spreads'}
-            </button>
-        </div>`;
+        html += '<div class="mobile-magazine-feed" style="width: 100vw; height: 100svh; overflow-y: auto; padding-top: 5rem; padding-bottom: 8rem; z-index: 10;">';
 
         if (window._magSpreadView) {
             html += '<div style="display: flex; flex-direction: column; align-items: center; gap: 2rem;">';
@@ -1420,43 +1437,101 @@ function updateMagazineView() {
             html += '</div>';
         }
         html += '</div>';
+
+        // No minus button, no static footer on mobile — dial replaces filterBar
+        over.innerHTML = `<div class="magazine-scene">${html}</div>`;
+
+        // Build the magazine swipe dial inside the filterBar
+        buildMagazineDial(chaptersData);
+
     } else {
+        // Desktop: book-flip view with minus and chapter footer
         for (let i = 0; i < leaves; i++) {
             html += `<div class="book-leaf ${i < magCurrentPage ? 'flipped' : ''}" style="z-index:${i < magCurrentPage ? i : 1000 - i}" onclick="magCurrentPage = (magCurrentPage == ${i} ? ${i+1} : ${i}); updateMagazineView()">
                 <div class="page-front">${mag[i*2] ? `<img src="${getSafeImg(mag[i*2])}" alt="Magazine Page" style="background: #e0e0e0;">` : ''}</div>
                 <div class="page-back">${mag[i*2+1] ? `<img src="${getSafeImg(mag[i*2+1])}" alt="Magazine Page" style="background: #e0e0e0;">` : ''}</div>
             </div>`;
         }
-    }
-    
-    let chaptersData = (magazineData[0].chapters && magazineData[0].chapters.length > 0)
-        ? magazineData[0].chapters
-        : [
-            { name: "01 editorial", page: 0 },
-            { name: "02 features", page: 1 },
-            { name: "03 interviews", page: 2 },
-            { name: "04 essays", page: 3 },
-            { name: "05 archive", page: 4 }
-        ];
-    let chaptersHtml = chaptersData.map(ch => `
-        <span class="highlight-link ${magCurrentPage === ch.page ? 'active-tag' : ''}" onclick="event.stopPropagation(); magCurrentPage = ${ch.page}; updateMagazineView()">${ch.name}</span>
-    `).join('');
-    
-    // Always show audio button in testing, normally check: if (currentPageData && currentPageData.audioUrl)
-    let audioBtnHtml = `<div class="magazine-audio-btn" onclick="event.stopPropagation(); toggleMagazineAudio()">${magAudioState}</div>`;
-    
-    over.innerHTML = `
-        <div class="close-minus" onclick="closeMagazine()" ontouchstart="closeMagazine()">–</div>
-        
-        <div class="magazine-scene">${html}</div>
-        <div class="magazine-footer">
-            <div class="magazine-chapters">${chaptersHtml}</div>
-        </div>
-    `;
 
-    filterBar.style.opacity = '0';
-    filterBar.style.pointerEvents = 'none';
+        let chaptersHtml = chaptersData.map(ch => `
+            <span class="highlight-link ${magCurrentPage === ch.page ? 'active-tag' : ''}" onclick="event.stopPropagation(); magCurrentPage = ${ch.page}; updateMagazineView()">${ch.name}</span>
+        `).join('');
+
+        let audioBtnHtml = `<div class="magazine-audio-btn" onclick="event.stopPropagation(); toggleMagazineAudio()">${magAudioState}</div>`;
+
+        over.innerHTML = `
+            <div class="close-minus" onclick="closeMagazine()" ontouchstart="closeMagazine()">–</div>
+            <div class="magazine-scene">${html}</div>
+            <div class="magazine-footer">
+                <div class="magazine-chapters">${chaptersHtml}</div>
+            </div>
+        `;
+
+        filterBar.style.opacity = '0';
+        filterBar.style.pointerEvents = 'none';
+    }
 }
+
+// Build the swipe dial in the filterBar for the mobile magazine view
+function buildMagazineDial(chaptersData) {
+    filterBar.innerHTML = '';
+    filterBar.classList.remove('tags-collapsed', 'tags-expanded', 'hover-expanded');
+
+    // "cover" — snapping here closes magazine
+    const coverBtn = document.createElement('span');
+    coverBtn.id = 'mag-dial-cover-btn';
+    coverBtn.className = 'tag-filter highlight-link';
+    coverBtn.innerText = 'cover';
+    coverBtn.onclick = () => {
+        const cl = filterBar.getBoundingClientRect().width / 2;
+        const r = coverBtn.getBoundingClientRect();
+        filterBar.scrollBy({ left: r.left - filterBar.getBoundingClientRect().left + r.width / 2 - cl, behavior: 'smooth' });
+    };
+    filterBar.appendChild(coverBtn);
+
+    // "chapters" bridge — only add if there are real chapters
+    if (chaptersData.length > 0) {
+        const chaptersBtn = document.createElement('span');
+        chaptersBtn.id = 'mag-dial-chapters-btn';
+        chaptersBtn.className = 'tag-filter highlight-link mag-chapters-toggle';
+        chaptersBtn.innerText = 'chapters';
+        filterBar.appendChild(chaptersBtn);
+
+        // Individual chapter items (collapsed by default)
+        chaptersData.forEach((ch) => {
+            const btn = document.createElement('span');
+            btn.className = 'tag-filter highlight-link mag-chapter-item';
+            btn.dataset.page = ch.page;
+            btn.innerText = ch.name;
+            btn.onclick = () => {
+                magCurrentPage = ch.page;
+                updateMagazineView();
+            };
+            filterBar.appendChild(btn);
+        });
+    }
+
+    // Start collapsed; mark active BEFORE any scroll events fire
+    filterBar.classList.add('mag-chapters-collapsed');
+    filterBar._magDialActive = true;
+
+    // Block actions for 800ms so the initial auto-scroll to "cover"
+    // doesn't immediately trigger closeMagazine()
+    window._blockMagDialActions = true;
+    setTimeout(() => { window._blockMagDialActions = false; }, 800);
+
+    // Scroll to "cover" silently — no dispatchEvent (that was the bug)
+    setTimeout(() => {
+        const cl = filterBar.getBoundingClientRect().width / 2;
+        const r = coverBtn.getBoundingClientRect();
+        filterBar.scrollBy({ left: r.left - filterBar.getBoundingClientRect().left + r.width / 2 - cl, behavior: 'instant' });
+    }, 50);
+
+    // Reveal the dial
+    filterBar.style.opacity = '1';
+    filterBar.style.pointerEvents = 'auto';
+}
+
 
 // ---------------------------------------------------------------------------
 // HISTORY
@@ -1870,6 +1945,7 @@ window.handleMobileTap = function(e, id, wrapper) {
 // --- Mobile Tag Filter Swipe Logic ---
 let _tagScrollTimeout;
 let _tagActionTimeout;
+let _prevScrollLeft = 0; // track direction
 if (filterBar) {
     // Enable tag dial actions when the user physically touches or clicks/drags the dial
     filterBar.addEventListener('touchstart', () => {
@@ -1881,7 +1957,80 @@ if (filterBar) {
 
     filterBar.addEventListener('scroll', () => {
         if (window.innerWidth > 900) return;
-        
+
+        const currentScrollLeft = filterBar.scrollLeft;
+        const scrollingRight = currentScrollLeft >= _prevScrollLeft;
+        _prevScrollLeft = currentScrollLeft;
+
+        // --- Magazine dial mode ---
+        if (filterBar._magDialActive) {
+            const magTags = Array.from(filterBar.children);
+            const centerLine = filterBar.getBoundingClientRect().width / 2;
+            let closest = null, minDiff = Infinity;
+            magTags.forEach(t => {
+                const r = t.getBoundingClientRect();
+                const tc = r.left - filterBar.getBoundingClientRect().left + r.width / 2;
+                const d = Math.abs(tc - centerLine);
+                if (d < minDiff) { minDiff = d; closest = t; }
+                t.classList.remove('active-swipe-tag');
+            });
+            if (!closest) return;
+            const txt = closest.textContent.toLowerCase().trim();
+
+            // "chapters" bridge — skip it directionally like "filters"
+            if (txt === 'chapters') {
+                if (scrollingRight) {
+                    // Expand chapter items, jump to first
+                    filterBar.classList.remove('mag-chapters-collapsed');
+                    filterBar.classList.add('mag-chapters-expanded');
+                    const first = filterBar.querySelector('.mag-chapter-item');
+                    if (first) requestAnimationFrame(() => {
+                        const r = first.getBoundingClientRect();
+                        const br = filterBar.getBoundingClientRect();
+                        filterBar.scrollBy({ left: r.left - br.left + r.width / 2 - centerLine, behavior: 'smooth' });
+                    });
+                } else {
+                    // Collapse and jump to "cover"
+                    filterBar.classList.remove('mag-chapters-expanded');
+                    filterBar.classList.add('mag-chapters-collapsed');
+                    const coverBtn = document.getElementById('mag-dial-cover-btn');
+                    if (coverBtn) requestAnimationFrame(() => {
+                        const r = coverBtn.getBoundingClientRect();
+                        const br = filterBar.getBoundingClientRect();
+                        filterBar.scrollBy({ left: r.left - br.left + r.width / 2 - centerLine, behavior: 'smooth' });
+                    });
+                }
+                return;
+            }
+
+            closest.classList.add('active-swipe-tag');
+
+            // Collapse chapters when scrolling back to cover
+            if (txt === 'cover') {
+                if (filterBar.classList.contains('mag-chapters-expanded')) {
+                    filterBar.classList.remove('mag-chapters-expanded');
+                    filterBar.classList.add('mag-chapters-collapsed');
+                }
+            }
+
+            clearTimeout(_tagScrollTimeout);
+            _tagScrollTimeout = setTimeout(() => {
+                if (!closest) return;
+                if (window._blockMagDialActions) return; // block actions during open animation
+                const t2 = closest.textContent.toLowerCase().trim();
+                if (t2 === 'chapters') return;
+                if (t2 === 'cover') {
+                    window.closeMagazine();
+                } else {
+                    // It's a chapter item — navigate
+                    const page = parseInt(closest.dataset.page, 10);
+                    if (!isNaN(page)) { magCurrentPage = page; updateMagazineView(); }
+                }
+            }, 80);
+            return; // don't fall through to archive tag logic
+        }
+
+        // --- Archive tag dial (normal mode) ---
         const tags = Array.from(filterBar.children);
         
         // Find the center tag
@@ -1891,36 +2040,61 @@ if (filterBar) {
         
         tags.forEach(tag => {
             const rect = tag.getBoundingClientRect();
-            // Tag center relative to the filterBar's bounding box
             const tagCenter = rect.left - filterBar.getBoundingClientRect().left + rect.width / 2;
             const diff = Math.abs(tagCenter - centerLine);
             if (diff < minDiff) {
                 minDiff = diff;
                 closestTag = tag;
             }
-            // Strip active state from all tags
             tag.classList.remove('active-swipe-tag');
         });
         
-        // Instantly apply the active state to the centered tag during scroll!
         if (closestTag) {
+            const tagText = closestTag.textContent.toLowerCase().trim();
+
+            // "filters" is invisible — bridge over it based on swipe direction
+            if (tagText === 'filters') {
+                if (scrollingRight) {
+                    // Swiping right (all → tags): expand and jump to first tag
+                    const firstDynamic = filterBar.querySelector('.dynamic-tag-item');
+                    if (firstDynamic) {
+                        filterBar.classList.remove('tags-collapsed');
+                        filterBar.classList.add('tags-expanded');
+                        requestAnimationFrame(() => {
+                            const rect = firstDynamic.getBoundingClientRect();
+                            const barRect = filterBar.getBoundingClientRect();
+                            const offset = rect.left - barRect.left + rect.width / 2 - centerLine;
+                            filterBar.scrollBy({ left: offset, behavior: 'smooth' });
+                        });
+                    }
+                } else {
+                    // Swiping left (tags → all): collapse and jump straight to "all"
+                    filterBar.classList.remove('tags-expanded');
+                    filterBar.classList.add('tags-collapsed');
+                    const allBtn = document.getElementById('filter-bar-all-btn');
+                    if (allBtn) {
+                        requestAnimationFrame(() => {
+                            const rect = allBtn.getBoundingClientRect();
+                            const barRect = filterBar.getBoundingClientRect();
+                            const offset = rect.left - barRect.left + rect.width / 2 - centerLine;
+                            filterBar.scrollBy({ left: offset, behavior: 'smooth' });
+                        });
+                    }
+                }
+                return; // never settle on filters
+            }
+
             closestTag.classList.add('active-swipe-tag');
             
-            // Toggle dynamic tags visibility
-            const tagText = closestTag.textContent.toLowerCase();
-            if (tagText === 'filters') {
-                if (filterBar.classList.contains('tags-collapsed')) {
-                    filterBar.classList.remove('tags-collapsed');
-                    filterBar.classList.add('tags-expanded');
-                }
-            } else if (tagText === 'all' || tagText === 'search') {
+            // Toggle dynamic tags visibility based on which static tag is active
+            if (tagText === 'all' || tagText === 'search') {
                 if (filterBar.classList.contains('tags-expanded')) {
                     filterBar.classList.remove('tags-expanded');
                     filterBar.classList.add('tags-collapsed');
                 }
             }
             
-            // Auto-close search overlay if we dial away from 'search'
+            // Auto-close search overlay if dialling away from 'search'
             if (tagText !== 'search') {
                 const searchOverlay = document.getElementById('search-overlay');
                 if (searchOverlay) {
@@ -1931,29 +2105,26 @@ if (filterBar) {
             }
         }
         
-        // Clear both timeouts on every scroll frame
+        // Fire action ~80ms after scroll stops — no extra cooldown
         clearTimeout(_tagScrollTimeout);
         clearTimeout(_tagActionTimeout);
         
-        // Wait 150ms after scroll STOPS to perfectly lock in the center tag and start the 500ms cooldown
         _tagScrollTimeout = setTimeout(() => {
-            if (closestTag) {
-                // Start a secondary 500ms cooldown before actually triggering the action
-                _tagActionTimeout = setTimeout(() => {
-                    if (window._blockTagDialActions) return; // Block trigger from layout-reflow scroll adjustments
-                    
-                    if (closestTag.textContent !== window._lastFilteredTag) {
-                        window._lastFilteredTag = closestTag.textContent;
-                        if (closestTag.textContent.toLowerCase() === 'search') {
-                            openSearchOverlay();
-                        } else if (closestTag.textContent.toLowerCase() === 'all') {
-                            exitGridMode();
-                        } else {
-                            filterProjects(closestTag.textContent, closestTag);
-                        }
-                    }
-                }, 500);
+            if (!closestTag) return;
+            const tagText = closestTag.textContent.toLowerCase().trim();
+            if (tagText === 'filters') return; // already handled above
+            if (window._blockTagDialActions) return;
+            
+            if (closestTag.textContent !== window._lastFilteredTag) {
+                window._lastFilteredTag = closestTag.textContent;
+                if (tagText === 'search') {
+                    openSearchOverlay();
+                } else if (tagText === 'all') {
+                    exitGridMode();
+                } else {
+                    filterProjects(closestTag.textContent, closestTag);
+                }
             }
-        }, 150); // 150ms debounce for stopping
+        }, 80);
     });
 }
