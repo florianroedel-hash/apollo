@@ -124,8 +124,9 @@ function calibrateDropdownFont() {
 }
 
 window.toggleMenu = function(id, wrapper, event) {
-    if(event.target.tagName === 'A') return; 
-    event.stopPropagation(); 
+    if(event.target.tagName === 'A') return;
+    if(window._blockMenuToggle) return; // ghost-tap guard after closing a spread
+    event.stopPropagation();
     
     const col = document.getElementById('col-' + id);
     const isOpen = col.classList.contains('menu-open');
@@ -400,7 +401,7 @@ window.openSearchOverlay = function() {
             return name.includes(query) || desc.includes(query);
         });
 
-        matches = matches.slice(0, 5);
+        matches = matches.slice(0, window.innerWidth <= 900 ? 2 : 5);
 
         matches.forEach(p => {
             const card = document.createElement('div');
@@ -420,11 +421,112 @@ window.openSearchOverlay = function() {
     });
 };
 
+window.checkMobileTutorial = function() {
+    if (window.innerWidth > 900) return; // Only on mobile
+    if (sessionStorage.getItem('apolloTutorialSeen')) return; // Only once per visit
+    sessionStorage.setItem('apolloTutorialSeen', 'true');
+
+    const tut = document.createElement('div');
+    tut.id = 'mobile-tutorial-overlay';
+    tut.innerHTML = `
+        <style>
+            #mobile-tutorial-overlay {
+                position: fixed; inset: 0; z-index: 1000000;
+                background: rgba(0,0,0,0.6); backdrop-filter: blur(2px);
+                color: white; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+                overflow: hidden; pointer-events: auto;
+                animation: fadeIn 0.5s ease forwards;
+            }
+            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            
+            .tut-dashed { position: absolute; border: 1.5px dashed rgba(255,255,255,0.7); pointer-events: none; border-radius: 4px; }
+            .tut-label { position: absolute; font-size: 0.65rem; line-height: 1.4; text-transform: uppercase; text-shadow: 0 1px 4px rgba(0,0,0,0.9); font-weight: 500; letter-spacing: 0.5px; }
+            .tut-line { position: absolute; background: rgba(255,255,255,0.6); }
+
+            /* Header + */
+            .tut-box-menu { top: 2.5rem; right: 6vw; width: 2.5rem; height: 2.5rem; border: none; }
+            .tut-plus-h { position: absolute; top: 50%; left: 0; width: 100%; border-top: 1.5px dashed rgba(255,255,255,0.9); transform: translateY(-50%); }
+            .tut-plus-v { position: absolute; top: 0; left: 50%; height: 100%; border-left: 1.5px dashed rgba(255,255,255,0.9); transform: translateX(-50%); }
+            .tut-label-menu { top: 5.5rem; right: 8vw; text-align: right; }
+            .tut-line-menu { top: 4.8rem; right: 7vw; width: 1.5px; height: 0.8rem; }
+
+            /* Tag dial */
+            .tut-label-dial { bottom: 2.5rem; left: 50%; transform: translateX(-50%); text-align: center; width: 100%; font-size: 0.8rem; letter-spacing: 1px; }
+
+            /* Stack */
+            .tut-box-stack { top: 50%; left: 50%; transform: translate(-50%, -50%); width: 68vw; height: 95vw; }
+            .tut-label-stack { top: 2.5rem; left: 50%; transform: translateX(-50%); width: 100%; text-align: center; }
+            
+            /* Circle */
+            .tut-box-circle { bottom: 3.5rem; left: 43%; transform: translateX(-50%); width: 2.5rem; height: 2.5rem; border-radius: 50%; border: 1.5px dashed rgba(255,255,255,0.9); }
+            .tut-label-circle { bottom: 7rem; left: 43%; transform: translateX(-50%); width: 150%; text-align: center; }
+            .tut-line-circle { bottom: 6rem; left: 43%; transform: translateX(-50%); width: 1.5px; height: 0.8rem; }
+
+            /* Greeting */
+            .tut-greeting {
+                position: absolute; top: calc(50% + 47.5vw + 1.5rem); left: 8vw; width: 84vw;
+                background: transparent; color: white;
+                padding: 0; border-radius: 0; font-size: 0.75rem; line-height: 1.5;
+                box-shadow: none; text-transform: none; text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+                box-sizing: border-box; font-weight: 500; text-align: center;
+            }
+        </style>
+        
+        <!-- Dashed Boxes -->
+        <div class="tut-dashed tut-box-menu">
+            <div class="tut-plus-h"></div>
+            <div class="tut-plus-v"></div>
+        </div>
+        
+        <!-- Stack container for relative positioning -->
+        <div class="tut-dashed tut-box-stack" style="border:none;">
+            <div class="tut-dashed" style="inset:0; border: 1.5px dashed rgba(255,255,255,0.7); border-radius: 4px;"></div>
+            <div class="tut-label tut-label-stack">click here to<br>see next project</div>
+            
+            <div class="tut-dashed tut-box-circle"></div>
+            <div class="tut-label tut-label-circle">click circle to<br>open project</div>
+            <div class="tut-line tut-line-circle"></div>
+        </div>
+
+        <!-- Lines and Labels -->
+        <div class="tut-line tut-line-menu"></div>
+        <div class="tut-label tut-label-menu">click + for<br>more options</div>
+
+        <div class="tut-label tut-label-dial">← swipe here →</div>
+
+        <div class="tut-label" style="top: 50%; left: 3vw; transform: translateY(-50%); font-size: 1.2rem;">←</div>
+        <div class="tut-label" style="top: 50%; left: 7vw; transform: translateY(-50%) rotate(180deg); writing-mode: vertical-rl;">calendar</div>
+
+        <div class="tut-label" style="top: 50%; right: 3vw; transform: translateY(-50%); font-size: 1.2rem;">→</div>
+        <div class="tut-label" style="top: 50%; right: 7vw; transform: translateY(-50%); writing-mode: vertical-rl;">magazine</div>
+
+        <div class="tut-greeting">
+            thank you for visiting our website, thank you for your interest in apollo, we are really proud and also we are no webdesigners - thanks for not getting angry if there is a bug and even better if you tell us there is one - you can just send a dm on instagram, there is no form needed - the apollo team
+        </div>
+    `;
+    
+    tut.onclick = function() {
+        tut.style.animation = 'fadeOut 0.4s ease forwards';
+        setTimeout(() => tut.remove(), 400);
+    };
+    
+    // Add fadeOut keyframes if not exists
+    if (!document.getElementById('tut-fadeout')) {
+        const fadeOutStyle = document.createElement('style');
+        fadeOutStyle.id = 'tut-fadeout';
+        fadeOutStyle.innerHTML = '@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }';
+        document.head.appendChild(fadeOutStyle);
+    }
+    
+    document.body.appendChild(tut);
+};
+
 function liftFog() {
     document.body.classList.remove('focus-state');
     document.body.classList.add('active-state');
     renderDashboard();
     calibrateDropdownFont();
+    if (typeof window.checkMobileTutorial === 'function') window.checkMobileTutorial();
 }
 
 function renderDashboard() {
@@ -689,7 +791,7 @@ function createCard(p, isGrid) {
         <div class="paper-card-bg"></div>
         <div class="card-inner-frame"></div>
         ${note}
-        <div class="belly-band" onclick="handleMobileTap(event, '${p.id}', this.closest('.card-wrapper'))">
+        <div class="belly-band" onclick="handleMobileTap(event, '${p.id}', this.closest('.card-wrapper'), true)">
             <div class="belly-seam"></div>
             <div class="belly-tape" style="background-color: #e8e4d9"></div>
         </div>`;
@@ -755,20 +857,119 @@ window.openLightbox = function(index, event) {
             else if (e.key === 'ArrowRight') window.nextSlide(e);
         };
         document.addEventListener('keydown', box._keyHandler);
+
+        box._wheelHandler = (e) => {
+            // Check if we are scrolling inside a scrollable area (like the postit text)
+            let el = e.target;
+            let isScrollable = false;
+            while (el && el !== box) {
+                if (el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth) {
+                    const style = window.getComputedStyle(el);
+                    if (style.overflowY === 'auto' || style.overflowY === 'scroll' || 
+                        style.overflowX === 'auto' || style.overflowX === 'scroll') {
+                        isScrollable = true;
+                        break;
+                    }
+                }
+                el = el.parentElement;
+            }
+            if (isScrollable) return;
+
+            if (box._wheelTimeout) return;
+            let delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+            if (Math.abs(delta) > 5) {
+                if (delta > 0) window.nextSlide(e);
+                else window.prevSlide(e);
+                
+                box._wheelTimeout = setTimeout(() => {
+                    box._wheelTimeout = null;
+                }, 450); // Cooldown to snap-in one at a time
+            }
+        };
+        box.addEventListener('wheel', box._wheelHandler, { passive: true });
     }
     
     const item = gallery[index];
-    const safeSrc = getSafeImg(item.src);
-    const desc = item.desc;
     const showArrows = gallery.length > 1;
+
+    let contentHtml = '';
+    if (item.type === 'postit') {
+        const p = item.p;
+        const noteHtml = `
+            <img src="logo.png" class="stamp-logo">
+            <div class="note-ref-code">[ REF: ARC-${p.id.substring(0,6).toUpperCase()} ]</div>
+            <div class="note-divider"></div>
+            <div class="note-title">${p.metadata.name}</div>
+            <div class="note-divider"></div>
+            <div class="note-meta-grid">
+                ${getNoteGridHtml(p)}
+            </div>
+            <div class="note-divider"></div>
+            <div class="note-text-content" style="display: block; -webkit-line-clamp: unset; overflow: visible;">${p.metadata.description || ''}</div>
+        `;
+        // Measure exact post-it height dynamically to scale
+        const dummy = document.createElement('div');
+        dummy.style.visibility = 'hidden';
+        dummy.style.position = 'absolute';
+        dummy.style.width = '272px';
+        dummy.className = 'bookmark-note spread-note';
+        dummy.innerHTML = noteHtml;
+        document.body.appendChild(dummy);
+        let nativeHeight = dummy.offsetHeight || 400;
+        document.body.removeChild(dummy);
+        
+        let vh = window.innerHeight;
+        let vw = window.innerWidth;
+        let scaleH = (vh * 0.60) / nativeHeight;
+        let scaleW = (vw * 0.60) / 272;
+        let optimalScale = Math.min(scaleH, scaleW, 1.5);
+        
+        contentHtml = `
+            <div style="transform: scale(${optimalScale}); transform-origin: center; cursor: default; position: absolute; top: 50%; left: 50%; margin-top: -${nativeHeight/2}px; margin-left: -136px;" onclick="event.stopPropagation()">
+                <div class="bookmark-note spread-note" style="margin:0; width:272px; min-width:unset; transform:none; position: relative;">
+                    ${noteHtml}
+                </div>
+            </div>
+        `;
+    } else {
+        const safeSrc = getSafeImg(item.src);
+        const desc = item.desc;
+        contentHtml = `
+            <img src="${safeSrc}" alt="Detail View" onclick="event.stopPropagation()">
+            ${desc ? `<div class="lightbox-caption" onclick="event.stopPropagation()">${desc}</div>` : ''}
+        `;
+    }
+
+    // Generate thumbnails
+    let thumbHtml = '';
+    gallery.forEach((gItem, idx) => {
+        let activeClass = idx === index ? 'active-swipe-tag' : '';
+        if (gItem.type === 'postit') {
+            thumbHtml += `<span class="tag-filter highlight-link spread-thumb-item ${activeClass}" style="padding: 0.5rem 0.6rem !important; display:inline-flex; align-items:center; justify-content:center; overflow:visible; width:3.5rem; height:2.5rem; box-sizing:border-box; margin: 0 0.2rem; cursor: pointer; pointer-events: auto;" onclick="openLightbox(${idx}, event)">
+                <img src="logo.png" style="width:100%;height:100%;object-fit:contain;border-radius:0.2rem;display:block;background:white;padding:0.3rem;box-sizing:border-box;">
+            </span>`;
+        } else {
+            thumbHtml += `<span class="tag-filter highlight-link spread-thumb-item ${activeClass}" style="padding: 0.5rem 0.6rem !important; display:inline-flex; align-items:center; justify-content:center; overflow:visible; width:3.5rem; height:2.5rem; box-sizing:border-box; margin: 0 0.2rem; cursor: pointer; pointer-events: auto;" onclick="openLightbox(${idx}, event)">
+                <img src="${getSafeImg(gItem.src)}" style="width:100%;height:100%;object-fit:cover;border-radius:0.2rem;display:block;">
+            </span>`;
+        }
+    });
     
     box.innerHTML = `
-        <div class="close-minus" style="position: absolute; top: 3.5rem; right: 4rem; color: white; z-index: 1000005;" onclick="window.closeLightbox(event)" ontouchstart="window.closeLightbox(event)">–</div>
-        ${showArrows ? '<div class="lightbox-nav lightbox-prev" onclick="prevSlide(event)">&#10094;</div>' : ''}
-        <img src="${safeSrc}" alt="Detail View" onclick="event.stopPropagation()">
-        ${desc ? `<div class="lightbox-caption" onclick="event.stopPropagation()">${desc}</div>` : ''}
-        ${showArrows ? '<div class="lightbox-nav lightbox-next" onclick="nextSlide(event)">&#10095;</div>' : ''}
+        <div class="close-minus" style="position: absolute; top: 3.5rem; right: 4rem; color: black; z-index: 1000005;" onclick="window.closeLightbox(event)" ontouchstart="window.closeLightbox(event)">–</div>
+        ${contentHtml}
+        <div class="lightbox-thumb-strip" style="position: absolute; bottom: 2rem; width: 100%; display: flex; justify-content: safe center; align-items: center; z-index: 1000005;">
+            ${thumbHtml}
+        </div>
     `;
+    
+    const strip = box.querySelector('.lightbox-thumb-strip');
+    const activeThumb = box.querySelector('.active-swipe-tag');
+    if (strip && activeThumb) {
+        requestAnimationFrame(() => {
+            activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+        });
+    }
     
     box.onclick = window.closeLightbox;
     window.currentLightboxIndex = index;
@@ -806,64 +1007,6 @@ window.nextSlide = function(event) {
     let idx = window.currentLightboxIndex + 1;
     if (idx >= gallery.length) idx = 0;
     window.openLightbox(idx, event);
-};
-
-window.openPostitLightbox = function(event) {
-    if (event) event.stopPropagation();
-    const p = window.currentPostitData;
-    if (!p) return;
-    
-    const htmlContent = `
-        <img src="logo.png" class="stamp-logo">
-        <div class="note-ref-code">[ REF: ARC-${p.id.substring(0,6).toUpperCase()} ]</div>
-        <div class="note-divider"></div>
-        <div class="note-title">${p.metadata.name}</div>
-        <div class="note-divider"></div>
-        <div class="note-meta-grid">
-            ${getNoteGridHtml(p)}
-        </div>
-        <div class="note-divider"></div>
-        <div class="note-text-content" style="display: block; -webkit-line-clamp: unset; overflow: visible;">${p.metadata.description || ''}</div>
-    `;
-
-    // Measure exact post-it height dynamically
-    const dummy = document.createElement('div');
-    dummy.style.visibility = 'hidden';
-    dummy.style.position = 'absolute';
-    dummy.style.width = '272px';
-    dummy.className = 'bookmark-note spread-note';
-    dummy.innerHTML = htmlContent;
-    document.body.appendChild(dummy);
-    let nativeHeight = dummy.offsetHeight;
-    document.body.removeChild(dummy);
-    if (!nativeHeight || nativeHeight < 100) nativeHeight = 400;
-
-    const box = document.createElement('div');
-    box.id = 'spread-lightbox';
-    
-    // Calculate scale factor to make it fill the screen just like the images do (85vh max)
-    let vh = window.innerHeight;
-    let vw = window.innerWidth;
-    let scaleH = (vh * 0.85) / nativeHeight;
-    let scaleW = (vw * 0.90) / 272;
-    let optimalScale = Math.min(scaleH, scaleW, 4); // Cap at 4x to prevent extreme zooming
-    
-    // Use the existing lightbox styles, but center the post-it content and scale it up to fullscreen
-    box.innerHTML = `
-        <div style="transform: scale(${optimalScale}); transform-origin: center; cursor: default;" onclick="event.stopPropagation()">
-            <div class="bookmark-note spread-note" style="margin:0; width:272px; min-width:unset; transform:none;">
-                ${htmlContent}
-            </div>
-        </div>
-    `;
-    box.onclick = () => {
-        box.style.opacity = '0';
-        setTimeout(() => box.remove(), 300);
-    };
-    document.body.appendChild(box);
-    requestAnimationFrame(() => {
-        box.style.opacity = '1';
-    });
 };
 
 function initSpreadCanvas(containerId, contentId, contentWidth, contentHeight) {
@@ -969,14 +1112,43 @@ function unfoldProject(id) {
     };
     document.addEventListener('keydown', window._spreadEscHandler);
     
+    window.toggleMobileImageZoom = function(box) {
+        if(box.style.width === '150vw') {
+            box.style.width = '100vw';
+            const imgContainer = box.querySelector('.mobile-img-container');
+            if(imgContainer) imgContainer.style.overflowX = 'hidden';
+            const img = box.querySelector('img');
+            if(img) {
+                img.style.objectFit = 'contain';
+                img.style.width = '90%';
+                img.style.maxWidth = '';
+                img.style.cursor = 'zoom-in';
+            }
+        } else {
+            box.style.width = '150vw';
+            const imgContainer = box.querySelector('.mobile-img-container');
+            if(imgContainer) imgContainer.style.overflowX = 'auto';
+            const img = box.querySelector('img');
+            if(img) {
+                img.style.objectFit = '';
+                img.style.width = 'max-content';
+                img.style.maxWidth = 'none';
+                img.style.cursor = 'zoom-out';
+            }
+        }
+    };
+
     window.closeMobileSpread = function(btn) {
         document.body.classList.remove('spread-open');
-        const fb = document.getElementById('filter-bar');
-        if(fb){ fb.style.opacity='1'; fb.style.pointerEvents='auto'; }
         
         // Find the overlay wrapper and remove it
         let overlay = btn.closest('#unfold-overlay') || btn.parentElement;
         if(overlay) overlay.remove();
+        
+        // Block ghost-tap: the touch-through from the minus button would otherwise
+        // immediately trigger the ARCHIVE toggleMenu beneath it (~300ms delay)
+        window._blockMenuToggle = true;
+        setTimeout(() => { window._blockMenuToggle = false; }, 400);
         
         document.removeEventListener('keydown', window._spreadEscHandler);
         window.history.pushState({}, '', window.location.pathname);
@@ -984,6 +1156,16 @@ function unfoldProject(id) {
             window.cameFromSearch=false; 
             document.body.classList.add('search-open'); 
             document.addEventListener('keydown', window._searchEscHandler); 
+        }
+
+        // Restore the tag dial in the filter-bar
+        if (window.innerWidth <= 900) {
+            filterBar._spreadThumbActive = false;
+            filterBar._magDialActive = false;
+            generateDynamicTags();
+        } else {
+            filterBar.style.opacity = '1';
+            filterBar.style.pointerEvents = 'auto';
         }
     };
 
@@ -1212,53 +1394,58 @@ function unfoldProject(id) {
                 let contentHeight = maxY - minY;
                 let html = '';
                 
-                window.currentLightboxGallery = allItems.filter(i => i.type === 'image');
+                window.currentLightboxGallery = allItems;
                 
                 if (window.innerWidth <= 900) {
                     const postitItem = allItems.find(i => i.type === 'postit');
-                    const imageItems = window.currentLightboxGallery;
+                    const imageItems = allItems.filter(i => i.type === 'image');
 
                     html += '<div class="mobile-project-layout" style="display: flex; flex-direction: column; width: 100vw; height: 100svh; overflow: hidden;">';
                     
-                    // Add a mobile-specific close minus button that is guaranteed to be on top of the layout!
+                    // Close button floating above everything
                     html += '<div class="close-minus" style="position: absolute; top: 3.5rem; right: 4rem; z-index: 1000000; color: black;" onclick="window.closeMobileSpread(this)" ontouchstart="window.closeMobileSpread(this)">–</div>';
 
-                    // Top Gallery (Swipeable)
-                    html += '<div class="mobile-swipe-gallery" style="flex: 1; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; align-items: center; padding-top: 10rem;">';
-                    imageItems.forEach((item, idx) => {
-                        const isWide = item.width > item.height * 1.2;
-                        const widthStyle = isWide ? 'width: 150vw;' : 'width: 100vw;';
-                        html += `
-                        <div class="mobile-gallery-box" style="flex-shrink: 0; scroll-snap-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; ${widthStyle}">
-                            <div class="mobile-img-container" style="width: 100%; height: 50%; ${isWide ? 'overflow-x: auto; overflow-y: hidden;' : ''} display: flex; align-items: center; justify-content: center;">
-                                <img src="${getSafeImg(item.src)}" alt="${item.name}" style="${isWide ? 'height: 100%; width: max-content; max-width: none;' : 'width: 90%; height: 100%; object-fit: contain;'}" onclick="event.stopPropagation(); openLightbox(${idx})">
-                            </div>
-                            <div class="mobile-img-title" style="margin-top: 1rem; font-family: monospace; font-size: 1.2rem; font-weight: bold;">${item.name}</div>
-                        </div>`;
-                    });
-                    html += '</div>';
+                    // Single horizontal swipe gallery: post-it first, then images
+                    html += '<div class="mobile-swipe-gallery" style="flex: 1; height: 100svh; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; align-items: stretch;">';
 
-                    // Bottom Post-it and Share Button
+                    // --- Slide 0: Post-it ---
                     if (postitItem) {
                         window.currentPostitData = postitItem.p;
                         html += `
-                        <div class="mobile-postit-wrapper" style="width: 100vw; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10;">
-                            <div class="bookmark-note" style="position: relative; width: 90%; max-width: 400px; transform: none; box-shadow: none; padding: 1.5rem; max-height: 30vh; display: flex; flex-direction: column; margin-bottom: 1rem;">
-                                <div style="overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; touch-action: pan-y; z-index: 1; width: 100%; font-size: clamp(0.7rem, 2.5vw, 1rem); word-break: break-word;">
-                                    <img src="logo.png" class="stamp-logo">
-                                    <div class="note-ref-code">[ REF: ARC-${postitItem.p.id.substring(0,6).toUpperCase()} ]</div>
-                                    <div class="note-divider"></div>
-                                    <div class="note-title" style="word-break: break-word; hyphens: auto;">${postitItem.p.metadata.name}</div>
-                                    <div class="note-divider"></div>
-                                    <div class="note-meta-grid" style="width: 100%; overflow: hidden;">${getNoteGridHtml(postitItem.p)}</div>
-                                    <div class="note-divider"></div>
-                                    <div class="note-text-content" style="word-break: break-word;">${postitItem.p.metadata.description || ''}</div>
+                        <div class="mobile-gallery-box" style="flex-shrink: 0; scroll-snap-align: center; width: 100vw; height: 100%; min-height: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 0 2rem; box-sizing: border-box;">
+                            <div class="mobile-postit-wrapper" style="width: 100%; height: 100%; min-height: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; background: transparent;">
+                                <div class="bookmark-note spread-note" style="position: relative; width: 90%; max-width: 400px; transform: none; box-shadow: 0 0.5rem 2rem rgba(0,0,0,0.08); padding: 1.5rem; max-height: 100%; display: flex; flex-direction: column; margin-bottom: 1.5rem;">
+                                    <div style="overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; touch-action: pan-y; z-index: 1; width: 100%; height: 100%; font-size: clamp(0.7rem, 2.5vw, 1rem); word-break: break-word;">
+                                        <img src="logo.png" class="stamp-logo">
+                                        <div class="note-ref-code">[ REF: ARC-${postitItem.p.id.substring(0,6).toUpperCase()} ]</div>
+                                        <div class="note-divider"></div>
+                                        <div class="note-title" style="word-break: break-word; hyphens: auto;">${postitItem.p.metadata.name}</div>
+                                        <div class="note-divider"></div>
+                                        <div class="note-meta-grid" style="width: 100%; overflow: hidden;">${getNoteGridHtml(postitItem.p)}</div>
+                                        <div class="note-divider"></div>
+                                        <div class="note-text-content" style="word-break: break-word;">${postitItem.p.metadata.description || ''}</div>
+                                    </div>
                                 </div>
+                                <button class="tag-filter highlight-link" style="cursor: pointer; background: transparent; border: none; font-family: inherit; font-size: 1rem; color: #FFF; text-transform: lowercase; font-weight: bold;" onclick="window.copyProjectUrl('${postitItem.p.id}', this)">share</button>
+                                <div style="margin-top: 1.5rem; font-family: monospace; font-size: 0.9rem; color: #FFF; opacity: 0.7; letter-spacing: 0.05em;">swipe for images →</div>
                             </div>
-                            <button class="tag-filter highlight-link" style="cursor: pointer; background: transparent; border: none; font-family: inherit; font-size: 1rem; color: #000; text-transform: lowercase; font-weight: bold;" onclick="window.copyProjectUrl('${postitItem.p.id}', this)">share</button>
                         </div>`;
                     }
-                    html += '</div>';
+
+                    // --- Slides 1…n: Project images ---
+                    imageItems.forEach((item, idx) => {
+                        const isWide = item.width > item.height * 1.2;
+                        html += `
+                        <div class="mobile-gallery-box" style="flex-shrink: 0; scroll-snap-align: center; height: 100%; min-height: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 0 2rem; box-sizing: border-box; position: relative; width: 100vw;">
+                            <div class="mobile-img-container" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow-x: hidden;" ${isWide ? 'onclick="window.toggleMobileImageZoom(this.parentElement)"' : ''}>
+                                <img src="${getSafeImg(item.src)}" alt="${item.name}" style="width: 90%; height: 100%; object-fit: contain; ${isWide ? 'cursor: zoom-in;' : ''}">
+                            </div>
+                            <div class="mobile-img-title" style="position: absolute; bottom: 0; width: 100%; left: 0; font-family: monospace; font-size: 0.9rem; text-align: center; color: #FFF; opacity: 0.7;">${item.name}</div>
+                        </div>`;
+                    });
+
+                    html += '</div>'; // end swipe gallery
+                    html += '</div>'; // end mobile-project-layout
 
                     const content = document.getElementById('canvas-content');
                     if(content) {
@@ -1271,7 +1458,75 @@ function unfoldProject(id) {
                     const loadingMsg = document.getElementById('spread-loading');
                     if(loadingMsg) loadingMsg.remove();
                     document.getElementById('canvas-container').style.opacity = '1';
-                    
+
+                    // --- Thumbnail strip in filter-bar ---
+                    // Replaces the tag dial while the spread is open.
+                    // Slide 0 = post-it (no thumbnail), slides 1…n = images.
+                    if (window.innerWidth <= 900) {
+                        filterBar._spreadThumbActive = true;
+                        filterBar._magDialActive = false;
+                        filterBar.innerHTML = '';
+                        filterBar.classList.remove('tags-collapsed','tags-expanded','hover-expanded','mag-chapters-collapsed','mag-chapters-expanded');
+
+                        const gallery = content.querySelector('.mobile-swipe-gallery');
+                        const slides = gallery ? Array.from(gallery.children) : [];
+
+                        allItems.forEach((item, idx) => {
+                            const thumb = document.createElement('span');
+                            thumb.className = 'tag-filter highlight-link spread-thumb-item';
+                            thumb.dataset.slideIndex = idx;
+                            thumb.style.cssText = 'padding: 0.5rem 0.6rem !important; display:inline-flex; align-items:center; justify-content:center; overflow:visible; width:3.5rem; height:2.5rem; box-sizing:border-box; margin: 0 0.2rem;';
+                            if (item.type === 'postit') {
+                                thumb.innerHTML = `<img src="logo.png" alt="Post-it Note" style="width:100%;height:100%;object-fit:contain;border-radius:0.2rem;display:block;background:white;padding:0.3rem;box-sizing:border-box;">`;
+                            } else {
+                                thumb.innerHTML = `<img src="${getSafeImg(item.src)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:0.2rem;display:block;">`;
+                            }
+                            thumb.onclick = () => {
+                                const target = slides[idx];
+                                if (target && gallery) gallery.scrollTo({ left: target.offsetLeft, behavior: 'smooth' });
+                            };
+                            filterBar.appendChild(thumb);
+                        });
+
+                        filterBar.style.opacity = '1';
+                        filterBar.style.pointerEvents = 'auto';
+
+                        // Sync bracket to currently visible slide
+                        const syncThumb = () => {
+                            if (!filterBar._spreadThumbActive) return;
+                            if (!gallery) return;
+                            if (window._ignoreGalleryScroll && Date.now() < window._ignoreGalleryScroll) return;
+
+                            const slideW = gallery.offsetWidth;
+                            const scrolled = gallery.scrollLeft;
+                            const slideIdx = Math.round(scrolled / slideW); // 0 = post-it slide
+                            const thumbs = Array.from(filterBar.querySelectorAll('.spread-thumb-item'));
+                            
+                            let activeThumb = null;
+                            thumbs.forEach((t, i) => {
+                                const isActive = i === slideIdx;
+                                t.classList.toggle('active-swipe-tag', isActive);
+                                if (isActive) activeThumb = t;
+                            });
+
+                            if (activeThumb) {
+                                const thumbCenter = activeThumb.offsetLeft + activeThumb.offsetWidth / 2;
+                                const barCenter = filterBar.offsetWidth / 2;
+                                const targetScroll = thumbCenter - barCenter;
+                                if (Math.abs(filterBar.scrollLeft - targetScroll) > 5) {
+                                    window._ignoreFilterBarScroll = Date.now() + 500;
+                                    filterBar.scrollTo({ left: targetScroll, behavior: 'smooth' });
+                                }
+                            }
+                        };
+
+                        if (gallery) {
+                            gallery.addEventListener('scroll', syncThumb, { passive: true });
+                            // Init: post-it slide is visible, no thumb active yet
+                            syncThumb();
+                        }
+                    }
+
                     // Do NOT init physics engine
                 } else {
                     allItems.forEach(item => {
@@ -1281,9 +1536,10 @@ function unfoldProject(id) {
                         
                         if (item.type === 'postit') {
                             window.currentPostitData = item.p;
+                            const postitIndex = window.currentLightboxGallery.findIndex(g => g.type === 'postit');
                             html += `
                             <div style="${style}">
-                                <div class="bookmark-note spread-note" style="position: absolute !important; bottom: 0 !important; margin:0; width:272px; min-width:unset; transform: scale(${item.scaleFactor}); transform-origin: bottom center; cursor: pointer; transition: transform 0.2s;" onclick="openPostitLightbox(event)">
+                                <div class="bookmark-note spread-note" style="position: absolute !important; bottom: 0 !important; margin:0; width:272px; min-width:unset; transform: scale(${item.scaleFactor}); transform-origin: bottom center; cursor: pointer; transition: transform 0.2s;" onclick="openLightbox(${postitIndex}, event)">
                                     <img src="logo.png" class="stamp-logo">
                                     <div class="note-ref-code">[ REF: ARC-${item.p.id.substring(0,6).toUpperCase()} ]</div>
                                     <div class="note-divider"></div>
@@ -1558,6 +1814,7 @@ window.openHistory = function() {
     if (marquee) marquee.style.opacity = '0';
     
     document.body.classList.add('spread-open');
+    document.body.classList.add('history-open');
     const over = document.createElement('div');
     over.id = 'unfold-overlay';
     over.classList.add('glass-overlay'); // Adds the blur effect matching magazine
@@ -1601,7 +1858,7 @@ window.openHistory = function() {
     }).join('');
     
     over.innerHTML = `
-        <div class="close-minus" onclick="document.body.classList.remove('spread-open'); this.parentElement.remove(); document.getElementById('col-archive').style.opacity = '1'; const mq=document.querySelector('.marquee-wrapper'); if(mq) mq.style.opacity='1'; const fb=document.getElementById('filter-bar'); if(fb){ fb.style.opacity=''; fb.style.pointerEvents=''; }" ontouchstart="document.body.classList.remove('spread-open'); this.parentElement.remove(); document.getElementById('col-archive').style.opacity = '1'; const mq=document.querySelector('.marquee-wrapper'); if(mq) mq.style.opacity='1'; const fb=document.getElementById('filter-bar'); if(fb){ fb.style.opacity=''; fb.style.pointerEvents=''; }">–</div>
+        <div class="close-minus" onclick="document.body.classList.remove('spread-open'); document.body.classList.remove('history-open'); this.parentElement.remove(); document.getElementById('col-archive').style.opacity = '1'; const mq=document.querySelector('.marquee-wrapper'); if(mq) mq.style.opacity='1'; const fb=document.getElementById('filter-bar'); if(fb){ fb.style.opacity=''; fb.style.pointerEvents=''; }" ontouchstart="document.body.classList.remove('spread-open'); document.body.classList.remove('history-open'); this.parentElement.remove(); document.getElementById('col-archive').style.opacity = '1'; const mq=document.querySelector('.marquee-wrapper'); if(mq) mq.style.opacity='1'; const fb=document.getElementById('filter-bar'); if(fb){ fb.style.opacity=''; fb.style.pointerEvents=''; }">–</div>
         <div class="history-pile-wrapper">
             <div class="history-pile">
                 ${sheetsHtml}
@@ -1910,13 +2167,25 @@ window.addEventListener('load', () => {
 });
 
 
-window.handleMobileTap = function(e, id, wrapper) {
+window.handleMobileTap = function(e, id, wrapper, fromBelly) {
     e.stopPropagation();
     if (window.innerWidth > 900 || document.body.classList.contains('grid-mode')) {
         unfoldProject(id);
         return;
     }
-    
+
+    // Belly-band tap: always open spread immediately, no enlarge step
+    if (fromBelly) {
+        if (window._activeMobilePostIt && window._activeMobilePostIt !== wrapper) {
+            window._activeMobilePostIt.style.transform = window._activeMobilePostIt.dataset.origTransform || '';
+            window._activeMobilePostIt.style.zIndex = window._activeMobilePostIt.dataset.origZIndex || '';
+        }
+        window._activeMobilePostIt = null;
+        unfoldProject(id);
+        return;
+    }
+
+    // Post-it / card tap: first tap enlarges, second opens spread
     if (window._activeMobilePostIt === wrapper) {
         unfoldProject(id);
     } else {
@@ -1961,6 +2230,38 @@ if (filterBar) {
         const currentScrollLeft = filterBar.scrollLeft;
         const scrollingRight = currentScrollLeft >= _prevScrollLeft;
         _prevScrollLeft = currentScrollLeft;
+
+        // --- Spread Thumbnail mode ---
+        if (filterBar._spreadThumbActive) {
+            if (window._ignoreFilterBarScroll && Date.now() < window._ignoreFilterBarScroll) return;
+
+            const thumbs = Array.from(filterBar.querySelectorAll('.spread-thumb-item'));
+            const centerLine = filterBar.getBoundingClientRect().width / 2;
+            let closest = null, minDiff = Infinity;
+            thumbs.forEach(t => {
+                const r = t.getBoundingClientRect();
+                const tc = r.left - filterBar.getBoundingClientRect().left + r.width / 2;
+                const d = Math.abs(tc - centerLine);
+                if (d < minDiff) { minDiff = d; closest = t; }
+                t.classList.remove('active-swipe-tag');
+            });
+            if (closest) {
+                closest.classList.add('active-swipe-tag');
+                clearTimeout(_tagScrollTimeout);
+                _tagScrollTimeout = setTimeout(() => {
+                    const targetIdx = parseInt(closest.dataset.slideIndex, 10);
+                    const gallery = document.querySelector('.mobile-swipe-gallery');
+                    if (gallery) {
+                        const slide = gallery.children[targetIdx];
+                        if (slide) {
+                            window._ignoreGalleryScroll = Date.now() + 500;
+                            gallery.scrollTo({ left: slide.offsetLeft, behavior: 'smooth' });
+                        }
+                    }
+                }, 50);
+            }
+            return;
+        }
 
         // --- Magazine dial mode ---
         if (filterBar._magDialActive) {
