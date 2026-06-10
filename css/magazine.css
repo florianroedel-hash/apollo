@@ -1,0 +1,137 @@
+#magazine-reader-overlay { position: fixed; inset: 0; background: rgba(30,30,30,0.7); backdrop-filter: blur(1.5rem); -webkit-backdrop-filter: blur(1.5rem); z-index: 100000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; }
+#magazine-reader-overlay .close-minus { color: white; }
+#magazine-cover-container { 
+    position: relative; padding: 3rem 2rem 4rem; 
+    background-color: rgba(255, 255, 255, 0.25); 
+    backdrop-filter: blur(0.5rem); -webkit-backdrop-filter: blur(0.5rem); 
+    box-shadow: 0 1.5rem 3.5rem rgba(0,0,0,0.15); transform: rotate(3deg); transition: 0.3s; width: 100%; max-height: 60vh; box-sizing: border-box; cursor: pointer; 
+}
+#magazine-cover-container::after {
+    content: ""; position: absolute; inset: 0;
+    background-image: url('../assets/textures/texture%20crumbled%20bag%20.jpg'); background-size: cover;
+    opacity: 0.45; pointer-events: none; z-index: 15; border-radius: inherit;
+}
+
+/* DO NOT OPEN — rubber stamp style */
+.vac-stamp {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%) rotate(-8deg);
+    z-index: 20;
+    width: auto;
+    padding: 0.45rem 0.9rem;
+    border: 0.2rem solid #B24F44;
+    outline: 0.08rem solid #B24F44;
+    outline-offset: 0.2rem;
+    color: #B24F44;
+    font-family: monospace;
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 0.18rem;
+    text-align: center;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0.82;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+    /* Slightly uneven/worn ink feel */
+    filter: contrast(1.1);
+}
+.vac-release { 
+    position: absolute; 
+    bottom: 0.5rem; 
+    right: 0.3rem; 
+    z-index: 20; 
+    font-family: monospace; 
+    font-size: 0.66rem; 
+    letter-spacing: 0.05rem; 
+    color: #111; 
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    opacity: 0.4; 
+    white-space: nowrap;
+    max-height: 85%;
+    overflow: hidden;
+}
+
+/* Barcode — larger, anchored to bottom-left corner of the packaging */
+.vac-barcode {
+    position: absolute;
+    bottom: 1rem;
+    left: 0.8rem;
+    z-index: 20;
+    width: 7rem;
+    height: 2rem;
+    background: repeating-linear-gradient(
+        to right,
+        #111 0px, #111 2px,
+        transparent 2px, transparent 5px,
+        #111 5px, #111 7px,
+        transparent 7px, transparent 11px,
+        #111 11px, #111 14px,
+        transparent 14px, transparent 17px,
+        #111 17px, #111 20px,
+        transparent 20px, transparent 22px,
+        #111 22px, #111 24px,
+        transparent 24px, transparent 28px,
+        #111 28px, #111 31px,
+        transparent 31px, transparent 35px,
+        #111 35px, #111 38px,
+        transparent 38px, transparent 40px,
+        #111 40px, #111 42px,
+        transparent 42px, transparent 46px,
+        #111 46px, #111 50px,
+        transparent 50px, transparent 52px,
+        #111 52px, #111 55px,
+        transparent 55px, transparent 58px,
+        #111 58px, #111 61px,
+        transparent 61px, transparent 64px,
+        #111 64px, #111 68px,
+        transparent 68px, transparent 70px,
+        #111 70px, #111 73px,
+        transparent 73px, transparent 77px,
+        #111 77px, #111 80px,
+        transparent 80px, transparent 83px,
+        #111 83px, #111 86px,
+        transparent 86px, transparent 89px,
+        #111 89px, #111 92px,
+        transparent 92px, transparent 96px,
+        #111 96px, #111 100px,
+        transparent 100px, transparent 104px,
+        #111 104px, #111 107px,
+        transparent 107px, transparent 110px,
+        #111 110px, #111 112px
+    );
+    opacity: 0.5;
+}
+
+/* Vacuum-seal weld effect: pushed out close to packaging edges */
+.vac-weld {
+    position: absolute;
+    inset: 0.4rem;
+    z-index: 16;
+    border-radius: 0.2rem;
+    pointer-events: none;
+    box-shadow:
+        inset 0 0 0 0.18rem rgba(255,255,255,0.55),
+        inset 0 0 0 0.38rem rgba(200,195,180,0.22),
+        inset 0 0 0 0.55rem rgba(255,255,255,0.12),
+        0 0 0 0.12rem rgba(180,170,150,0.3);
+    mix-blend-mode: screen;
+}
+
+#magazine-cover-container img { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 2; mix-blend-mode: multiply; opacity: 0.9; }
+
+/* Magazine bottom chapter and audio links */
+.magazine-footer { position: fixed; bottom: 4rem; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; z-index: 100003; pointer-events: auto; }
+.magazine-chapters { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5rem; max-width: 90rem; }
+.magazine-chapters .highlight-link { background: white; backdrop-filter: none; position: relative; z-index: 100004; pointer-events: auto; box-shadow: 0 0.2rem 1rem rgba(0,0,0,0.05); }
+.magazine-audio-btn { font-size: 1rem; font-weight: bold; padding: 0.5rem 1.5rem; background: rgba(255,255,255,0.5); backdrop-filter: blur(0.8rem); border-radius: 0.4rem; cursor: pointer; transition: 0.2s; border: none; box-shadow: 0 0.4rem 1.5rem rgba(0,0,0,0.06); text-transform: lowercase; }
+.magazine-scene { perspective: 250rem; width: 50vw; height: 75vh; position: relative; display: flex; align-items: center; justify-content: center; }
+.book-leaf { position: absolute; width: 50%; height: 100%; right: 0; transform-origin: left center; transform-style: preserve-3d; transition: 0.8s; cursor: pointer; }
+.book-leaf.flipped { transform: rotateY(-180deg); }
+.page-front, .page-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; background: none; box-shadow: none; display: flex; align-items: center; justify-content: center; padding: 0; box-sizing: border-box; }
+.page-back { transform: rotateY(180deg); }
+.page-front img, .page-back img { width: 100%; height: 100%; object-fit: contain; }
+
