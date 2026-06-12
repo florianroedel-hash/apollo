@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>Apollo Archive</title>
+    <meta name="description" content="Apollo Archive is an interactive, highly editorial web platform and digital exhibition space for architecture and urban design students.">
+    <meta name="referrer" content="no-referrer">
+    <meta property="og:title" content="Apollo Archive">
+    <meta property="og:description" content="Explore the digital exhibition space and publishing platform for architecture and urban design.">
+    <meta property="og:type" content="website">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Apollo Archive",
+      "description": "Interactive web platform for architecture and urban design students."
+    }
+    </script>
+    <link rel="stylesheet" href="css/base.css?v=14">
+    <link rel="stylesheet" href="css/header.css?v=14">
+    <link rel="stylesheet" href="css/dashboard.css?v=14">
+    <link rel="stylesheet" href="css/project.css?v=14">
+    <link rel="stylesheet" href="css/magazine.css?v=14">
+    <link rel="stylesheet" href="css/overlays.css?v=14">
+    <link rel="stylesheet" href="css/mobile.css?v=14">
+</head>
+<body class="focus-state">
+    
+    <div id="passcode-overlay">
+        <div id="loading-spinner-wrapper" style="display: flex; position: absolute; inset: 0; align-items: center; justify-content: center;">
+            <div style="position: relative; width: 22rem; display: inline-block;">
+                <!-- White engraved base -->
+                <img src="assets/images/apollologonextended.png" style="width: 100%; display: block; filter: brightness(0) invert(1) drop-shadow(-1px -1px 2px rgba(0,0,0,0.5)); opacity: 0.9;" alt="Loading Base">
+                <!-- Red fill layer -->
+                <div class="loading-fill-layer" style="position: absolute; inset: 0; background-color: #B24F44; -webkit-mask-image: url('assets/images/apollologonextended.png'); -webkit-mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; clip-path: inset(0 100% 0 0);"></div>
+            </div>
+        </div>
+    </div>
+
+    <header id="main-header">
+        <div class="header-columns">
+            
+            <div class="header-col left-col" id="col-apollo">
+                <div class="title-wrapper" onclick="toggleMenu('apollo', this, event)">
+                    <div class="menu-content">
+                        <div class="title-anchor">
+                            <h2 class="big-header-title" style="margin: 0; padding: 0; border: 0;">APOLLO</h2>
+                            <div class="dropdown-menu">
+                                <a href="#" class="highlight-link">contact</a>
+                                <a href="https://tally.so/r/81P1XY" target="_blank" class="highlight-link">join</a>
+                                <a onclick="openHistory()" class="highlight-link">history</a>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="menu-toggle plus-apollo">+</span>
+                </div>
+            </div>
+
+            <div class="header-col center-col" id="col-archive">
+                <div class="center-col-flex">
+                    <div class="title-wrapper" onclick="toggleMenu('archive', this, event)">
+                        <div class="menu-content">
+                            <div class="title-anchor">
+                                <h1 class="big-header-title archive-title" style="margin: 0; padding: 0; border: 0;">ARCHIVE</h1>
+                                <div class="dropdown-menu">
+                                    <a href="https://tally.so/r/LZJPYv" target="_blank" class="highlight-link">submit</a>
+                                    <a href="https://www.instagram.com/apollo.review" target="_blank" class="highlight-link">instagram</a>
+                                    <a href="https://pin.it/6n3uztWHe" target="_blank" class="highlight-link">pinterest</a>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="menu-toggle plus-archive">+</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="header-col right-col" id="col-magazine">
+                <div class="title-wrapper" onclick="toggleMenu('magazine', this, event)">
+                    <div class="menu-content">
+                        <div class="title-anchor">
+                            <h2 class="big-header-title" style="margin: 0; padding: 0; border: 0;">MAGAZINE</h2>
+                            <div class="dropdown-menu">
+                                <a href="https://tally.so/r/lb7BOX" target="_blank" class="highlight-link">submit</a>
+                                <a href="https://www.instagram.com/apollo.review" target="_blank" class="highlight-link">instagram</a>
+                                <a onclick="openAudioLibrary()" class="highlight-link">audio</a>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="menu-toggle plus-magazine">+</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="marquee-wrapper">
+            <div class="marquee-track" id="marquee-track"></div>
+        </div>
+    </header>
+
+    <main id="archive-stage">
+
+        <div id="dashboard-wrapper">
+            <section id="calendar-column" class="side-column"><div id="calendar-text"></div></section>
+            <section id="project-pile"></section>
+            <section id="magazine-column" class="side-column"><div id="magazine-cover-container" onclick="openMagazine()"></div></section>
+        </div>
+    </main>
+
+    <footer id="main-footer">
+        <nav id="filter-bar"></nav>
+    </footer>
+
+    <!-- Modular JS Files (Order is strictly important) -->
+    <script src="js/data.js?v=80"></script>
+    <script src="js/ui.js?v=80"></script>
+    <script src="js/spiral-magazine.js?v=80"></script>
+    <script src="js/dashboard.js?v=80"></script>
+    <script src="js/project.js?v=80"></script>
+    <script src="js/magazine.js?v=80"></script>
+    <script src="js/overlays.js?v=80"></script>
+    <script src="js/mobile-tutorial.js?v=80"></script>
+    <script src="js/init.js?v=80"></script>
+    <script src="js/mobile.js?v=80"></script>
+</body>
+</html>
