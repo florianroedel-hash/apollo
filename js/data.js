@@ -1,5 +1,5 @@
 // IMPORTANT: You only need ONE URL now. Paste the URL for your Master Control Center script here!
-const URL_MASTER = 'https://script.google.com/macros/s/AKfycbx4nDabR1zvlbIAyQCZ0FIg4PjAM_MmNVIWQNcVvxcvGHu_cDvKBnp29nqV7KRrL2Ee/exec';
+const URL_MASTER = 'data.json';
 
 const pile = document.getElementById('project-pile');
 const filterBar = document.getElementById('filter-bar');
