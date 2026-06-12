@@ -1,0 +1,233 @@
+/* SEARCH OVERLAY STYLES */
+#project-search-input { width: 80%; max-width: 800px; font-size: clamp(1.6rem, 8vw, 4.6rem); font-weight: bold; font-family: inherit; color: inherit; text-transform: uppercase; border: none; outline: none; background: transparent; text-align: center; border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 1rem; margin-bottom: 4rem; }
+#project-search-input::placeholder { color: rgba(0,0,0,0.2); }
+#search-results-grid { position: absolute; top: calc(50% + 5rem); left: 50%; transform: translateX(-50%); display: flex; flex-wrap: wrap; gap: 3rem; justify-content: center; width: 90%; max-width: 1200px; overflow-y: visible; padding-bottom: 5rem; }
+.search-result-card { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.3s; width: 200px; }
+.search-result-card:hover { transform: scale(1.05); }
+.search-result-card img { width: 100%; height: 260px; object-fit: cover; filter: drop-shadow(0 0.5rem 1rem rgba(0,0,0,0.1)); margin-bottom: 1rem; border-radius: 2px; }
+.search-result-title { font-size: 1rem; font-weight: bold; text-align: center; text-transform: uppercase; }
+.mobile-only-close { display: none; }
+
+
+/* ---------------------------------------------------- 
+   AUDIO LIBRARY (Split Column)
+   ---------------------------------------------------- */
+.audio-library-wrapper {
+    width: 100%;
+    height: 100vh;
+    height: 100svh;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 4rem;
+    padding: 0 5%;
+    box-sizing: border-box;
+}
+
+.audio-left-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    text-align: right;
+}
+
+.audio-right-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    text-align: left;
+    transform-origin: center center;
+    animation: popInMiddle 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
+}
+
+@keyframes popInMiddle {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.audio-category {
+    font-size: 2.2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: 0.2s;
+    margin-bottom: 0.5rem;
+}
+.audio-category:hover { opacity: 0.6; }
+
+.audio-sublist {
+    display: none;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+}
+.audio-category.expanded + .audio-sublist { display: flex; }
+
+.audio-track-link {
+    font-size: 1.2rem;
+    text-transform: lowercase;
+    cursor: pointer;
+    transition: 0.2s;
+    opacity: 0.7;
+}
+.audio-track-link:hover, .audio-track-link.active-track { opacity: 1; font-weight: bold; }
+
+.audio-player-ui {
+    position: relative;
+    background-color: #F1EED7; 
+    backdrop-filter: none; -webkit-backdrop-filter: none; 
+    box-shadow: 0 0.5rem 2.5rem rgba(0,0,0,0.1); 
+    padding: 2.5rem;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 25vw;
+    height: 35vw;
+    overflow-y: auto;
+}
+.audio-player-ui::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: url('../assets/textures/texture%20paper.jpg'); background-size: cover;
+    opacity: 0.25; z-index: 0; pointer-events: none;
+}
+.audio-player-ui > * { position: relative; z-index: 1; }
+.audio-player-ui::-webkit-scrollbar { display: none; }
+
+.audio-player-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    line-height: 1.1;
+}
+
+.audio-player-desc {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    opacity: 0.8;
+}
+
+.audio-controls-row {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* ---------------------------------------------------- 
+   HISTORY — A4 PAPER STACK WITH TABBED FOLDER LATCHES
+   ---------------------------------------------------- */
+.history-pile-wrapper {
+    width: 100%;
+    height: 100vh;
+    height: 100svh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.history-pile {
+    /* A4: width × √2 = height. Pile area matches magazine column size ~25vw wide */
+    width: 25vw;
+    height: calc(25vw * 1.4142);
+    position: relative;
+    margin-top: 6rem; /* account for latches above */
+}
+
+.history-sheet {
+    position: absolute;
+    inset: 0;
+    background: #F1EED7;
+    border: 1px solid #e8dfc0;
+    box-shadow: 0.3rem 0.6rem 2rem rgba(0,0,0,0.12);
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: transform 0.5s ease, opacity 0.5s ease;
+    will-change: transform;
+    backface-visibility: hidden;
+}
+.history-sheet::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: url('../assets/textures/texture%20paper.jpg'); background-size: cover;
+    opacity: 0.15; z-index: 0; pointer-events: none; border-radius: inherit;
+}
+.history-sheet > * { position: relative; z-index: 1; }
+
+.history-sheet-content {
+    width: 100%;
+    height: 100%;
+    padding: 2rem 2.5rem;
+    padding-top: 3rem;
+    box-sizing: border-box;
+    overflow: hidden;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: #333;
+}
+
+/* The latch — a small tab that protrudes above the top edge of the paper.
+   Its left position and width are set by inline JS styles.
+   Height matches the latch-height variable. */
+.history-latch {
+    position: absolute;
+    top: -2.6rem;     /* protrudes above the sheet */
+    height: 2.6rem;
+    background: #F1EED7;
+    border: 1px solid #e8dfc0;
+    border-bottom: none;
+    border-radius: 0.5rem 0.5rem 0 0;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.5rem;
+    box-shadow: -0.1rem -0.2rem 0.5rem rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+.history-latch::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: url('../assets/textures/texture%20paper.jpg'); background-size: cover;
+    opacity: 0.15; z-index: 0; pointer-events: none;
+}
+.history-latch > * { position: relative; z-index: 1; }
+
+.history-latch-title {
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: lowercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #555;
+    max-width: 100%;
+}
+body.spread-open .title-wrapper { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+
+.lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 3.5rem;
+    color: rgba(0,0,0,0.5);
+    cursor: pointer;
+    user-select: none;
+    padding: 2rem;
+    z-index: 1000001;
+    transition: color 0.2s, transform 0.2s;
+}
+.lightbox-nav:hover {
+    color: rgba(0,0,0,0.9);
+    transform: translateY(-50%) scale(1.1);
+}
+.lightbox-prev {
+    left: 2vw;
+}
+.lightbox-next {
+    right: 2vw;
+}
+
