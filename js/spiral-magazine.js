@@ -28,7 +28,7 @@ window.createSpiralMagazine = function(issue, index) {
     // Render spiral logic
     const srcImg = new Image();
     srcImg.onload = () => {
-        renderSpiral(canvas, srcImg);
+        renderSpiral(canvas, srcImg, issue);
     };
     srcImg.src = getSafeImg(issue.images[0]);
     
@@ -57,7 +57,7 @@ window.createSpiralMagazine = function(issue, index) {
             
             // Remove from background pile z-index stack temporarily
             wrapper.style.zIndex = '9999';
-        }, 1000);
+        }, 400);
     };
     
     wrapper.onmouseleave = () => {
@@ -81,12 +81,22 @@ window.createSpiralMagazine = function(issue, index) {
                     el.style.zIndex = '';
                 });
                 
+                // Hide all other tubes to focus on this one
+                document.querySelectorAll('.issue-container').forEach(el => {
+                    if (el !== wrapper) {
+                        el.style.opacity = '0';
+                        el.style.pointerEvents = 'none';
+                    }
+                });
+                
                 isUnrolled = true;
                 const rect = wrapper.getBoundingClientRect();
                 const cx = window.innerWidth / 2;
                 const cy = window.innerHeight / 2;
-                wrapper.style.setProperty('--tx', `${cx - (rect.left + rect.width / 2)}px`);
-                wrapper.style.setProperty('--ty', `${cy - (rect.top + rect.height / 2)}px`);
+                
+                let z = parseFloat(window.getComputedStyle(wrapper).zoom) || 1;
+                wrapper.style.setProperty('--tx', `${(cx - (rect.left + rect.width / 2)) / z}px`);
+                wrapper.style.setProperty('--ty', `${(cy - (rect.top + rect.height / 2)) / z}px`);
                 
                 wrapper.style.zIndex = '9999';
                 wrapper.classList.add('is-active');
@@ -95,6 +105,15 @@ window.createSpiralMagazine = function(issue, index) {
                     if (!wrapper.contains(ev.target)) {
                         wrapper.classList.remove('is-active');
                         isUnrolled = false;
+                        
+                        // Show all other tubes again
+                        document.querySelectorAll('.issue-container').forEach(el => {
+                            if (el !== wrapper) {
+                                el.style.opacity = '';
+                                el.style.pointerEvents = '';
+                            }
+                        });
+                        
                         setTimeout(() => wrapper.style.zIndex = '', 600);
                         document.removeEventListener('touchstart', outsideClick);
                     }
@@ -111,8 +130,19 @@ window.createSpiralMagazine = function(issue, index) {
     return wrapper;
 };
 
-function renderSpiral(canvas, img) {
+function renderSpiral(canvas, img, issue) {
     const ctx = canvas.getContext('2d', { alpha: true });
+    
+    // Extract accent color if provided
+    let signatureColors = [];
+    if (issue) {
+        for (let key in issue) {
+            if (key.toLowerCase().replace(/[\s_]/g, '') === 'accentcolor' && issue[key]) {
+                signatureColors = issue[key].toString().split(',').map(c => c.trim()).filter(c => c);
+                break;
+            }
+        }
+    }
     // Keep canvas resolution high to contain the fanned-out structure
     canvas.width = 1100;
     canvas.height = 1100;
@@ -380,7 +410,12 @@ function renderSpiral(canvas, img) {
         
         let shade = 230 + Math.random() * 12;
         if (i === 0) shade = 210; // Darker back cover
-        ctx.strokeStyle = `rgb(${shade}, ${shade}, ${shade - 3})`;
+        
+        if (i !== 0 && signatureColors.length > 0 && Math.random() < 0.15) {
+            ctx.strokeStyle = signatureColors[Math.floor(Math.random() * signatureColors.length)];
+        } else {
+            ctx.strokeStyle = `rgb(${shade}, ${shade}, ${shade - 3})`;
+        }
         ctx.stroke();
     }
     ctx.shadowColor = 'transparent';

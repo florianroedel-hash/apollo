@@ -1,4 +1,4 @@
-// IMPORTANT: You only need ONE URL now. Paste the URL for your Master Control Center script here!
+// IMPORTANT: The live site now pulls directly from the static data.json file!
 const URL_MASTER = 'data.json';
 
 const pile = document.getElementById('project-pile');

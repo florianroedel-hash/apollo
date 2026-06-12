@@ -43,6 +43,11 @@ window.closeMagazine = function() {
     document.body.classList.remove('magazine-open');
     const over = document.getElementById('magazine-reader-overlay');
     if (over) over.remove();
+    
+    // Completely disable all clicks globally for 400ms to absorb any mobile ghost clicks
+    document.body.style.pointerEvents = 'none';
+    setTimeout(() => { document.body.style.pointerEvents = ''; }, 400);
+    
     if (magAudio) {
         magAudio.pause();
         magAudio = null;
@@ -59,14 +64,19 @@ window.closeMagazine = function() {
     
     // Restore filter bar
     if (window.innerWidth <= 900) {
+        window._blockTagDialActions = true;
         // Rebuild the archive tag dial (it was replaced by the magazine dial)
         filterBar._magDialActive = false;
         filterBar.classList.remove('mag-chapters-collapsed', 'mag-chapters-expanded');
         generateDynamicTags();
+        setTimeout(() => { window._blockTagDialActions = false; }, 500);
     } else {
         filterBar.style.opacity = '1';
         filterBar.style.pointerEvents = 'auto';
     }
+    
+    // Force recalculation of titles and filterBar opacity for the current slide
+    if (typeof updateMobileTitles === 'function') updateMobileTitles();
 };
 
 window.toggleMagazineAudio = function(passedTrackUrl) {
@@ -156,24 +166,43 @@ function updateMagazineView() {
         html += '<div class="mobile-magazine-feed" style="width: 100vw; height: 100svh; overflow-y: auto; z-index: 10; scroll-snap-type: y mandatory;">';
 
         if (window._magSpreadView) {
+            let pages = magazineData[currentIssueIndex].pages || [];
             for (let i = 0; i < leaves; i++) {
                 let isActive = (i === magCurrentPage) ? 'active-page' : '';
-                html += `<div class="mag-page-row ${isActive}" style="display: flex; margin: 0 auto 2rem auto; width: 95vw; justify-content: center; scroll-snap-align: center; scroll-snap-stop: always; transition: opacity 0.5s ease;">`;
+                let mobileAudio = '';
+                if ((pages[i*2] && pages[i*2].audioUrl) || (pages[i*2+1] && pages[i*2+1].audioUrl)) {
+                    let audioUrl = (pages[i*2] && pages[i*2].audioUrl) ? pages[i*2].audioUrl : pages[i*2+1].audioUrl;
+                    mobileAudio = `<div class="magazine-audio-controls" style="position: relative; bottom: 0; left: 0; transform: none; margin-top: 1.5rem; margin-bottom: 2rem; width: 100%;"><div class="magazine-audio-btn mag-listen-btn" onclick="event.stopPropagation(); toggleMagazineAudio('${audioUrl}')">${magAudioState}</div></div>`;
+                }
+                html += `<div class="mag-page-row ${isActive}" style="display: flex; flex-direction: column; align-items: center; margin: 0 auto 3rem auto; width: 95vw; scroll-snap-align: center; scroll-snap-stop: always; transition: opacity 0.5s ease;">`;
+                html += `<div style="display: flex; justify-content: center; width: 100%;">`;
                 if (mag[i*2]) html += `<img src="${getSafeImg(mag[i*2])}" style="width: 50%; height: auto;">`;
                 if (mag[i*2+1]) html += `<img src="${getSafeImg(mag[i*2+1])}" style="width: 50%; height: auto;">`;
+                html += `</div>`;
+                html += mobileAudio;
                 html += '</div>';
             }
         } else {
+            let pages = magazineData[currentIssueIndex].pages || [];
             mag.forEach((imgUrl, idx) => {
                 let isActive = (idx === magCurrentPage) ? 'active-page' : '';
-                if(imgUrl) html += `<img class="mag-page-row ${isActive}" src="${getSafeImg(imgUrl)}" style="display: block; margin: 0 auto 1rem auto; width: 90vw; height: auto; scroll-snap-align: center; scroll-snap-stop: always; transition: opacity 0.5s ease;">`;
+                let mobileAudio = '';
+                if (pages[idx] && pages[idx].audioUrl) {
+                    mobileAudio = `<div class="magazine-audio-controls" style="position: relative; bottom: 0; left: 0; transform: none; margin-top: 1.5rem; margin-bottom: 2rem; width: 100%;"><div class="magazine-audio-btn mag-listen-btn" onclick="event.stopPropagation(); toggleMagazineAudio('${pages[idx].audioUrl}')">${magAudioState}</div></div>`;
+                }
+                if(imgUrl) {
+                    html += `<div class="mag-page-row ${isActive}" style="position: relative; margin: 0 auto 3rem auto; width: 90vw; scroll-snap-align: center; scroll-snap-stop: always; transition: opacity 0.5s ease; display:flex; flex-direction:column; align-items:center;">
+                                <img src="${getSafeImg(imgUrl)}" style="display: block; width: 100%; height: auto;">
+                                ${mobileAudio}
+                             </div>`;
+                }
             });
         }
         html += '</div>';
 
         // Mobile: Vertical scrolling feed
         over.innerHTML = `
-            <div class="close-minus" style="z-index: 10000; position: absolute;" onclick="closeMagazine()" ontouchstart="closeMagazine()">–</div>
+            <div class="close-minus" style="z-index: 10000; position: absolute;" onclick="closeMagazine()" ontouchstart="event.preventDefault(); closeMagazine()">–</div>
             ${html}
         `;
 
@@ -280,7 +309,7 @@ function updateMagazineView() {
         }
 
         over.innerHTML = `
-            <div class="close-minus" onclick="closeMagazine()" ontouchstart="closeMagazine()">–</div>
+            <div class="close-minus" onclick="closeMagazine()" ontouchstart="event.preventDefault(); closeMagazine()">–</div>
             <div class="magazine-scene">${html}</div>
             <div class="magazine-footer">
                 <div class="magazine-chapters">${chaptersHtml}</div>
