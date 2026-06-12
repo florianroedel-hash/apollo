@@ -185,7 +185,31 @@
     transition-delay: calc(var(--stagger-idx) * 0.05s);
 }
 
-.magazine-audio-btn { font-size: 1rem; padding: 0.5rem 1rem; background: transparent; backdrop-filter: none; border-radius: 0; cursor: pointer; transition: 0.2s; border: none; box-shadow: none; text-transform: lowercase; color: #111; z-index: 1000; position: absolute; bottom: -2.5rem; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+.magazine-audio-controls {
+    position: absolute;
+    bottom: -2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+.magazine-audio-btn { 
+    font-size: 1rem; 
+    padding: 0; 
+    background: transparent; 
+    backdrop-filter: none; 
+    border-radius: 0; 
+    cursor: pointer; 
+    transition: 0.2s; 
+    border: none; 
+    box-shadow: none; 
+    text-transform: lowercase; 
+    color: #111; 
+    white-space: nowrap; 
+}
 .magazine-scene { perspective: 250rem; width: 70vw; height: 70vh; position: relative; display: flex; align-items: center; justify-content: center; }
 .book-leaf { position: absolute; width: 50%; height: 100%; right: 0; transform-origin: left center; transform-style: preserve-3d; transition: 0.8s; cursor: pointer; }
 .book-leaf.flipped { transform: rotateY(-180deg); }

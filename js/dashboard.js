@@ -249,85 +249,8 @@ function renderMagazineGrid() {
     document.body.classList.add('grid-mode', 'magazine-grid');
     
     magazineData.forEach((issue, index) => {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'mag-tube-wrapper';
-        wrapper.onclick = () => openMagazine(index);
-        
-        const coverImg = getSafeImg(issue.images[0]);
-        const tube = document.createElement('div');
-        tube.className = 'mag-tube';
-        
-        const slices = 20;
-        const sliceWidthRem = 1.5; 
-        const radius = (slices * sliceWidthRem) / (2 * Math.PI); // exact circumference math
-        const sliceAngle = 360 / slices;
-        
-        let slicesHtml = '';
-        for(let i=0; i<slices; i++) {
-            let rotation = i * sliceAngle;
-            let bgX = (i / (slices - 1)) * 100;
-            let flatX = (i - (slices-1)/2) * sliceWidthRem;
-            slicesHtml += `<div class="mag-slice" style="
-                --cyl-transform: rotateY(${rotation}deg) translateZ(${radius}rem);
-                --flat-transform: translateX(${flatX}rem);
-                background-image: url('${coverImg}');
-                background-position: ${bgX}% center;
-                width: ${sliceWidthRem}rem;
-            "></div>`;
-        }
-        tube.innerHTML = slicesHtml;
-        wrapper.appendChild(tube);
-        
-        const title = document.createElement('div');
-        title.className = 'mag-tube-title';
-        title.innerText = issue.title || `Issue ${index + 1}`;
-        wrapper.appendChild(title);
-        
-        // JS hover to calculate distance to center (Desktop)
-        wrapper.onmouseenter = () => {
-            if (window.innerWidth > 900) {
-                const rect = wrapper.getBoundingClientRect();
-                const cx = window.innerWidth / 2;
-                const cy = window.innerHeight / 2;
-                wrapper.style.setProperty('--tx', `${cx - (rect.left + rect.width / 2)}px`);
-                wrapper.style.setProperty('--ty', `${cy - (rect.top + rect.height / 2)}px`);
-                wrapper.classList.add('unwrapped');
-            }
-        };
-        wrapper.onmouseleave = () => {
-            if (window.innerWidth > 900) {
-                wrapper.classList.remove('unwrapped');
-            }
-        };
-        
-        wrapper.onclick = (e) => {
-            if (window.innerWidth <= 900) {
-                if (!wrapper.classList.contains('unwrapped')) {
-                    // Mobile: First tap unwraps
-                    document.querySelectorAll('.mag-tube-wrapper.unwrapped').forEach(el => el.classList.remove('unwrapped'));
-                    const rect = wrapper.getBoundingClientRect();
-                    const cx = window.innerWidth / 2;
-                    const cy = window.innerHeight / 2;
-                    wrapper.style.setProperty('--tx', `${cx - (rect.left + rect.width / 2)}px`);
-                    wrapper.style.setProperty('--ty', `${cy - (rect.top + rect.height / 2)}px`);
-                    wrapper.classList.add('unwrapped');
-                    
-                    // Tap anywhere else to close
-                    const outsideClick = (ev) => {
-                        if (!wrapper.contains(ev.target)) {
-                            wrapper.classList.remove('unwrapped');
-                            document.removeEventListener('touchstart', outsideClick);
-                        }
-                    };
-                    setTimeout(() => document.addEventListener('touchstart', outsideClick), 50);
-                    return;
-                }
-            }
-            // If desktop, or already unwrapped on mobile, open the magazine
-            openMagazine(index);
-        };
-        
-        pile.appendChild(wrapper);
+        const spiralMag = createSpiralMagazine(issue, index);
+        pile.appendChild(spiralMag);
     });
 }
 
