@@ -42,13 +42,13 @@
       "titleImage": "https://drive.google.com/uc?export=view&id=1uTzWthEb8y2oxE35A67U4yDVw8q25fNH",
       "metadata": {
         "name": "AnnoZero",
-        "author": "Guglielmo Vitelli &",
+        "author": "Guglielmo Vitelli & Francesco Zarotti",
         "year": "2026",
         "tags": [
           "architecture",
           "model"
         ],
-        "description": "AnnoZero addresses the housing emergency in the Gaza Strip through a network of temporary, self-built micro-villages designed for displaced communities.<br>Each village hosts around 265 people and functions as a self-sufficient micro-community, built with the modular U-Build system. Operating across territorial and architectural scales, the project transforms vacant land and former control devices into spaces for living, learning, and gathering. Rather than rebuilding the city, AnnoZero initiates a process of return, resilience, and renewal, leaving traces that become the groundwork for future regeneration."
+        "description": "AnnoZero addresses the housing emergency in the Gaza Strip through a network of temporary, self-built micro-villages designed for displaced communities.<br>Each village hosts around 265 people and functions as a self-sufficient micro-community, built with the modular U-Build system. Operating across territorial and architectural scales, the project transforms vacant land and former control devices into spaces for living, learning, and gathering. Rather than rebuilding the city, AnnoZero initiates a process of return, resilience, and renewal, leaving traces that become the groundwork for future regeneration.<br>"
       }
     },
     {
@@ -81,7 +81,7 @@
         "tags": [
           "urbanism"
         ],
-        "description": "How we can use mega-events as the urban accelerator in the city, that will bring long lasting benefits to the city, rather than one time spectacle?<br><br>Research regarding this topic, based on case studies and implemented of the research through the project in Hamburg, Kattwyk Island, with idea to reinvent/give back to the city industrial area, reusing oil tankers as architecture not for industry, but for people"
+        "description": "How we can use mega-events as the urban accelerator in the city, that will bring long lasting benefits to the city, rather than one time spectacle?<br><br>Research regarding this topic, based on case studies and implemented of the research through the project in Hamburg, Kattwyk Island, with idea to reinvent/give back to the city industrial area, reusing oil tankers as architecture not for industry, but for people<br><br><br>"
       }
     },
     {
@@ -100,13 +100,13 @@
       ],
       "titleImage": "https://drive.google.com/uc?export=view&id=1Gwh-u4KRZCbAmqFgVofDMKlfj-xJ0xcU",
       "metadata": {
-        "name": "REINVENTING CITIES: ROMA TUFELLO",
-        "author": "Isabell Siegelmayer, Alexander Rapp, Florian Rödel",
+        "name": "REINVENTING CITIES: ROMA TUFELLO competition entry c40 cities ,Author: Isabell Siegelmayer, Alexander Rapp, Florian Rödel",
+        "author": "—",
         "year": "2025",
         "tags": [
           "urbanism"
         ],
-        "description": "second place<br>The transformation plan for the Tufello neighborhood adopts an interconnected, long-term strategy focused on increasing greenery and reducing sealed surfaces through phased milestones. The process balances technical interventions by officials with varying levels of resident participation, starting with communication and awareness before moving to tangible spatial implementations. The site, challenged by topography and infrastructure, is physically reimagined as four interconnected zones: a Cultural Cascade, community sports facilities, the civic-centered Campo Comune, and the newly reclaimed biodiversity-rich Parco Sor Romano. These new spaces are framed by a continuous network of diverse natural habitats, solidifying the overarching goal of ecological improvement and stronger civic engagement."
+        "description": "second place<br>The transformation plan for the Tufello neighborhood adopts an interconnected, long-term strategy focused on increasing greenery and reducing sealed surfaces through phased milestones. The process balances technical interventions by officials with varying levels of resident participation, starting with communication and awareness before moving to tangible spatial implementations. The site, challenged by topography and infrastructure, is physically reimagined as four interconnected zones: a Cultural Cascade, community sports facilities, the civic-centered Campo Comune, and the newly reclaimed biodiversity-rich Parco Sor Romano. These new spaces are framed by a continuous network of diverse natural habitats, solidifying the overarching goal of ecological improvement and stronger civic engagement.<br><br>"
       }
     },
     {
@@ -158,7 +158,7 @@
           "architecture",
           "model"
         ],
-        "description": "The proposed projects do not stem from a mere formal intuition, but rather from a careful analysis of the village's needs and urban voids. Acknowledging the spatial fragmentation of the settlement, the chosen approach goes beyond simple restoration, aiming instead for a true adaptive reuse and functional conversion of the existing structures.<br><br>The goal is to trigger a chain reaction for the regeneration of the entire village through \"urban acupuncture\" interventions. Avoiding a massive, monolithic approach, the strategy is divided into four intervention lots, differing in typology and function, yet synergistically connected.<br><br>This subdivision also ensures the economic sustainability of the overall process, allowing for a phased development that can easily adapt to the client's actual financial resources."
+        "description": "The proposed projects do not stem from a mere formal intuition, but rather from a careful analysis of the village's needs and urban voids. Acknowledging the spatial fragmentation of the settlement, the chosen approach goes beyond simple restoration, aiming instead for a true adaptive reuse and functional conversion of the existing structures.<br><br>The goal is to trigger a chain reaction for the regeneration of the entire village through \"urban acupuncture\" interventions. Avoiding a massive, monolithic approach, the strategy is divided into four intervention lots, differing in typology and function, yet synergistically connected.<br><br>This subdivision also ensures the economic sustainability of the overall process, allowing for a phased development that can easily adapt to the client's actual financial resources.<br>"
       }
     }
   ],
@@ -202,15 +202,16 @@
             "id": "calevt_5",
             "metadata": {
               "name": "09.04.2026",
-              "dateOverride": "09.04.2026",
+              "dateOverride": "[Event Title]",
               "year": "2026",
-              "author": "[Speaker or Organizer]",
+              "author": "[Additional Notes]",
               "course": "[Event Type or Track]",
               "track": "",
               "description": "[Event Description here]",
               "tags": [
                 "Event"
-              ]
+              ],
+              "dateoverride": "[Event Date]"
             },
             "titleImage": "https://drive.google.com/uc?id=1RucX5tMBr6v4iow6jLw1yVxWLd05Q00_",
             "images": [
@@ -219,7 +220,20 @@
           }
         }
       ],
-      "marquee": "APOLLO LAUNCH PARTY SOON // FOLLOW APOLLO TO NEVER MISS AN EVENT"
+      "marquees": [
+        {
+          "message": "EXAMN DONE ? UPLOAD YOUR PROJECT TO APOLLO"
+        },
+        {
+          "message": "FOLLOW APOLLO TO NEVER MISS ANYTHING"
+        },
+        {
+          "message": "NEW POST OUT",
+          "startTime": "1899-12-30T17:30:00.000Z",
+          "endTime": "1899-12-30T22:59:00.000Z",
+          "dayOfWeek": "tuesday, thursday, sunday"
+        }
+      ]
     }
   ],
   "magazine": [
@@ -307,11 +321,11 @@
         {},
         {},
         {
-          "audioUrl": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3"
+          "audioUrl": "https://drive.google.com/open?id=155WFEMOh2IyeaYY-6OpmHXKn_NP89feR&usp=drive_fs"
         },
         {},
         {
-          "audioUrl": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3"
+          "audioUrl": "https://drive.google.com/open?id=155WFEMOh2IyeaYY-6OpmHXKn_NP89feR&usp=drive_fs"
         },
         {},
         {},
@@ -340,22 +354,22 @@
     {
       "category": "Comments",
       "title": "chapter 1",
-      "file": "assets/audio/1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr.mp3",
-      "url": "assets/audio/1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr.mp3",
+      "file": "1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr",
+      "url": "1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr",
       "year": "2026",
       "type": "Audio",
       "format": "MP3",
-      "desc": "later soon in the future probably this will be amazing"
+      "desc": "later soon in the future probably this will be amazing<br><br>"
     },
     {
       "category": "Traces",
       "title": "chapter 1",
-      "file": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3",
-      "url": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3",
+      "file": "155WFEMOh2IyeaYY-6OpmHXKn_NP89feR",
+      "url": "155WFEMOh2IyeaYY-6OpmHXKn_NP89feR",
       "year": "2026",
       "type": "Audio",
       "format": "MP3",
-      "desc": "No description provided."
+      "desc": "Thats a screamer<br>"
     }
   ]
 }
