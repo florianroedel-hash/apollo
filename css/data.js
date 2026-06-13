@@ -60,42 +60,23 @@ window.copyProjectUrl = function(id, btn) {
 };
 
 function getNoteGridHtml(p) {
-    const meta = p.metadata || {};
-    const isEvent = meta.tags && meta.tags.includes('Event');
+    const isEvent = p.metadata && p.metadata.tags && p.metadata.tags.includes('Event');
     
-    // 1. Render the core four fields to guarantee standard layout
-    let lbl2 = "Course", val2 = meta.course || "Studio Alpha";
-    let lbl3 = "Track", val3 = meta.track || "Laurea Magistrale";
-    let lbl4 = "Prof", val4 = meta.author || "Dr. Smith";
+    let lbl2 = "Course", val2 = (p.metadata && p.metadata.course) || "Studio Alpha";
+    let lbl3 = "Track", val3 = (p.metadata && p.metadata.track) || "Laurea Magistrale";
+    let lbl4 = "Prof", val4 = (p.metadata && p.metadata.author) || "Dr. Smith";
     
     if (isEvent) {
-        lbl2 = "Date"; val2 = meta.dateOverride || meta.name || "TBA";
-        lbl3 = "Event"; val3 = meta.course || "Special";
-        lbl4 = "Note"; val4 = meta.author || "Apollo";
+        lbl2 = "Date"; val2 = (p.metadata && p.metadata.dateOverride) || (p.metadata && p.metadata.name) || "TBA";
+        lbl3 = "Event"; val3 = (p.metadata && p.metadata.course) || "Special";
+        lbl4 = "Note"; val4 = (p.metadata && p.metadata.author) || "Apollo";
     }
     
-    let html = `
-        <div>Year</div><div>${meta.year || '2024'}</div>
+    return `
+        <div>Year</div><div>${(p.metadata && p.metadata.year) || '2024'}</div>
         <div>${lbl2}</div><div>${val2}</div>
         <div>${lbl3}</div><div>${val3}</div>
         <div>${lbl4}</div><div>${val4}</div>
     `;
-
-    // 2. Automatically inject any custom fields found in the metadata
-    const reservedKeys = ['name', 'title', 'description', 'tags', 'year', 'course', 'track', 'author', 'dateoverride', 'event', 'note'];
-    
-    for (let key in meta) {
-        let cleanKey = key.toLowerCase().trim();
-        if (!reservedKeys.includes(cleanKey)) {
-            // Capitalize the custom label (e.g. "location" -> "Location")
-            let label = cleanKey.charAt(0).toUpperCase() + cleanKey.slice(1);
-            let val = meta[key];
-            if (val && typeof val === 'string' && val.trim() !== '') {
-                html += `<div>${label}</div><div>${val}</div>`;
-            }
-        }
-    }
-    
-    return html;
 }
 

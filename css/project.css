@@ -1,4 +1,4 @@
-#unfold-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100svh; background: white; z-index: 100000; box-sizing: border-box; overflow: hidden; }
+#unfold-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100svh; background: white; z-index: 100010; box-sizing: border-box; overflow: hidden; }
 #unfold-overlay.glass-overlay { background: rgba(30,30,30,0.35); backdrop-filter: blur(0.8rem); -webkit-backdrop-filter: blur(0.8rem); color: black; }
 .close-minus { position: absolute; top: 3.5rem; right: 4rem; font-size: 5rem; cursor: pointer; user-select: none; color: black; z-index: 10; line-height: 1; transition: opacity 0.2s; }
 .close-minus:hover { opacity: 0.5; }

@@ -1,4 +1,4 @@
-#magazine-reader-overlay { position: fixed; inset: 0; z-index: 100000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; }
+#magazine-reader-overlay { position: fixed; inset: 0; z-index: 100010; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; }
 #magazine-reader-overlay::before { content: ""; position: absolute; inset: 0; background: rgba(30,30,30,0.7); backdrop-filter: blur(1.5rem); -webkit-backdrop-filter: blur(1.5rem); z-index: -1; pointer-events: none; }
 #magazine-reader-overlay .close-minus { color: white; }
 #magazine-cover-container { 

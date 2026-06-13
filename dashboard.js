@@ -123,11 +123,81 @@ function renderCalendar(data) {
             }, 100);
         }
 
-        if (data[0].marquee) {
-            const track = document.getElementById('marquee-track');
+        // Dynamic Marquee Logic
+        const marqueeWrapper = document.querySelector('.marquee-wrapper');
+        const track = document.getElementById('marquee-track');
+        let activeMessages = [];
+
+        if (data[0].marquees && Array.isArray(data[0].marquees)) {
+            const now = new Date();
+            const timeStr = String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0');
+            const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            const todayName = days[now.getDay()];
+            const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            data[0].marquees.forEach(m => {
+                let isActive = true;
+
+                // 1. Date Check
+                if (m.startDate) {
+                    let startD = new Date(m.startDate);
+                    startD.setHours(0,0,0,0);
+                    if (todayDate < startD) isActive = false;
+                }
+                if (isActive && m.endDate) {
+                    let endD = new Date(m.endDate);
+                    endD.setHours(0,0,0,0);
+                    if (todayDate > endD) isActive = false;
+                }
+
+                // 2. Day Check (e.g. "Monday, Wednesday")
+                if (isActive && m.dayOfWeek) {
+                    if (!m.dayOfWeek.toLowerCase().includes(todayName.toLowerCase())) isActive = false;
+                }
+
+                // 3. Time Check
+                let sTime = m.startTime;
+                let eTime = m.endTime;
+                
+                // Extract HH:MM if it's an ISO Date string from Google Sheets
+                if (sTime && sTime.includes('T')) {
+                    let d = new Date(sTime);
+                    sTime = String(d.getHours()).padStart(2,'0') + ":" + String(d.getMinutes()).padStart(2,'0');
+                }
+                if (eTime && eTime.includes('T')) {
+                    let d = new Date(eTime);
+                    eTime = String(d.getHours()).padStart(2,'0') + ":" + String(d.getMinutes()).padStart(2,'0');
+                }
+
+                if (isActive && sTime && eTime) {
+                    if (sTime > eTime) { // Overnight logic
+                        if (timeStr < sTime && timeStr > eTime) isActive = false;
+                    } else { // Standard logic
+                        if (timeStr < sTime || timeStr > eTime) isActive = false;
+                    }
+                } else if (isActive && sTime) {
+                    if (timeStr < sTime) isActive = false;
+                } else if (isActive && eTime) {
+                    if (timeStr > eTime) isActive = false;
+                }
+
+                if (isActive && m.message) {
+                    activeMessages.push(m.message);
+                }
+            });
+        } else if (data[0].marquee) {
+            // Legacy support
+            activeMessages.push(data[0].marquee);
+        }
+
+        if (activeMessages.length > 0) {
+            if (marqueeWrapper) marqueeWrapper.style.display = '';
             const spacer = " &nbsp;&nbsp; // &nbsp;&nbsp; ";
-            const fullText = data[0].marquee + spacer;
-            track.innerHTML = `<span>${fullText.repeat(8)}</span><span>${fullText.repeat(8)}</span>`;
+            const fullText = activeMessages.join(spacer) + spacer;
+            const repeats = fullText.length > 200 ? 4 : 8;
+            if (track) track.innerHTML = `<span>${fullText.repeat(repeats)}</span><span>${fullText.repeat(repeats)}</span>`;
+        } else {
+            if (marqueeWrapper) marqueeWrapper.style.display = 'none';
         }
     }
 }

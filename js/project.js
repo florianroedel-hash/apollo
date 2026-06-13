@@ -130,7 +130,15 @@ window.openLightbox = function(index, event) {
         });
     }
     
-    box.onclick = window.closeLightbox;
+    box.onclick = function(e) {
+        if (e.clientX < window.innerWidth * 0.35) {
+            window.prevSlide(e);
+        } else if (e.clientX > window.innerWidth * 0.65) {
+            window.nextSlide(e);
+        } else {
+            window.closeLightbox(e);
+        }
+    };
     window.currentLightboxIndex = index;
     
     if (isNew) {

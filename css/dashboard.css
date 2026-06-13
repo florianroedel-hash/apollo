@@ -128,7 +128,8 @@ body.grid-mode .bookmark-note { width: 6vw; min-width: 10rem; font-size: 0.8rem;
 .note-ref-code { width: 100%; text-align: right; font-family: monospace; font-size: 0.8em; opacity: 0.6; margin-bottom: 0.4rem; letter-spacing: 0.05em; }
 .note-divider { width: 100%; height: 1px; background: rgba(0,0,0,0.3); margin: 0.4rem 0; flex-shrink: 0; }
 .note-title { font-size: 1.2em; font-weight: bold; margin: 0.4rem 0; text-transform: capitalize; position: relative; z-index: 2; line-height: 1.2; }
-.note-meta-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 0.2rem 1rem; font-family: monospace; font-size: 0.75em; opacity: 0.75; margin: 0.4rem 0; text-transform: uppercase; }
+.note-meta-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 0.2rem 1rem; font-family: monospace; font-size: 0.75em; opacity: 0.75; margin: 0.4rem 0; text-transform: uppercase; max-height: 8rem; overflow-y: auto; scrollbar-width: none; }
+.note-meta-grid::-webkit-scrollbar { display: none; }
 .note-meta-grid > div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .note-text-content { position: relative; font-size: 0.9em; display: -webkit-box; -webkit-line-clamp: 10; -webkit-box-orient: vertical; overflow: hidden; flex-grow: 1; margin-top: 0.4rem; }
 .bookmark-note:hover .note-text-content { -webkit-line-clamp: unset; }
