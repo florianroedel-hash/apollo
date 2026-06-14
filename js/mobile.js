@@ -43,7 +43,7 @@ function updateMobileTitles() {
         
         // Hide filter bar if not on center slide
         const filterBar = document.getElementById('filter-bar');
-        if (filterBar && !document.body.classList.contains('spread-open')) {
+        if (filterBar && !document.body.classList.contains('spread-open') && !document.body.classList.contains('magazine-open')) {
             const ratioCenter = Math.abs(scrollLeft - w) / w;
             filterBar.style.opacity = Math.max(0, 1 - (ratioCenter * 2));
             filterBar.style.pointerEvents = ratioCenter < 0.5 ? 'auto' : 'none';
