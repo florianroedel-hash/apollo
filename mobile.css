@@ -769,9 +769,10 @@
    ============================================================ */
 @media (max-width: 900px) {
     /* Show the footer/filter-bar while magazine is open on mobile */
-    body.magazine-open #main-footer {
+    body.magazine-open #filter-bar {
         opacity: 1 !important;
         pointer-events: auto !important;
+        z-index: 100015 !important; /* Above #magazine-reader-overlay (100000) */
     }
 
     /* Chapter items: collapsed by default */

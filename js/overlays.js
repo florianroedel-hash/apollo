@@ -150,7 +150,7 @@ window.openHistory = function() {
     }).join('');
     
     over.innerHTML = `
-        <div class="close-minus" onclick="document.body.classList.remove('spread-open'); document.body.classList.remove('history-open'); this.parentElement.remove(); document.getElementById('col-archive').style.opacity = '1'; const mq=document.querySelector('.marquee-wrapper'); if(mq) mq.style.opacity='1'; const fb=document.getElementById('filter-bar'); if(fb){ fb.style.opacity=''; fb.style.pointerEvents=''; }" ontouchstart="document.body.classList.remove('spread-open'); document.body.classList.remove('history-open'); this.parentElement.remove(); document.getElementById('col-archive').style.opacity = '1'; const mq=document.querySelector('.marquee-wrapper'); if(mq) mq.style.opacity='1'; const fb=document.getElementById('filter-bar'); if(fb){ fb.style.opacity=''; fb.style.pointerEvents=''; }">–</div>
+        <div class="close-minus" onclick="document.body.classList.remove('spread-open'); document.body.classList.remove('history-open'); this.parentElement.remove(); document.getElementById('col-archive').style.opacity = '1'; const mq=document.querySelector('.marquee-wrapper'); if(mq) mq.style.opacity='1'; const fb=document.getElementById('filter-bar'); if(fb){ fb.style.opacity=''; fb.style.pointerEvents=''; } if (window.innerWidth <= 900 && typeof window.updateMobileTitles === 'function') window.updateMobileTitles();" ontouchstart="document.body.classList.remove('spread-open'); document.body.classList.remove('history-open'); this.parentElement.remove(); document.getElementById('col-archive').style.opacity = '1'; const mq=document.querySelector('.marquee-wrapper'); if(mq) mq.style.opacity='1'; const fb=document.getElementById('filter-bar'); if(fb){ fb.style.opacity=''; fb.style.pointerEvents=''; } if (window.innerWidth <= 900 && typeof window.updateMobileTitles === 'function') window.updateMobileTitles();">–</div>
         <div class="history-pile-wrapper">
             <div class="history-pile">
                 ${sheetsHtml}
@@ -213,6 +213,10 @@ window.closeAudioLibrary = function() {
     if (fb) { fb.style.opacity = ''; fb.style.pointerEvents = ''; }
     const mf = document.getElementById('main-footer');
     if (mf) { mf.style.opacity = ''; mf.style.pointerEvents = ''; }
+    
+    if (window.innerWidth <= 900 && typeof window.updateMobileTitles === 'function') {
+        window.updateMobileTitles();
+    }
     
     if (globalAudio) {
         globalAudio.pause();

@@ -56,6 +56,8 @@ function updateMobileTitles() {
     });
 }
 
+window.updateMobileTitles = updateMobileTitles;
+
 mobileWrapper.addEventListener('scroll', updateMobileTitles);
 window.addEventListener('resize', updateMobileTitles);
 

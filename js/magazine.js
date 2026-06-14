@@ -343,8 +343,10 @@ function updateMagazineView() {
 
 // Build the swipe dial in the filterBar for the mobile magazine view
 function buildMagazineDial(chaptersData) {
+    const filterBar = document.getElementById('filter-bar');
+    if (!filterBar) return;
     filterBar.innerHTML = '';
-    filterBar.classList.remove('tags-collapsed', 'tags-expanded', 'hover-expanded', 'mag-chapters-collapsed', 'mag-chapters-expanded');
+    filterBar.classList.remove('tags-collapsed', 'tags-expanded', 'hover-expanded', 'mag-chapters-collapsed', 'mag-chapters-expanded', 'disabled-dial');
 
     let chaptersToUse = chaptersData.length > 0 ? chaptersData : [{name: 'cover', page: 0}];
 
@@ -408,11 +410,15 @@ function buildMagazineDial(chaptersData) {
     setTimeout(() => {
         const first = filterBar.firstElementChild;
         if (first) {
-            const cl = filterBar.getBoundingClientRect().width / 2;
-            const r = first.getBoundingClientRect();
-            filterBar.scrollBy({ left: r.left - filterBar.getBoundingClientRect().left + r.width / 2 - cl, behavior: 'instant' });
             first.classList.add('active-swipe-tag');
             window.updateMagDialDots(0, undefined);
+            
+            const centerDial = () => {
+                const scrollTarget = first.offsetLeft + first.offsetWidth / 2 - filterBar.clientWidth / 2;
+                filterBar.scrollTo({ left: scrollTarget, behavior: 'instant' });
+            };
+            centerDial();
+            setTimeout(centerDial, 360);
         }
     }, 50);
 
@@ -454,24 +460,21 @@ function buildMagazineDial(chaptersData) {
                 }
             });
             rows.forEach(r => r.classList.remove('active-page', 'prev-page', 'next-page'));
+            
+            let closestPage = 0;
             if (closestRow) {
                 closestRow.classList.add('active-page');
                 const activeIdx = parseInt(closestRow.dataset.idx, 10);
+                closestPage = activeIdx;
                 if (rows[activeIdx - 1]) rows[activeIdx - 1].classList.add('prev-page');
                 if (rows[activeIdx + 1]) rows[activeIdx + 1].classList.add('next-page');
             }
 
-            const imgs = feed.querySelectorAll('img');
-            let closestPage = 0;
-            let minDiff = Infinity;
-            imgs.forEach((img, idx) => {
-                const rect = img.getBoundingClientRect();
-                const diff = Math.abs(rect.top - window.innerHeight / 3); 
-                if (diff < minDiff) {
-                    minDiff = diff;
-                    closestPage = idx;
-                }
-            });
+            // Force last page if scrolled to absolute bottom
+            const maxScroll = feed.scrollHeight - feed.clientHeight;
+            if (feed.scrollTop >= maxScroll - 20) {
+                closestPage = rows.length - 1;
+            }
 
             magCurrentPage = closestPage;
             if (magazineData[currentIssueIndex]) {
@@ -496,13 +499,17 @@ function buildMagazineDial(chaptersData) {
                     filterBar.querySelectorAll('span').forEach(b => b.classList.remove('active-swipe-tag'));
                     targetBtn.classList.add('active-swipe-tag');
 
-                    const cl = filterBar.getBoundingClientRect().width / 2;
-                    const r = targetBtn.getBoundingClientRect();
                     window._ignoreFilterBarScroll = Date.now() + 500;
-                    filterBar.scrollBy({ left: r.left - filterBar.getBoundingClientRect().left + r.width / 2 - cl, behavior: 'smooth' });
                     
                     // Fold/unfold dots based on the current page's chapter
                     window.updateMagDialDots(closestPage, prevPage);
+                    
+                    const centerDial = () => {
+                        const scrollTarget = targetBtn.offsetLeft + targetBtn.offsetWidth / 2 - filterBar.clientWidth / 2;
+                        filterBar.scrollTo({ left: scrollTarget, behavior: 'smooth' });
+                    };
+                    centerDial();
+                    setTimeout(centerDial, 360);
                 }
             }
         });

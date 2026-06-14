@@ -275,6 +275,9 @@ function unfoldProject(id) {
                 document.body.classList.add('search-open');
                 document.addEventListener('keydown', window._searchEscHandler);
             }
+            if (window.innerWidth <= 900 && typeof window.updateMobileTitles === 'function') {
+                window.updateMobileTitles();
+            }
         }
     };
     document.addEventListener('keydown', window._spreadEscHandler);
@@ -400,7 +403,10 @@ function unfoldProject(id) {
             const parts = img.split('/');
             name = parts[parts.length-1].split('.')[0].replace(/[-_]/g, ' ');
         }
-        allItems.push({ type: 'image', src: img, name: name, desc: name });
+        
+        // Ensure we extract the URL string if img is an object
+        let imgUrl = typeof img === 'string' ? img : (img.src || '');
+        allItems.push({ type: 'image', src: imgUrl, name: name, desc: name });
     });
 
     // 1. Preload images

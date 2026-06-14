@@ -118,7 +118,12 @@ function renderCalendar(data) {
             setTimeout(() => {
                 const todayEvent = document.getElementById('today-event');
                 if (todayEvent) {
-                    todayEvent.scrollIntoView({ block: 'center' });
+                    const scrollContainer = todayEvent.closest('.left-col-scroll, .calendar-text-content') || todayEvent.parentElement;
+                    if (scrollContainer) {
+                        scrollContainer.scrollTop = todayEvent.offsetTop - (scrollContainer.clientHeight / 2) + (todayEvent.clientHeight / 2);
+                    } else {
+                        todayEvent.scrollIntoView({ block: 'center' });
+                    }
                 }
             }, 100);
         }
