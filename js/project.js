@@ -2,9 +2,19 @@ window.openLightbox = function(index, event) {
     if (event) event.stopPropagation();
     const gallery = window.currentLightboxGallery;
     if (!gallery || !gallery[index]) return;
-    
     let box = document.getElementById('spread-lightbox');
     const isNew = !box;
+    
+    let canvasRects = [];
+    if (isNew) {
+        const imgs = Array.from(document.querySelectorAll('.unfold-grid-item img'));
+        canvasRects = imgs.map(img => ({
+            el: img,
+            src: img.src,
+            rect: img.getBoundingClientRect()
+        }));
+    }
+
     if (isNew) {
         box = document.createElement('div');
         box.id = 'spread-lightbox';
@@ -108,8 +118,9 @@ window.openLightbox = function(index, event) {
                 <img src="assets/images/logo.png" style="width:100%;height:100%;object-fit:contain;border-radius:0.2rem;display:block;background:white;padding:0.3rem;box-sizing:border-box;">
             </span>`;
         } else {
+            let styleExt = isNew ? "opacity: 0;" : "";
             thumbHtml += `<span class="tag-filter highlight-link spread-thumb-item ${activeClass}" style="padding: 0.5rem 0.6rem !important; display:inline-flex; align-items:center; justify-content:center; overflow:visible; width:3.5rem; height:2.5rem; box-sizing:border-box; margin: 0 0.2rem; cursor: pointer; pointer-events: auto;" onclick="openLightbox(${idx}, event)">
-                <img src="${getSafeImg(gItem.src)}" style="width:100%;height:100%;object-fit:cover;border-radius:0.2rem;display:block;">
+                <img class="lightbox-thumb-img" src="${getSafeImg(gItem.src)}" style="width:100%;height:100%;object-fit:cover;border-radius:0.2rem;display:block; ${styleExt}">
             </span>`;
         }
     });
@@ -126,7 +137,72 @@ window.openLightbox = function(index, event) {
     const activeThumb = box.querySelector('.active-swipe-tag');
     if (strip && activeThumb) {
         requestAnimationFrame(() => {
-            activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+            activeThumb.scrollIntoView({ behavior: isNew ? 'auto' : 'smooth', inline: 'center' });
+            
+            if (isNew && canvasRects.length > 0) {
+                requestAnimationFrame(() => {
+                    const thumbs = Array.from(box.querySelectorAll('.lightbox-thumb-img'));
+                    
+                    // Fade out canvas post-its smoothly alongside the animation
+                    const postits = Array.from(document.querySelectorAll('.bookmark-note'));
+                    postits.forEach(p => {
+                        if (!p.closest('#spread-lightbox')) {
+                            p.style.transition = 'opacity 0.7s ease-out';
+                            p.style.opacity = '0';
+                        }
+                    });
+                    
+                    canvasRects.forEach(canvasObj => {
+                        const thumb = thumbs.find(t => t.src === canvasObj.src);
+                        if (!thumb) return;
+                        
+                        const targetRect = thumb.getBoundingClientRect();
+                        
+                        // Hide original canvas wrapper to remove the white frames smoothly
+                        const wrapper = canvasObj.el.closest('.unfold-grid-item');
+                        if (wrapper) {
+                            wrapper.style.transition = 'opacity 0.2s ease-out';
+                            wrapper.style.opacity = '0';
+                        }
+                        else canvasObj.el.style.opacity = '0';
+                        
+                        const ghost = document.createElement('img');
+                        ghost.src = canvasObj.src;
+                        ghost.style.position = 'fixed';
+                        ghost.style.zIndex = '1000010';
+                        ghost.style.top = `${canvasObj.rect.top}px`;
+                        ghost.style.left = `${canvasObj.rect.left}px`;
+                        ghost.style.width = `${canvasObj.rect.width}px`;
+                        ghost.style.height = `${canvasObj.rect.height}px`;
+                        ghost.style.objectFit = 'cover';
+                        ghost.style.transition = 'all 0.7s cubic-bezier(0.25, 1, 0.5, 1)';
+                        ghost.style.borderRadius = '0';
+                        document.body.appendChild(ghost);
+                        
+                        // Force reflow
+                        ghost.getBoundingClientRect();
+                        
+                        // Play
+                        ghost.style.top = `${targetRect.top}px`;
+                        ghost.style.left = `${targetRect.left}px`;
+                        ghost.style.width = `${targetRect.width}px`;
+                        ghost.style.height = `${targetRect.height}px`;
+                        ghost.style.borderRadius = '0.2rem';
+                        
+                        setTimeout(() => {
+                            if (ghost.parentNode) ghost.remove();
+                        }, 750);
+                    });
+                    
+                    // Reveal real thumbnails slightly BEFORE animation finishes to prevent flash
+                    setTimeout(() => {
+                        thumbs.forEach(t => {
+                            t.style.transition = 'opacity 0.25s ease-out';
+                            t.style.opacity = '1';
+                        });
+                    }, 500);
+                });
+            }
         });
     }
     
@@ -152,9 +228,75 @@ window.closeLightbox = function(event) {
     if (event) event.stopPropagation();
     const box = document.getElementById('spread-lightbox');
     if (box) {
+        if (box.isClosing) return;
+        box.isClosing = true;
+
         if (box._keyHandler) document.removeEventListener('keydown', box._keyHandler);
+
+        // FLIP Reverse Animation
+        const thumbs = Array.from(box.querySelectorAll('.lightbox-thumb-img'));
+        const canvasImgs = Array.from(document.querySelectorAll('.unfold-grid-item img'));
+        
+        // Fade canvas post-its back in
+        const postits = Array.from(document.querySelectorAll('.bookmark-note'));
+        postits.forEach(p => {
+            if (!p.closest('#spread-lightbox')) {
+                p.style.transition = 'opacity 0.7s ease-in';
+                p.style.opacity = '1';
+            }
+        });
+        
+        thumbs.forEach(thumb => {
+            const canvasImg = canvasImgs.find(c => c.src === thumb.src);
+            if (!canvasImg) return;
+            
+            const startRect = thumb.getBoundingClientRect();
+            const targetRect = canvasImg.getBoundingClientRect();
+            
+            const ghost = document.createElement('img');
+            ghost.src = thumb.src;
+            ghost.style.position = 'fixed';
+            ghost.style.zIndex = '1000010';
+            ghost.style.top = `${startRect.top}px`;
+            ghost.style.left = `${startRect.left}px`;
+            ghost.style.width = `${startRect.width}px`;
+            ghost.style.height = `${startRect.height}px`;
+            ghost.style.objectFit = 'cover';
+            ghost.style.borderRadius = '0.2rem';
+            ghost.style.transition = 'all 0.7s cubic-bezier(0.25, 1, 0.5, 1)';
+            document.body.appendChild(ghost);
+            
+            // Hide real thumb to prevent double-vision
+            thumb.style.opacity = '0';
+            
+            // Force reflow
+            ghost.getBoundingClientRect();
+            
+            // Play
+            ghost.style.top = `${targetRect.top}px`;
+            ghost.style.left = `${targetRect.left}px`;
+            ghost.style.width = `${targetRect.width}px`;
+            ghost.style.height = `${targetRect.height}px`;
+            ghost.style.borderRadius = '0';
+            
+            // Start fading the frame in late so it's fully visible when the image lands
+            setTimeout(() => {
+                const wrapper = canvasImg.closest('.unfold-grid-item');
+                if (wrapper) {
+                    wrapper.style.transition = 'opacity 0.2s ease-in';
+                    wrapper.style.opacity = '1';
+                }
+                else canvasImg.style.opacity = '1';
+            }, 500);
+            
+            setTimeout(() => {
+                if (ghost.parentNode) ghost.remove();
+            }, 750);
+        });
+
+        // Fade out lightbox background and main content
         box.style.opacity = '0';
-        setTimeout(() => box.remove(), 300);
+        setTimeout(() => box.remove(), 750);
     }
 };
 

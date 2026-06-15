@@ -125,6 +125,7 @@ body.grid-mode .bookmark-note { width: 6vw; min-width: 10rem; font-size: 0.8rem;
 .bookmark-note:hover { transform: scale(1.15) translateX(-15%) translateY(-5%); box-shadow: 0 1.5rem 3.5rem rgba(0,0,0,0.15); max-height: none; overflow: visible; z-index: 10 !important; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.4s, z-index 0s 0.4s; }
 
 /* POST-IT TYPOGRAPHY (Dossier/Receipt Style) */
+.calendar-separator { width: 100%; transition: opacity 0.4s; }
 .note-ref-code { width: 100%; text-align: right; font-family: monospace; font-size: 0.8em; opacity: 0.6; margin-bottom: 0.4rem; letter-spacing: 0.05em; }
 .note-divider { width: 100%; height: 1px; background: rgba(0,0,0,0.3); margin: 0.4rem 0; flex-shrink: 0; }
 .note-title { font-size: 1.2em; font-weight: bold; margin: 0.4rem 0; text-transform: capitalize; position: relative; z-index: 2; line-height: 1.2; }
@@ -153,16 +154,94 @@ body.grid-mode .bookmark-note { width: 6vw; min-width: 10rem; font-size: 0.8rem;
 #calendar-column { display: flex; flex-direction: column; justify-content: center; }
 #calendar-text::-webkit-scrollbar { display: none; }
 #calendar-text { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; font-size: 0.9rem; line-height: 1.4; gap: 2.5rem; padding: 2rem 0; max-height: 50vh; scroll-snap-type: y mandatory; }
-.calendar-event-group { width: 100%; display: flex; flex-direction: column; align-items: center; scroll-snap-align: center; }
-.calendar-event-item { width: 100%; position: relative; display: flex; flex-direction: column; gap: 0.5rem; }
+.calendar-event-group { width: 100%; display: flex; flex-direction: column; align-items: center; scroll-snap-align: center; position: relative; z-index: 1; }
+
+.calendar-event-item { 
+    width: 100%; position: relative; display: flex; flex-direction: column; gap: 0.5rem;
+    padding: 1.5rem; box-sizing: border-box; border-radius: 2px;
+    background-color: transparent; 
+    box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.4s, box-shadow 0.4s;
+    transform-origin: center center;
+}
+.calendar-event-item::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: url('../assets/textures/texture%20paper.jpg'); background-size: cover;
+    opacity: 0; z-index: 0; pointer-events: none;
+    transition: opacity 0.4s;
+}
+.calendar-event-item > * { position: relative; z-index: 1; }
+
+.calendar-stack-piece-img {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%; 
+    height: auto;
+    object-fit: contain;
+    box-sizing: border-box;
+    border: 0.8rem solid rgba(255, 255, 255, 0.95);
+    opacity: 0; pointer-events: none;
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s;
+    box-shadow: 0 0.2rem 0.8rem rgba(0,0,0,0.08);
+    border-radius: 2px;
+    z-index: 0;
+}
+
 .cal-row { display: flex; width: 100%; gap: 1rem; justify-content: flex-start; }
 .cal-date { flex: 0 0 35%; text-align: left; font-size: 1.4em; font-weight: normal; padding-left: 3ch; box-sizing: border-box; }
 #today-event .cal-date { font-weight: bold; padding-left: 0; }
 .cal-details { flex: 0 0 60%; text-align: left; word-break: break-word; overflow-wrap: break-word; box-sizing: border-box; }
 .cal-details::first-line { font-size: 1.4em; font-weight: bold; }
-.calendar-event-item.has-invite { cursor: pointer; transition: 0.2s; }
-.calendar-event-item.has-invite:hover { opacity: 0.6; }
+.calendar-event-item.has-invite { cursor: pointer; transition: opacity 0.2s; }
+.calendar-event-item.has-invite:hover { opacity: 0.8; }
 .calendar-event-item.is-past .invite-indicator { opacity: 0.8; }
+
+/* ----------------------------------------------------
+   CHAOTIC CALENDAR STACK (DESKTOP)
+   ---------------------------------------------------- */
+@media (min-width: 901px) {
+    #calendar-text.is-stacked {
+        overflow: hidden !important;
+        scroll-snap-type: none !important;
+    }
+    
+    #calendar-text.is-stacked .calendar-event-item {
+        width: 85%;
+        margin: 0 auto;
+        background-color: rgba(255, 255, 255, 0.12); 
+        backdrop-filter: blur(1.5rem); -webkit-backdrop-filter: blur(1.5rem); 
+        box-shadow: 0 0.2rem 0.8rem rgba(0,0,0,0.08); 
+    }
+    #calendar-text.is-stacked .calendar-event-item::before {
+        opacity: 0.08;
+    }
+    
+    #calendar-text.is-stacked .calendar-stack-piece-img {
+        opacity: 1;
+    }
+
+    #calendar-text.is-stacked .cal-date {
+        display: none;
+    }
+    #calendar-text.is-stacked .cal-details {
+        flex: 1 1 100%;
+        font-size: 1.1em; /* Slight bump to fill space better */
+    }
+    
+    #calendar-text.is-stacked .invite-indicator {
+        display: none !important;
+    }
+
+    /* When NOT stacked (i.e. hovered), return to normal */
+    #calendar-text:not(.is-stacked) .calendar-event-item {
+        transform: translate(0, 0) rotate(0deg) !important;
+    }
+    #calendar-text:not(.is-stacked) .calendar-stack-piece-img {
+        transform: translate(-50%, -50%) rotate(0deg) !important;
+    }
+}
+
 
 /* FIX: Changed calendar plus indicator to solid black */
 .invite-indicator { color: black; font-weight: bold; font-size: 1em; }

@@ -66,6 +66,7 @@ function renderCalendar(data) {
                 let imgPayload = '';
                 
                 let minisHtml = '';
+                let stackImagesHtml = '';
                 
                 if (evt.isPast && evt.spreadData) {
                     interactiveClass = 'has-invite is-past';
@@ -82,6 +83,14 @@ function renderCalendar(data) {
                         }
                     }
                     plusIcon = `<div style="margin-top: 12px;"><span class="invite-indicator" style="display: inline-flex; align-items: center; gap: 4px;">[ ${minisHtml} <span>+</span> ]</span></div>`;
+                    
+                    let maxStackImgs = Math.min(2, allImages.length);
+                    for(let k=0; k<maxStackImgs; k++) {
+                        let idMatch = allImages[k].match(/(?:id=|\/d\/)([a-zA-Z0-9_-]+)/);
+                        if (idMatch) {
+                            stackImagesHtml += `<img class="calendar-stack-piece-img" src="https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=w800">`;
+                        }
+                    }
                 } else if (evt.isPast) {
                     interactiveClass = 'is-past';
                 } else if (evt.imgId) {
@@ -96,6 +105,8 @@ function renderCalendar(data) {
                          ${evt.imgId ? `
                         <img src="https://drive.google.com/thumbnail?id=${evt.imgId}&sz=w1200" alt="Calendar Event Image">
                     ` : ''}</div>`;
+                    
+                    stackImagesHtml += `<img class="calendar-stack-piece-img" src="https://drive.google.com/thumbnail?id=${evt.imgId}&sz=w800">`;
                 }
 
                 html += `
@@ -110,11 +121,12 @@ function renderCalendar(data) {
                             </div>
                         </div>
                     </div>
+                    ${stackImagesHtml}
                 </div>`;
             });
             calTxt.innerHTML = html;
             
-            // Scroll today's event to center
+            // Scroll today's event to center (Mobile mainly, but also helps initial desktop state before stacking)
             setTimeout(() => {
                 const todayEvent = document.getElementById('today-event');
                 if (todayEvent) {
@@ -126,6 +138,9 @@ function renderCalendar(data) {
                     }
                 }
             }, 100);
+            
+            // Initialize Desktop Chaotic Stack
+            setTimeout(initChaoticCalendarStack, 150);
         }
 
         // Dynamic Marquee Logic
@@ -402,4 +417,123 @@ function filterProjects(tag, btn) {
     }
 }
 
+// ---------------------------------------------------------------------------
+// CHAOTIC CALENDAR STACK (DESKTOP)
+// ---------------------------------------------------------------------------
+let calendarLeaveTimeout = null;
 
+function initChaoticCalendarStack() {
+    if (window.innerWidth <= 900) return;
+
+    const calTxt = document.getElementById('calendar-text');
+    if (!calTxt) return;
+    
+    // Ensure offsetParent context is correct
+    calTxt.style.position = 'relative';
+
+    const groups = Array.from(calTxt.querySelectorAll('.calendar-event-group'));
+    if (groups.length === 0) return;
+
+    function applyStack() {
+        if (window.innerWidth <= 900) {
+            calTxt.classList.remove('is-stacked');
+            calTxt.querySelectorAll('.calendar-event-item, .calendar-stack-piece-img').forEach(el => el.style.transform = '');
+            return;
+        }
+
+        calTxt.classList.add('is-stacked');
+
+        // We pull items to the current visible center so it doesn't matter where it is scrolled
+        const containerHeight = calTxt.clientHeight;
+        const containerCenterVisibleY = calTxt.scrollTop + (containerHeight / 2);
+
+        let zIdxCounter = 100;
+        let todayEventGroup = null;
+        let nextUpGroup = null;
+        
+        groups.forEach((group) => {
+            if (group.classList.contains('calendar-separator')) {
+                group.style.opacity = '0';
+                group.style.pointerEvents = 'none';
+                return;
+            }
+
+            group.style.zIndex = zIdxCounter--;
+
+            const groupCenterY = group.offsetTop + (group.clientHeight / 2);
+            
+            // The text card piece
+            const card = group.querySelector('.calendar-event-item');
+            if (card) {
+                // Scatter vertically +/- 12% of the container height
+                const scatterY = (Math.random() * 0.24 - 0.12) * containerHeight;
+                const ty = containerCenterVisibleY - groupCenterY + scatterY;
+
+                const rot = Math.random() * 8 - 4; 
+                const tx = Math.random() * 40 - 20; 
+                card.style.transform = `translate(${tx}px, ${ty}px) rotate(${rot}deg)`;
+                
+                if (card.id === 'today-event') {
+                    todayEventGroup = group;
+                }
+                
+                if (!nextUpGroup && !card.classList.contains('is-past')) {
+                    nextUpGroup = group;
+                }
+            }
+
+            // The image pieces
+            const imgs = group.querySelectorAll('.calendar-stack-piece-img');
+            imgs.forEach(img => {
+                const scatterY = (Math.random() * 0.24 - 0.12) * containerHeight;
+                const ty = containerCenterVisibleY - groupCenterY + scatterY;
+
+                const rot = Math.random() * 16 - 8; 
+                const tx = Math.random() * 60 - 30; 
+                img.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) rotate(${rot}deg)`;
+            });
+        });
+
+        // Ensure "today" (the closest event) is strictly on top
+        const topGroup = todayEventGroup || nextUpGroup || (groups.length > 0 ? groups[0] : null);
+        
+        if (topGroup) {
+            topGroup.style.zIndex = '999';
+        }
+    }
+
+    // Apply initially
+    applyStack();
+
+    calTxt.onmouseenter = () => {
+        if (window.innerWidth <= 900) return;
+        clearTimeout(calendarLeaveTimeout);
+        calTxt.classList.remove('is-stacked');
+        // Let CSS transition back to normal flow
+        calTxt.querySelectorAll('.calendar-event-item, .calendar-stack-piece-img').forEach(el => {
+            el.style.transform = '';
+        });
+        calTxt.querySelectorAll('.calendar-separator').forEach(el => {
+            el.style.opacity = '1';
+            el.style.pointerEvents = 'auto';
+        });
+    };
+
+    calTxt.onmouseleave = () => {
+        if (window.innerWidth <= 900) return;
+        clearTimeout(calendarLeaveTimeout);
+        calendarLeaveTimeout = setTimeout(() => {
+            applyStack();
+        }, 300); // reduced from 1000ms
+    };
+
+    // Re-apply on window resize to ensure correct centering
+    window.addEventListener('resize', () => {
+        if (calTxt.classList.contains('is-stacked')) {
+            applyStack();
+        } else if (window.innerWidth <= 900) {
+            calTxt.classList.remove('is-stacked');
+            calTxt.querySelectorAll('.calendar-event-item, .calendar-stack-piece-img').forEach(el => el.style.transform = '');
+        }
+    });
+}
