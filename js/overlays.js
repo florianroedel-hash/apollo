@@ -135,9 +135,17 @@ window.openHistory = function() {
         const dy = (Math.random() * 3 - 1.5); 
         const zIdx = N - i;
         const latchLeft = i * latchW; 
+        
+        const isRightSide = Math.random() > 0.5;
+        const clipTop = 5 + (Math.random() * 10);
+        const clipRight = isRightSide ? '-1.55%' : 'auto';
+        const clipLeft = isRightSide ? 'auto' : '-1.55%';
+        const scaleX = isRightSide ? 1 : -1;
+        const shadowX = isRightSide ? '0.1rem' : '-0.1rem';
+
         return `
             <div class="history-sheet" 
-                 style="transform: rotate(${angle}deg) translate(${dx}vw, ${dy}vw); z-index: ${zIdx};"
+                 style="transform: rotate(${angle}deg) translate(${dx}vw, ${dy}vw); z-index: ${zIdx}; --clip-top: ${clipTop}%; --clip-right: ${clipRight}; --clip-left: ${clipLeft}; --clip-scale-x: ${scaleX}; --clip-shadow-x: ${shadowX};"
                  data-index="${i}"
                  onclick="historyShuffleToBack(this, event)">
                 <div class="history-latch" style="left: ${latchLeft}%; width: ${latchW}%;">

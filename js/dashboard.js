@@ -20,12 +20,12 @@ function renderCalendar(data) {
                 if (evt.isPast && !lastWasPast) {
                     // Inject separator before the first past event
                     html += `
-                    <div class="calendar-event-group calendar-separator" style="margin: 2rem 0;">
+                    <div class="calendar-event-group calendar-separator" style="margin: 0.5rem 0;">
                         <div class="cal-row">
                             <div class="cal-date"></div>
                             <div class="cal-details separator-details" style="display: flex; align-items: center; justify-content: center; opacity: 0.8; gap: 1rem; width: 100%;">
                                 <div style="flex-grow: 1; border-top: 1px dashed black;"></div>
-                                <div style="font-size: 0.8em; letter-spacing: 0.5px;">DISCOVER PAST EVENTS</div>
+                                <div style="font-size: 0.8em; letter-spacing: 0.5px;">PAST EVENTS</div>
                                 <div style="flex-grow: 1; border-top: 1px dashed black;"></div>
                             </div>
                         </div>
@@ -348,17 +348,19 @@ function createCard(p, isGrid) {
     const card = document.createElement('div');
     card.className = 'paper-card';
     
+    let clickAction = p.isEvent ? `unfoldCalendarEvent(${p.originalIndex})` : `handleMobileTap(event, '${p.id}', this.closest('.card-wrapper'), true)`;
+    let noteClickAction = p.isEvent ? `unfoldCalendarEvent(${p.originalIndex})` : `handleMobileTap(event, '${p.id}', this.closest('.card-wrapper'))`;
+    let noteRefCode = p.isEvent ? `[ REF: EVT-${String(p.originalIndex).padStart(4, '0')} ]` : `[ REF: ARC-${p.id.substring(0,6).toUpperCase()} ]`;
+    let metaGrid = p.isEvent ? '' : getNoteGridHtml(p);
+    
     let note = p.metadata.description ? `
-        <div class="bookmark-note" onclick="handleMobileTap(event, '${p.id}', this.closest('.card-wrapper'))">
+        <div class="bookmark-note" onclick="${noteClickAction}">
             <img src="assets/images/logo.png" class="stamp-logo">
-            <div class="note-ref-code">[ REF: ARC-${p.id.substring(0,6).toUpperCase()} ]</div>
+            <div class="note-ref-code">${noteRefCode}</div>
             <div class="note-divider"></div>
             <div class="note-title">${p.metadata.name}</div>
             <div class="note-divider"></div>
-            <div class="note-meta-grid">
-                ${getNoteGridHtml(p)}
-            </div>
-            <div class="note-divider"></div>
+            ${metaGrid ? `<div class="note-meta-grid">${metaGrid}</div><div class="note-divider"></div>` : ''}
             <div class="note-text-content">${p.metadata.description}</div>
         </div>` : '';
         
@@ -366,7 +368,7 @@ function createCard(p, isGrid) {
         <div class="paper-card-bg"></div>
         <div class="card-inner-frame"></div>
         ${note}
-        <div class="belly-band" onclick="handleMobileTap(event, '${p.id}', this.closest('.card-wrapper'), true)">
+        <div class="belly-band" onclick="${clickAction}">
             <div class="belly-seam"></div>
             <div class="belly-tape" style="background-color: #e8e4d9"></div>
         </div>`;
@@ -412,6 +414,26 @@ function filterProjects(tag, btn) {
     
     if (tag.toLowerCase() === 'magazine') {
         renderMagazineGrid();
+    } else if (tag.toLowerCase() === 'events') {
+        let eventCards = [];
+        if (calendarData.length > 0 && calendarData[0].events) {
+            calendarData[0].events.forEach((evt, idx) => {
+                if (evt.isPast && evt.spreadData && evt.spreadData.titleImage) {
+                    eventCards.push({
+                        id: 'cal-event-' + idx,
+                        isEvent: true,
+                        originalIndex: idx,
+                        metadata: { 
+                            name: evt.dateText || "Past Event", 
+                            description: evt.spreadData.description || "",
+                            tags: ['events']
+                        },
+                        titleImage: evt.spreadData.titleImage
+                    });
+                }
+            });
+        }
+        renderPile(eventCards, true);
     } else {
         renderPile(tag === 'All' ? archiveData : archiveData.filter(p => p.metadata.tags.some(t => t.toLowerCase() === tag.toLowerCase())), tag !== 'All');
     }

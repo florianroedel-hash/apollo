@@ -11,9 +11,9 @@ body.grid-mode #project-pile { width: 90vw; padding: 0 5vw; box-sizing: border-b
 body.grid-mode .side-column { display: none !important; }
 
 /* Card wrappers: centered inside grid cells */
-.card-wrapper { position: relative; filter: drop-shadow(0 0.8rem 2.5rem rgba(0,0,0,0.15)); transition: 0.5s; display: flex; justify-content: center; align-items: center; will-change: transform, top, left; backface-visibility: hidden; } 
+.card-wrapper { position: relative; filter: drop-shadow(0 0.2rem 0.8rem rgba(0,0,0,0.08)); transition: 0.5s; display: flex; justify-content: center; align-items: center; will-change: transform, top, left; backface-visibility: hidden; } 
 body.grid-mode .card-wrapper { 
-    filter: drop-shadow(0 0.8rem 2.5rem rgba(0,0,0,0.3));
+    filter: drop-shadow(0 0.2rem 0.8rem rgba(0,0,0,0.08));
     -webkit-clip-path: inset(-10rem -10rem -0.2rem -10rem);
     clip-path: inset(-10rem -10rem -0.2rem -10rem);
 } 
@@ -176,7 +176,7 @@ body.grid-mode .bookmark-note { width: 6vw; min-width: 10rem; font-size: 0.8rem;
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    width: 80%; 
+    width: 75%; 
     height: auto;
     object-fit: contain;
     box-sizing: border-box;
@@ -207,7 +207,7 @@ body.grid-mode .bookmark-note { width: 6vw; min-width: 10rem; font-size: 0.8rem;
     }
     
     #calendar-text.is-stacked .calendar-event-item {
-        width: 85%;
+        width: 80%;
         margin: 0 auto;
         background-color: rgba(255, 255, 255, 0.12); 
         backdrop-filter: blur(1.5rem); -webkit-backdrop-filter: blur(1.5rem); 
