@@ -464,36 +464,17 @@
       "events": [
         {
           "isPast": false,
+          "timestamp": 1782424800000,
+          "text": "26.06.2026<br>aperetivo <br> We’re excited to INVITE YOU to our workshop: Meet Apollo!!\n\nJoin us for aperitivo to get to know who we are, what we’re building and the ideas behind Apollo.\n\n09/04/2026, this Thursday, 19:00 onwards\nPiazza Leonardo da Vinci (in front of Edificio 1)\nWe’d love to see you there!!",
+          "imgId": "1RucX5tMBr6v4iow6jLw1yVxWLd05Q00_",
+          "spreadData": null
+        },
+        {
+          "isPast": false,
           "timestamp": 1781560800000,
           "text": "16.06.2026<br>rem kolhass coming <br> this could be your advertisement this could be your advertisement this could be your advertisement  this could be your advertisement  this could be your advertisement   ",
           "imgId": "1BofgQEVPOC1dg-3UYeWaRIpkh_wZNUhl",
           "spreadData": null
-        },
-        {
-          "isPast": true,
-          "timestamp": 1781388000000,
-          "text": "14.06.2026<br>rem kolhass coming <br> this could be your advertisement this could be your advertisement this could be your advertisement  this could be your advertisement  this could be your advertisement   ",
-          "imgId": "1RucX5tMBr6v4iow6jLw1yVxWLd05Q00_",
-          "spreadData": {
-            "id": "calevt_1",
-            "metadata": {
-              "name": "14.06.2026",
-              "dateOverride": "[Event Title]",
-              "year": "2026",
-              "author": "[Additional Notes]",
-              "course": "[Event Type or Track]",
-              "track": "",
-              "description": "[Event Description here]",
-              "tags": [
-                "Event"
-              ],
-              "dateoverride": "[Event Date]"
-            },
-            "titleImage": "https://drive.google.com/uc?id=1RucX5tMBr6v4iow6jLw1yVxWLd05Q00_",
-            "images": [
-              "https://drive.google.com/uc?id=13A5LlVsRlXX8zaozxvEoNFXN7FB7T23o"
-            ]
-          }
         },
         {
           "isPast": true,
@@ -505,7 +486,7 @@
         {
           "isPast": true,
           "timestamp": 1778968800000,
-          "text": "17.05.2026<br>workshop <br> this could be your advertisement this could be your advertisement this could be your advertisement  this could be your advertisement  this could be your advertisement   ",
+          "text": "17.05.2026<br>Tabelling <br> meet Apollo",
           "imgId": "1BofgQEVPOC1dg-3UYeWaRIpkh_wZNUhl",
           "spreadData": null
         },
@@ -637,11 +618,11 @@
         {},
         {},
         {
-          "audioUrl": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3"
+          "audioUrl": "https://drive.google.com/open?id=155WFEMOh2IyeaYY-6OpmHXKn_NP89feR&usp=drive_fs"
         },
         {},
         {
-          "audioUrl": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3"
+          "audioUrl": "https://drive.google.com/open?id=155WFEMOh2IyeaYY-6OpmHXKn_NP89feR&usp=drive_fs"
         },
         {},
         {},
@@ -670,8 +651,8 @@
     {
       "category": "Comments",
       "title": "chapter 1",
-      "file": "assets/audio/1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr.mp3",
-      "url": "assets/audio/1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr.mp3",
+      "file": "1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr",
+      "url": "1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr",
       "year": "2026",
       "type": "Audio",
       "format": "MP3",
@@ -680,8 +661,8 @@
     {
       "category": "Traces",
       "title": "chapter 1",
-      "file": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3",
-      "url": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3",
+      "file": "155WFEMOh2IyeaYY-6OpmHXKn_NP89feR",
+      "url": "155WFEMOh2IyeaYY-6OpmHXKn_NP89feR",
       "year": "2026",
       "type": "Audio",
       "format": "MP3",
