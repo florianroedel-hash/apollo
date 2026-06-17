@@ -470,7 +470,7 @@
           "spreadData": null
         },
         {
-          "isPast": false,
+          "isPast": true,
           "timestamp": 1781560800000,
           "text": "16.06.2026<br>rem kolhass coming <br> this could be your advertisement this could be your advertisement this could be your advertisement  this could be your advertisement  this could be your advertisement   ",
           "imgId": "1BofgQEVPOC1dg-3UYeWaRIpkh_wZNUhl",
@@ -498,8 +498,14 @@
             },
             "titleImage": "https://drive.google.com/uc?id=1AdIG1eIUXweE9WOkBqQrmgb0tK1YrotC",
             "images": [
-              "https://drive.google.com/uc?id=1wwd9G_Jd7M8kb0qoMYzWTes22YFgx9Su",
-              "https://drive.google.com/uc?id=1sZr3n93Y_WZjnLhBhNm-wNhQ3VAHfsCk"
+              {
+                "src": "https://drive.google.com/uc?id=1wwd9G_Jd7M8kb0qoMYzWTes22YFgx9Su",
+                "title": "WhatsApp Image 2026-06-16 at 11.20.21"
+              },
+              {
+                "src": "https://drive.google.com/uc?id=1sZr3n93Y_WZjnLhBhNm-wNhQ3VAHfsCk",
+                "title": "WhatsApp Image 2026-06-16 at 11.20.28"
+              }
             ]
           }
         },
@@ -532,7 +538,10 @@
             },
             "titleImage": "https://drive.google.com/uc?id=1Cj9cM5CQCd2upnJAKYfAaVelZLLjVVwf",
             "images": [
-              "https://drive.google.com/uc?id=1yeYKQ4dQ9S_pmD3YaKdeYLYPCCcw5Yd0"
+              {
+                "src": "https://drive.google.com/uc?id=1yeYKQ4dQ9S_pmD3YaKdeYLYPCCcw5Yd0",
+                "title": "WhatsApp Image 2026-06-16 at 11.23.19"
+              }
             ]
           }
         },
@@ -558,11 +567,26 @@
             },
             "titleImage": "https://drive.google.com/uc?id=1kijpXy4pG095LeLy2vTnUD5c63H1A99X",
             "images": [
-              "https://drive.google.com/uc?id=1p_xdxuM2A_eW1EUrau5iNFifEo7lcldu",
-              "https://drive.google.com/uc?id=1iM6r2-9I5Ux61Dp5nOJgE6vzfnvZvSYL",
-              "https://drive.google.com/uc?id=19BUCaEWTBY6Chb7gfARCUq27URpnLP3Q",
-              "https://drive.google.com/uc?id=1pk8U2UWy7l2e3EviboUYkkAAVM0lKEn9",
-              "https://drive.google.com/uc?id=1QzuJbnjHHoN9sDE0lGiYpmj9yfc2VNZv"
+              {
+                "src": "https://drive.google.com/uc?id=1p_xdxuM2A_eW1EUrau5iNFifEo7lcldu",
+                "title": "WhatsApp Image 2026-06-16 at 11.27.31"
+              },
+              {
+                "src": "https://drive.google.com/uc?id=1iM6r2-9I5Ux61Dp5nOJgE6vzfnvZvSYL",
+                "title": "WhatsApp Image 2026-06-16 at 11.27.32 (1)"
+              },
+              {
+                "src": "https://drive.google.com/uc?id=19BUCaEWTBY6Chb7gfARCUq27URpnLP3Q",
+                "title": "WhatsApp Image 2026-06-16 at 11.27.32 (2)"
+              },
+              {
+                "src": "https://drive.google.com/uc?id=1pk8U2UWy7l2e3EviboUYkkAAVM0lKEn9",
+                "title": "WhatsApp Image 2026-06-16 at 11.27.32 (3)"
+              },
+              {
+                "src": "https://drive.google.com/uc?id=1QzuJbnjHHoN9sDE0lGiYpmj9yfc2VNZv",
+                "title": "WhatsApp Image 2026-06-16 at 11.27.32"
+              }
             ]
           }
         }

@@ -77,7 +77,9 @@ function renderCalendar(data) {
                     if (evt.spreadData.images) allImages = allImages.concat(evt.spreadData.images);
                     let maxImages = Math.min(5, allImages.length);
                     for(let k=0; k<maxImages; k++) {
-                        let idMatch = allImages[k].match(/(?:id=|\/d\/)([a-zA-Z0-9_-]+)/);
+                        let urlStr = typeof allImages[k] === 'string' ? allImages[k] : allImages[k].src;
+                        if (!urlStr) continue;
+                        let idMatch = urlStr.match(/(?:id=|\/d\/)([a-zA-Z0-9_-]+)/);
                         if(idMatch) {
                            minisHtml += `<img src="https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=h100" style="height: 1.1em; width: auto; object-fit: cover; border-radius: 2px;">`;
                         }
@@ -86,7 +88,9 @@ function renderCalendar(data) {
                     
                     let maxStackImgs = Math.min(2, allImages.length);
                     for(let k=0; k<maxStackImgs; k++) {
-                        let idMatch = allImages[k].match(/(?:id=|\/d\/)([a-zA-Z0-9_-]+)/);
+                        let urlStr = typeof allImages[k] === 'string' ? allImages[k] : allImages[k].src;
+                        if (!urlStr) continue;
+                        let idMatch = urlStr.match(/(?:id=|\/d\/)([a-zA-Z0-9_-]+)/);
                         if (idMatch) {
                             stackImagesHtml += `<img class="calendar-stack-piece-img" src="https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=w800">`;
                         }
@@ -353,7 +357,7 @@ function createCard(p, isGrid) {
     let noteRefCode = p.isEvent ? `[ REF: EVT-${String(p.originalIndex).padStart(4, '0')} ]` : `[ REF: ARC-${p.id.substring(0,6).toUpperCase()} ]`;
     let metaGrid = p.isEvent ? '' : getNoteGridHtml(p);
     
-    let note = p.metadata.description ? `
+    let note = (!p.isEvent && p.metadata.description) ? `
         <div class="bookmark-note" onclick="${noteClickAction}">
             <img src="assets/images/logo.png" class="stamp-logo">
             <div class="note-ref-code">${noteRefCode}</div>
@@ -424,8 +428,8 @@ function filterProjects(tag, btn) {
                         isEvent: true,
                         originalIndex: idx,
                         metadata: { 
-                            name: evt.dateText || "Past Event", 
-                            description: evt.spreadData.description || "",
+                            name: (evt.spreadData.metadata && evt.spreadData.metadata.name) || evt.dateText || "Past Event", 
+                            description: (evt.spreadData.metadata && evt.spreadData.metadata.description) || "",
                             tags: ['events']
                         },
                         titleImage: evt.spreadData.titleImage
