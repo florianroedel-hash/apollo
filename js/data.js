@@ -63,31 +63,33 @@ function getNoteGridHtml(p) {
     const meta = p.metadata || {};
     const isEvent = meta.tags && meta.tags.includes('Event');
     
-    // 1. Render the core four fields to guarantee standard layout
-    let lbl2 = "Course", val2 = meta.course || "Studio Alpha";
-    let lbl3 = "Track", val3 = meta.track || "Laurea Magistrale";
-    let lbl4 = "Prof", val4 = meta.author || "Dr. Smith";
+    let html = '';
     
-    if (isEvent) {
-        lbl2 = "Date"; val2 = meta.dateOverride || meta.name || "TBA";
-        lbl3 = "Event"; val3 = meta.course || "Special";
-        lbl4 = "Note"; val4 = meta.author || "Apollo";
+    // Priority order for standard fields
+    const priorityKeys = isEvent ? ['year', 'dateoverride', 'course', 'author'] : ['year', 'course', 'track', 'author'];
+    
+    // Original labels expected by the user
+    const labels = {
+        'year': 'Year',
+        'course': isEvent ? 'Event' : 'Course',
+        'track': 'Track',
+        'author': isEvent ? 'Note' : 'Author',
+        'dateoverride': 'Date'
+    };
+    
+    for (let key of priorityKeys) {
+        if (meta[key]) {
+            html += `<div>${labels[key] || key}</div><div>${meta[key]}</div>`;
+        }
     }
     
-    let html = `
-        <div>Year</div><div>${meta.year || '2024'}</div>
-        <div>${lbl2}</div><div>${val2}</div>
-        <div>${lbl3}</div><div>${val3}</div>
-        <div>${lbl4}</div><div>${val4}</div>
-    `;
-
-    // 2. Automatically inject any custom fields found in the metadata
-    const reservedKeys = ['name', 'title', 'description', 'tags', 'year', 'course', 'track', 'author', 'dateoverride', 'event', 'note'];
+    // Automatically inject any custom fields found in the metadata
+    const reservedKeys = ['name', 'title', 'description', 'tags', 'instagram handles', 'instagram', 'dateoverride', 'event', 'note'];
+    priorityKeys.forEach(k => reservedKeys.push(k));
     
     for (let key in meta) {
         let cleanKey = key.toLowerCase().trim();
         if (!reservedKeys.includes(cleanKey)) {
-            // Capitalize the custom label (e.g. "location" -> "Location")
             let label = cleanKey.charAt(0).toUpperCase() + cleanKey.slice(1);
             let val = meta[key];
             if (val && typeof val === 'string' && val.trim() !== '') {
