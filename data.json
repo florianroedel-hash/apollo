@@ -463,11 +463,49 @@
     {
       "events": [
         {
-          "isPast": false,
+          "isPast": true,
           "timestamp": 1782424800000,
           "text": "26.06.2026<br>aperetivo <br> We’re excited to INVITE YOU to our workshop: Meet Apollo!!\n\nJoin us for aperitivo to get to know who we are, what we’re building and the ideas behind Apollo.\n\n09/04/2026, this Thursday, 19:00 onwards\nPiazza Leonardo da Vinci (in front of Edificio 1)\nWe’d love to see you there!!",
           "imgId": "1kijpXy4pG095LeLy2vTnUD5c63H1A99X",
-          "spreadData": null
+          "spreadData": {
+            "id": "calevt_1",
+            "metadata": {
+              "name": "26.06.2026",
+              "dateOverride": "Aperetivo",
+              "year": "2026",
+              "author": "Apollo",
+              "course": "“traces” Workshop No.1",
+              "track": "",
+              "description": "The first time ever we meet some of you and it was amazing! Thanks to everyone joining, helping us make this a lively community!",
+              "tags": [
+                "Event"
+              ],
+              "dateoverride": "09.04"
+            },
+            "titleImage": "https://drive.google.com/uc?id=1kijpXy4pG095LeLy2vTnUD5c63H1A99X",
+            "images": [
+              {
+                "src": "https://drive.google.com/uc?id=1p_xdxuM2A_eW1EUrau5iNFifEo7lcldu",
+                "title": "WhatsApp Image 2026-06-16 at 11.27.31"
+              },
+              {
+                "src": "https://drive.google.com/uc?id=1iM6r2-9I5Ux61Dp5nOJgE6vzfnvZvSYL",
+                "title": "WhatsApp Image 2026-06-16 at 11.27.32 (1)"
+              },
+              {
+                "src": "https://drive.google.com/uc?id=19BUCaEWTBY6Chb7gfARCUq27URpnLP3Q",
+                "title": "WhatsApp Image 2026-06-16 at 11.27.32 (2)"
+              },
+              {
+                "src": "https://drive.google.com/uc?id=1pk8U2UWy7l2e3EviboUYkkAAVM0lKEn9",
+                "title": "WhatsApp Image 2026-06-16 at 11.27.32 (3)"
+              },
+              {
+                "src": "https://drive.google.com/uc?id=1QzuJbnjHHoN9sDE0lGiYpmj9yfc2VNZv",
+                "title": "WhatsApp Image 2026-06-16 at 11.27.32"
+              }
+            ]
+          }
         },
         {
           "isPast": true,
@@ -482,7 +520,7 @@
           "text": "22.05.2026<br>New Posters out<br> its examn season and we want to see your amazing projects and gain attention for your work",
           "imgId": "1AdIG1eIUXweE9WOkBqQrmgb0tK1YrotC",
           "spreadData": {
-            "id": "calevt_7",
+            "id": "calevt_6",
             "metadata": {
               "name": "22.05.2026",
               "dateOverride": "Exam Season Poster",
@@ -522,7 +560,7 @@
           "text": "20.04.2026<br>Tabelling <br> we want to gain attention for our mission and meet as much architecture students of polimi as possible! ",
           "imgId": "1Cj9cM5CQCd2upnJAKYfAaVelZLLjVVwf",
           "spreadData": {
-            "id": "calevt_4",
+            "id": "calevt_3",
             "metadata": {
               "name": "20.04.2026",
               "dateOverride": "Aperetivo",
@@ -551,7 +589,7 @@
           "text": "09.04.2026<br>aperetivo <br> We’re excited to INVITE YOU to our very first workshop: Meet Apollo!!\n\nJoin us THIS THURSDAY for aperitivo to get to know who we are, what we’re building and the ideas behind Apollo.\n\nPS: we have FREE beer and snacks!!\n\n09/04/2026, this Thursday, 19:00 onwards\nPiazza Leonardo da Vinci (in front of Edificio 1)\nWe’d love to see you there!!",
           "imgId": "1kijpXy4pG095LeLy2vTnUD5c63H1A99X",
           "spreadData": {
-            "id": "calevt_5",
+            "id": "calevt_4",
             "metadata": {
               "name": "09.04.2026",
               "dateOverride": "Aperetivo",
@@ -696,11 +734,11 @@
         {},
         {},
         {
-          "audioUrl": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3"
+          "audioUrl": "https://drive.google.com/open?id=155WFEMOh2IyeaYY-6OpmHXKn_NP89feR&usp=drive_fs"
         },
         {},
         {
-          "audioUrl": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3"
+          "audioUrl": "https://drive.google.com/open?id=155WFEMOh2IyeaYY-6OpmHXKn_NP89feR&usp=drive_fs"
         },
         {},
         {},
@@ -729,8 +767,8 @@
     {
       "category": "Comments",
       "title": "chapter 1",
-      "file": "assets/audio/1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr.mp3",
-      "url": "assets/audio/1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr.mp3",
+      "file": "1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr",
+      "url": "1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr",
       "year": "2026",
       "type": "Audio",
       "format": "MP3",
@@ -739,8 +777,8 @@
     {
       "category": "Traces",
       "title": "chapter 1",
-      "file": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3",
-      "url": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3",
+      "file": "155WFEMOh2IyeaYY-6OpmHXKn_NP89feR",
+      "url": "155WFEMOh2IyeaYY-6OpmHXKn_NP89feR",
       "year": "2026",
       "type": "Audio",
       "format": "MP3",
