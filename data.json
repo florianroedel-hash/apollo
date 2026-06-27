@@ -1,15 +1,148 @@
 {
   "archive": [
     {
+      "id": "1n4TXpVoq0865qPb5mH93DkkDxOuYGCra",
+      "images": [
+        {
+          "src": "https://drive.google.com/uc?export=view&id=16jR5e1kA-Hm-HpueSPoinTB4ZqydrwUy",
+          "title": "immagine 1"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1_yAAvR6cU1eNJmL1rYeBjfy9PP-oohK9",
+          "title": "vista vicina esterna"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=16CVv8jqpOUvETB8zSui0qzg6mq06IlAR",
+          "title": "tavola intera"
+        }
+      ],
+      "titleImage": "https://drive.google.com/uc?export=view&id=14CqPoAtgsM8Y4gAaux24kjPyjCpSUt72",
+      "metadata": {
+        "name": "DJILAK SECONDARY SCHOOL",
+        "author": "Gabriele Morelli, Filippo Omini",
+        "year": "2026",
+        "tags": [
+          "architecture"
+        ],
+        "description": "In the vast Senegalese savanna, architecture becomes a tool for social redemption. Utilizing a modular rhythm of regularly spaced rammed earth walls, interchangeable spaces dedicated to learning are created. These structural sets extend outward, transforming into outdoor libraries and integrated seating, to facilitate a school life lived primarily in the open air. Interlocking cylindrical terracotta pots work purely in compression, creating arches that cover large spans, which can be built with minimal scaffolding to limit costs. Above the vaults, a corrugated steel sheet is elevated by longitudinal purlins to trigger a dual-flow natural ventilation system, countering the intense Senegalese heat. The construction site functions as a “school within a school,” engaging local artisans to integrate local knowledge with new technical skills. By fostering economic emancipation for adults and providing a dignified learning environment for youth, the project ensures that architecture is the physical place where territory and aspirations finally coincide.<br>",
+        "course": "Archstorming Senegal Secondary School",
+        "track": "Spring 2026 — Y4, Laurea Magistrale",
+        "instagram handles": "Gabriele Morelli @gab__morelli<br>Filippo Omini @filippo.omini"
+      }
+    },
+    {
+      "id": "1PogMK9f8XFkguBP9GtGpvMuSnO2hMg4Z",
+      "images": [
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1DZYmJJiwQnV89hHc_QfstfUNjiarYx4s",
+          "title": "Story 4 - part 1 v2 senza sfondo"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1o47KhY1btlQ9qLddLyQfkm1uviVx0H1A",
+          "title": "schizzo 03 edit"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1b2XhVeqJYUOSUdEYDLXTAVFdTC-AEKZI",
+          "title": "Story 3 - part 1"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1RfW3pz-uR7qY8jB-BxyS4iC2MoNEPDIN",
+          "title": "Story 3 - part 2"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1FTnHFIduBb64VWQoWNRDq6P7slxd6ZO-",
+          "title": "Story 2 - part 2"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1BZsdd9wkxO8xcI0U50eLDCIwcfNJcYYX",
+          "title": "Story 2 - part 1"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1BTNJzjLgD-r2G6_Ikmn4e9J0Aiv2PVOH",
+          "title": "Story 1 - part 1"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1xACmlA1LDFt62Tk0ns1LwkARXfmgkAdI",
+          "title": "Story 1 - part 2"
+        }
+      ],
+      "titleImage": "https://drive.google.com/uc?export=view&id=1Taf6onzav5XyhqVRnBp-8Ao_qz0YLInX",
+      "metadata": {
+        "name": "INSIDE THE SALMON SKIN",
+        "author": "Nicolò Mario Terruso; Sasha Fasolo Massoli",
+        "year": "2026",
+        "tags": [
+          "architecture"
+        ],
+        "description": "The project focuses on the upcycling of decommissioned salmon fishing rings in Tromsø, Norway, to create floating, modular nesting structures for kittiwakes during the breeding season.<br>",
+        "competition": "120 hours 2026",
+        "result": "Winner 2026",
+        "jury statement": " “This proposal confronts us with a powerful idea, can we reuse the ubiquitous circular sea farming structure as a floating sanctuary for Kittiwakes? The jury believes this proposal sketches out a solution in an exemplary way, upcycling industrial waste at scale. The solution is cost efficient, believable and extremely flexible. The proposal also addresses the Kittiwakes need for a partially sheltered solution, and we can see the potential for developing this into an attraction for experience based tourism.”",
+        "instagram handles": "Nicolò Mario Terruso @nicolo.terruso<br>Sasha Fasolo Massoli @sashafasolomassoli<br>"
+      }
+    },
+    {
       "id": "13QsYbySIsQvK9XstcvKjHe-c76WgYXu9",
       "images": [
         {
-          "src": "https://drive.google.com/uc?export=view&id=1uTzWthEb8y2oxE35A67U4yDVw8q25fNH",
-          "title": "01"
+          "src": "https://drive.google.com/uc?export=view&id=1ATmdsy4MjEn1yLAfj-oRu2fH-tOjsWN7",
+          "title": "T06DEF"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=12-XZB5ZDA9VQ0R22HF9x4LgnJFO_0hlL",
+          "title": "T07DEF_LUCIDO"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1XIOig7qVrkH9Bge6r15w78KUGrQLYmzI",
+          "title": "T07DEF"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1NR3_JD5pUx6ab3J-wf-Vv8pUEbaN_nVS",
+          "title": "T08.2DEF"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1StjtMCIkwpgzBb5U4VP9a9Kb2T038nby",
+          "title": "T08DEF"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1dxk_87IjVar62eVRgQ-evE5tlVyin-FG",
+          "title": "TAV_AXO_mercato"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1rslG8GHQESBJ0WpoCSm9sP4TfogwT3hO",
+          "title": "TAV_AXO_piazza"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1JQJ1QEg-BpUjXLosv_FX1l3lOl5ABCpf",
+          "title": "TAV_AXO_unità8"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=18Ju7K4rW_QcO0IWqgyTW0SQoFJ2l-IVu",
+          "title": "TDEF_AXO_scuola"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1pgWXQvfTwK64il_Jeu9QbyN1xtsvZArH",
+          "title": "TDEF_ZOOM50"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1HYBKNMslWC4PBUTU8D7FlIAUk5eJPUQi",
+          "title": "T03DEF"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1I4aFPQlTfcTOrF4O2AAFxBRNT_Y5h7rj",
+          "title": "T02DEF"
         },
         {
           "src": "https://drive.google.com/uc?export=view&id=1y2jhegd6qh-gyoY7sLqqTNWk3UkL49NE",
           "title": "T01DEF"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1vkhC5ygBAvITv7C3q4NldiFQ38eP1XYn",
+          "title": "masterplan"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1uTzWthEb8y2oxE35A67U4yDVw8q25fNH",
+          "title": "01"
         },
         {
           "src": "https://drive.google.com/uc?export=view&id=1TrkpSX12mMmRb_TsroWHL8G4-tg-iuiR",
@@ -90,157 +223,62 @@
         {
           "src": "https://drive.google.com/uc?export=view&id=1_K0C1LvtZ-E7kf3o0Igj7ncLKnpL1hex",
           "title": "17"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1pgWXQvfTwK64il_Jeu9QbyN1xtsvZArH",
-          "title": "TDEF_ZOOM50"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=18Ju7K4rW_QcO0IWqgyTW0SQoFJ2l-IVu",
-          "title": "TDEF_AXO_scuola"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1JQJ1QEg-BpUjXLosv_FX1l3lOl5ABCpf",
-          "title": "TAV_AXO_unità8"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1rslG8GHQESBJ0WpoCSm9sP4TfogwT3hO",
-          "title": "TAV_AXO_piazza"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1dxk_87IjVar62eVRgQ-evE5tlVyin-FG",
-          "title": "TAV_AXO_mercato"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1StjtMCIkwpgzBb5U4VP9a9Kb2T038nby",
-          "title": "T08DEF"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1NR3_JD5pUx6ab3J-wf-Vv8pUEbaN_nVS",
-          "title": "T08.2DEF"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1XIOig7qVrkH9Bge6r15w78KUGrQLYmzI",
-          "title": "T07DEF"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=12-XZB5ZDA9VQ0R22HF9x4LgnJFO_0hlL",
-          "title": "T07DEF_LUCIDO"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1ATmdsy4MjEn1yLAfj-oRu2fH-tOjsWN7",
-          "title": "T06DEF"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1vkhC5ygBAvITv7C3q4NldiFQ38eP1XYn",
-          "title": "T05DEF"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1HYBKNMslWC4PBUTU8D7FlIAUk5eJPUQi",
-          "title": "T03DEF"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1I4aFPQlTfcTOrF4O2AAFxBRNT_Y5h7rj",
-          "title": "T02DEF"
         }
       ],
       "titleImage": "https://drive.google.com/uc?export=view&id=1KIt0njyhrbAUByW1bL5mb8m57GBLBAb1",
       "metadata": {
-        "name": "AnnoZero",
-        "author": "Guglielmo Vitelli & Francesco Zarotti",
-        "year": "2026",
+        "name": "ANNO ZERO, ARCHITECTURE FOR RETURN, GAZA'S STRIP.",
+        "author": "GUGLIELMO VITELLI, FRANCESCO ZAROTTI",
+        "year": "2026,Y4",
+        "tags": [
+          "architecture",
+          "model",
+          "urban"
+        ],
+        "description": "<br>AnnoZero addresses the housing emergency in the Gaza Strip through a network of temporary, self-built micro-villages designed for displaced communities.<br><br>Each village hosts around 265 people and functions as a self-sufficient micro-community, built with the modular U-Build system. Operating across territorial and architectural scales, the project transforms vacant land and former control devices into spaces for living, learning, and gathering. Rather than rebuilding the city, AnnoZero initiates a process of return, resilience, and renewal, leaving traces that become the groundwork for future regeneration.<br>",
+        "course": "Master'S Degree Thesis",
+        "prof": "Massimiliano Roca",
+        "instagram handles": "GUGLIELMO VITELLI @gughi.vite<br>FRANCESCO ZAROTTI @lifeofcesco<br>"
+      }
+    },
+    {
+      "id": "11nFF9YBbpXVbfs5iD8IiB6gy6DAa6Vgp",
+      "images": [
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1zkHfIb9XxNu7bzJMS0lDIGqzH_htEqam",
+          "title": "260605_plans GFloor_1.200"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1Yo1CJVDGYlavrXcwJUlHoZVQOnopbqPl",
+          "title": "RENDER 2"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1m5LJg7Ze3ELeBpsKG__xmXoG8_BqX7m_",
+          "title": "RENDER 1"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1m_ARIYpOPYgxRi_d5t4EWUuMtOz0o6VV",
+          "title": "PLAN Large"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1MQxbT9UzoG8A81OGKvOVDnVIe1_UYOoO",
+          "title": "AXO"
+        }
+      ],
+      "titleImage": "https://drive.google.com/uc?export=view&id=1pWt-I5XNRX8V02s-2Pn30mXguA22e_GZ",
+      "metadata": {
+        "name": "ARGELATI POOLS -  Between Water and Sky",
+        "author": "Maxence Werp, Enea Manghi, Michele Beltrami, Matilde Invernizzi",
+        "year": "Spring 2026",
         "tags": [
           "architecture",
           "model"
         ],
-        "description": "AnnoZero addresses the housing emergency in the Gaza Strip through a network of temporary, self-built micro-villages designed for displaced communities.<br>Each village hosts around 265 people and functions as a self-sufficient micro-community, built with the modular U-Build system. Operating across territorial and architectural scales, the project transforms vacant land and former control devices into spaces for living, learning, and gathering. Rather than rebuilding the city, AnnoZero initiates a process of return, resilience, and renewal, leaving traces that become the groundwork for future regeneration.<br>"
-      }
-    },
-    {
-      "id": "1etgn7I5w9a3UkYTaw9mQzorHWId1qmcG",
-      "images": [
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1eALc3rxPtnWa6SndFlu1-ZJfUsrbCcyQ",
-          "title": "01"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=10XmZ_TgqGACUbQ92ZRA6DFI1XW9GGbQQ",
-          "title": "IMG_20260531_131859_180"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=10sQ44sYLcmqEr6F3Ol4xVY66I787GzIZ",
-          "title": "IMG_20260531_131835_803"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=13dCKk79lCHlGRc2gsE5nGpsINpHwEnt-",
-          "title": "IMG_20260531_131831_541"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=14Uy_WZ4fslc6X9aoEaeYU3dPirEZVGAM",
-          "title": "IMG_20260531_131837_622"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=17LG7YzlabiIkNLN0S2dQ2qGFW49MyDRF",
-          "title": "IMG_20260531_131917_062"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1CtEL03MOLJ_FO8z5t4AWb_ZwE-v6GG-O",
-          "title": "IMG_20260531_131848_625"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1Df7QaSvtJYWS-MGVK5e9TRKwN1m1iuKV",
-          "title": "IMG_20260531_131902_529"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1Ef0AcrPHM-_-cf1lXBEbchHVtNu3rSo7",
-          "title": "IMG_20260531_131913_996"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1L93IndQIpsizOXlcRJ0l8kal0gGZwAdd",
-          "title": "IMG_20260531_131852_588"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1Ub0HmhjGa8t5Yy8aCMPHM8RogpCp8Cqk",
-          "title": "IMG_20260531_131839_366"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1hZtvUrKa86OCJP2Fakj6PcBy1dL71GZW",
-          "title": "IMG_20260531_131910_797"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1hiKKp11yJLYsxX0y50Bdok1y0ddPs0iQ",
-          "title": "IMG_20260531_131844_478"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1vbEjDiIEWJXSFOMQ_UpNS_85GO71lmvO",
-          "title": "IMG_20260531_131908_449"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1wptTL8MgA1ICDmBu3iE08IlDL3DVe1Dc",
-          "title": "IMG_20260531_131842_320"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1wtaPnRdgr78IquB2yLRIA6v_1UJV0VUl",
-          "title": "IMG_20260531_131833_658"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=1xxDHMTcSOja5gzn_fqYDQRcoBrgKs3qo",
-          "title": "IMG_20260531_131855_851"
-        },
-        {
-          "src": "https://drive.google.com/uc?export=view&id=17_UoJIDaR_fzCCpwndwpkTTjyB15fpgm",
-          "title": "inbound5757369850068539680"
-        }
-      ],
-      "titleImage": "https://drive.google.com/uc?export=view&id=16a8ftnu4UXRjAaHFnmGSabOYFqUeklJd",
-      "metadata": {
-        "name": "EXPONENTIAL. EXPO 2035 AND ACCELERATED CITY",
-        "author": "Diana Nakhodkina",
-        "year": "Spring 2026 — Y2, Laurea Magistrale",
-        "tags": [
-          "urbanism"
-        ],
-        "description": "How we can use mega-events as the urban accelerator in the city, that will bring long lasting benefits to the city, rather than one time spectacle?<br><br>Research regarding this topic, based on case studies and implemented of the research through the project in Hamburg, Kattwyk Island, with idea to reinvent/give back to the city industrial area, reusing oil tankers as architecture not for industry, but for people<br><br><br>"
+        "description": "At the edge of the Navigli, an old pool opens itself to the city again. A cable holds the sky. A membrane learns when to close.<br><br>The project transforms the Argelati swimming pool into a year-round public threshold, neither fully inside nor fully outside, but always inhabited. A single tensioned strand, 42 metres long, carries a retractable PTFE roof that folds back on warm days and closes against winter. Water is present in all seasons. The building breathes with the city.<br><br>Structure here is not hidden, it is the architecture. Steel nodes, cables, and cushions make the logic of enclosure visible. Everything is prefabricated, reversible, designed to be undone as precisely as it was assembled.<br><br>What was seasonal becomes civic. What was closed becomes an invitation.<br>",
+        "course": "ACHITECTURE DESIGN AND CONSTRUCTION STUDIO",
+        "track": "Laurea Magistrale, Y1",
+        "prof": "Zanelli Novati",
+        "instagram handles": "Maxence Werp @maxencewerp<br>Enea Manghi @enea.mng<br>Michele Beltrami @beltramicheli<br>Matilde Invernizzi<br>"
       }
     },
     {
@@ -449,13 +487,16 @@
       "titleImage": "https://drive.google.com/uc?export=view&id=1hVRew1XR5qUySZt1FZl2Cnk1y7HHPoJ6",
       "metadata": {
         "name": "CONTINUITY AND CONTRASTS: ARCHITECTURAL EXPERIMENTS IN THE ALPINE VILLAGE OF SAVOGNO",
-        "author": "Fabio Sciuchetti",
-        "year": "Spring 2026 — Y4, Laurea Magistrale",
+        "author": "fabio sciuchetti",
+        "year": "Spring 2026",
         "tags": [
           "architecture",
           "model"
         ],
-        "description": "The proposed projects do not stem from a mere formal intuition, but rather from a careful analysis of the village's needs and urban voids. Acknowledging the spatial fragmentation of the settlement, the chosen approach goes beyond simple restoration, aiming instead for a true adaptive reuse and functional conversion of the existing structures.<br><br>The goal is to trigger a chain reaction for the regeneration of the entire village through \"urban acupuncture\" interventions. Avoiding a massive, monolithic approach, the strategy is divided into four intervention lots, differing in typology and function, yet synergistically connected.<br><br>This subdivision also ensures the economic sustainability of the overall process, allowing for a phased development that can easily adapt to the client's actual financial resources.<br>"
+        "description": "The proposed projects do not stem from a mere formal intuition, but rather from a careful analysis of the village's needs and urban voids. Acknowledging the spatial fragmentation of the settlement, the chosen approach goes beyond simple restoration, aiming instead for a true adaptive reuse and functional conversion of the existing structures.<br><br>The goal is to trigger a chain reaction for the regeneration of the entire village through \"urban acupuncture\" interventions. Avoiding a massive, monolithic approach, the strategy is divided into four intervention lots, differing in typology and function, yet synergistically connected.<br><br>This subdivision also ensures the economic sustainability of the overall process, allowing for a phased development that can easily adapt to the client's actual financial resources.<br>",
+        "course": "master thesis",
+        "track": ", Laurea Magistrale, Y4",
+        "instagram handles": "fabio sciuchetti @fabio_sciuchetti<br>"
       }
     }
   ],
@@ -463,11 +504,49 @@
     {
       "events": [
         {
-          "isPast": false,
+          "isPast": true,
           "timestamp": 1782424800000,
           "text": "26.06.2026<br>aperetivo <br> We’re excited to INVITE YOU to our workshop: Meet Apollo!!\n\nJoin us for aperitivo to get to know who we are, what we’re building and the ideas behind Apollo.\n\n09/04/2026, this Thursday, 19:00 onwards\nPiazza Leonardo da Vinci (in front of Edificio 1)\nWe’d love to see you there!!",
           "imgId": "1kijpXy4pG095LeLy2vTnUD5c63H1A99X",
-          "spreadData": null
+          "spreadData": {
+            "id": "calevt_1",
+            "metadata": {
+              "name": "26.06.2026",
+              "dateOverride": "Aperetivo",
+              "year": "2026",
+              "author": "Apollo",
+              "course": "“traces” Workshop No.1",
+              "track": "",
+              "description": "The first time ever we meet some of you and it was amazing! Thanks to everyone joining, helping us make this a lively community!",
+              "tags": [
+                "Event"
+              ],
+              "dateoverride": "09.04"
+            },
+            "titleImage": "https://drive.google.com/uc?id=1kijpXy4pG095LeLy2vTnUD5c63H1A99X",
+            "images": [
+              {
+                "src": "https://drive.google.com/uc?id=1p_xdxuM2A_eW1EUrau5iNFifEo7lcldu",
+                "title": "WhatsApp Image 2026-06-16 at 11.27.31"
+              },
+              {
+                "src": "https://drive.google.com/uc?id=1iM6r2-9I5Ux61Dp5nOJgE6vzfnvZvSYL",
+                "title": "WhatsApp Image 2026-06-16 at 11.27.32 (1)"
+              },
+              {
+                "src": "https://drive.google.com/uc?id=19BUCaEWTBY6Chb7gfARCUq27URpnLP3Q",
+                "title": "WhatsApp Image 2026-06-16 at 11.27.32 (2)"
+              },
+              {
+                "src": "https://drive.google.com/uc?id=1pk8U2UWy7l2e3EviboUYkkAAVM0lKEn9",
+                "title": "WhatsApp Image 2026-06-16 at 11.27.32 (3)"
+              },
+              {
+                "src": "https://drive.google.com/uc?id=1QzuJbnjHHoN9sDE0lGiYpmj9yfc2VNZv",
+                "title": "WhatsApp Image 2026-06-16 at 11.27.32"
+              }
+            ]
+          }
         },
         {
           "isPast": true,
@@ -482,7 +561,7 @@
           "text": "22.05.2026<br>New Posters out<br> its examn season and we want to see your amazing projects and gain attention for your work",
           "imgId": "1AdIG1eIUXweE9WOkBqQrmgb0tK1YrotC",
           "spreadData": {
-            "id": "calevt_7",
+            "id": "calevt_6",
             "metadata": {
               "name": "22.05.2026",
               "dateOverride": "Exam Season Poster",
@@ -522,7 +601,7 @@
           "text": "20.04.2026<br>Tabelling <br> we want to gain attention for our mission and meet as much architecture students of polimi as possible! ",
           "imgId": "1Cj9cM5CQCd2upnJAKYfAaVelZLLjVVwf",
           "spreadData": {
-            "id": "calevt_4",
+            "id": "calevt_3",
             "metadata": {
               "name": "20.04.2026",
               "dateOverride": "Aperetivo",
@@ -551,7 +630,7 @@
           "text": "09.04.2026<br>aperetivo <br> We’re excited to INVITE YOU to our very first workshop: Meet Apollo!!\n\nJoin us THIS THURSDAY for aperitivo to get to know who we are, what we’re building and the ideas behind Apollo.\n\nPS: we have FREE beer and snacks!!\n\n09/04/2026, this Thursday, 19:00 onwards\nPiazza Leonardo da Vinci (in front of Edificio 1)\nWe’d love to see you there!!",
           "imgId": "1kijpXy4pG095LeLy2vTnUD5c63H1A99X",
           "spreadData": {
-            "id": "calevt_5",
+            "id": "calevt_4",
             "metadata": {
               "name": "09.04.2026",
               "dateOverride": "Aperetivo",
