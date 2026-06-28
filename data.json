@@ -741,50 +741,40 @@
     {
       "title": "Issue_02 ",
       "images": [
-        "https://drive.google.com/uc?export=view&id=1dUNuIGyU1Z40JK6cun4FcO7aztjOSajL",
         "https://drive.google.com/uc?export=view&id=1KIhGLlunstMNhlk7kD_o7WxvO5yrjFPc",
         "https://drive.google.com/uc?export=view&id=1tKnoP5eY2Z0jOVrW8B2Lx02afYWzpx7e",
         "https://drive.google.com/uc?export=view&id=1o_FHDcN99cBTSDDEWKBph2pifdho9fSP",
         "https://drive.google.com/uc?export=view&id=1Ubs951DirNA2e_u5NPw_OAtGFLa3WNEO",
         "https://drive.google.com/uc?export=view&id=1v-NroPoFSL68dmvjJlHUgjGI_jPP_Z2P",
-        "https://drive.google.com/uc?export=view&id=1TtZo5Jbm8sRW68ux6Q7tws3m8eOi86Ur",
-        "https://drive.google.com/uc?export=view&id=18335v8BnZ9wsrXkt0X2gROoOxGGjtVJF",
-        "https://drive.google.com/uc?export=view&id=1CJrJJdes3eeoOQSUD2ImM4x9SdDeKxbx",
-        "https://drive.google.com/uc?export=view&id=1goQrkTUD2yyKXNqlY3yOBpJIMcMr-EGa",
-        "https://drive.google.com/uc?export=view&id=1xBN7Sxwav3e7QMLBuHvXvVSymGxkukw4"
+        "https://drive.google.com/uc?export=view&id=1J5ZxgAClqrZh816XH8FKwJ8Z7lgWg6F5"
       ],
       "chapters": [
         {
           "name": "00_cover",
-          "page": 0
+          "page": 5
         },
         {
           "name": "01_editorial",
-          "page": 1
+          "page": 0
         },
         {
           "name": "02_projects",
-          "page": 4
+          "page": 3
         },
         {
           "name": "04_interviews",
-          "page": 7
+          "page": 5
         }
       ],
       "pages": [
         {},
-        {},
         {
-          "audioUrl": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3"
+          "audioUrl": "https://drive.google.com/open?id=155WFEMOh2IyeaYY-6OpmHXKn_NP89feR&usp=drive_fs"
         },
         {},
         {
-          "audioUrl": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3"
+          "audioUrl": "https://drive.google.com/open?id=155WFEMOh2IyeaYY-6OpmHXKn_NP89feR&usp=drive_fs"
         },
-        {},
-        {},
-        {},
-        {},
         {},
         {}
       ]
@@ -808,8 +798,8 @@
     {
       "category": "Comments",
       "title": "chapter 1",
-      "file": "assets/audio/1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr.mp3",
-      "url": "assets/audio/1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr.mp3",
+      "file": "1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr",
+      "url": "1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr",
       "year": "2026",
       "type": "Audio",
       "format": "MP3",
@@ -818,8 +808,8 @@
     {
       "category": "Traces",
       "title": "chapter 1",
-      "file": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3",
-      "url": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3",
+      "file": "155WFEMOh2IyeaYY-6OpmHXKn_NP89feR",
+      "url": "155WFEMOh2IyeaYY-6OpmHXKn_NP89feR",
       "year": "2026",
       "type": "Audio",
       "format": "MP3",
