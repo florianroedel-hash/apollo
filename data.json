@@ -741,6 +741,7 @@
     {
       "title": "Issue_02 ",
       "images": [
+        "https://drive.google.com/uc?export=view&id=1dUNuIGyU1Z40JK6cun4FcO7aztjOSajL",
         "https://drive.google.com/uc?export=view&id=1KIhGLlunstMNhlk7kD_o7WxvO5yrjFPc",
         "https://drive.google.com/uc?export=view&id=1tKnoP5eY2Z0jOVrW8B2Lx02afYWzpx7e",
         "https://drive.google.com/uc?export=view&id=1o_FHDcN99cBTSDDEWKBph2pifdho9fSP",
@@ -751,29 +752,30 @@
       "chapters": [
         {
           "name": "00_cover",
-          "page": 5
-        },
-        {
-          "name": "01_editorial",
           "page": 0
         },
         {
+          "name": "01_editorial",
+          "page": 1
+        },
+        {
           "name": "02_projects",
-          "page": 3
+          "page": 4
         },
         {
           "name": "04_interviews",
-          "page": 5
+          "page": 6
         }
       ],
       "pages": [
         {},
+        {},
         {
-          "audioUrl": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3"
+          "audioUrl": "https://drive.google.com/open?id=155WFEMOh2IyeaYY-6OpmHXKn_NP89feR&usp=drive_fs"
         },
         {},
         {
-          "audioUrl": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3"
+          "audioUrl": "https://drive.google.com/open?id=155WFEMOh2IyeaYY-6OpmHXKn_NP89feR&usp=drive_fs"
         },
         {},
         {}
@@ -798,8 +800,8 @@
     {
       "category": "Comments",
       "title": "chapter 1",
-      "file": "assets/audio/1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr.mp3",
-      "url": "assets/audio/1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr.mp3",
+      "file": "1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr",
+      "url": "1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr",
       "year": "2026",
       "type": "Audio",
       "format": "MP3",
@@ -808,8 +810,8 @@
     {
       "category": "Traces",
       "title": "chapter 1",
-      "file": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3",
-      "url": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3",
+      "file": "155WFEMOh2IyeaYY-6OpmHXKn_NP89feR",
+      "url": "155WFEMOh2IyeaYY-6OpmHXKn_NP89feR",
       "year": "2026",
       "type": "Audio",
       "format": "MP3",
