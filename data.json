@@ -504,55 +504,10 @@
     {
       "events": [
         {
-          "isPast": true,
-          "timestamp": 1782424800000,
-          "text": "26.06.2026<br>aperetivo <br> We’re excited to INVITE YOU to our workshop: Meet Apollo!!\n\nJoin us for aperitivo to get to know who we are, what we’re building and the ideas behind Apollo.\n\n09/04/2026, this Thursday, 19:00 onwards\nPiazza Leonardo da Vinci (in front of Edificio 1)\nWe’d love to see you there!!",
+          "isPast": false,
+          "timestamp": 1783029600000,
+          "text": "03.07.2026<br>aperetivo <br> We’re excited to INVITE YOU: Meet Apollo!!\n\nJoin us for end of semester aperitivo to get to know who we are, what we’re building and the ideas behind Apollo.\n\n03/07/2026, this Thursday, 19:00 onwards\nPiazza Leonardo da Vinci (in front of Edificio 1)\nWe’d love to see you there!!",
           "imgId": "1kijpXy4pG095LeLy2vTnUD5c63H1A99X",
-          "spreadData": {
-            "id": "calevt_1",
-            "metadata": {
-              "name": "26.06.2026",
-              "dateOverride": "Aperetivo",
-              "year": "2026",
-              "author": "Apollo",
-              "course": "“traces” Workshop No.1",
-              "track": "",
-              "description": "The first time ever we meet some of you and it was amazing! Thanks to everyone joining, helping us make this a lively community!",
-              "tags": [
-                "Event"
-              ],
-              "dateoverride": "09.04"
-            },
-            "titleImage": "https://drive.google.com/uc?id=1kijpXy4pG095LeLy2vTnUD5c63H1A99X",
-            "images": [
-              {
-                "src": "https://drive.google.com/uc?id=1p_xdxuM2A_eW1EUrau5iNFifEo7lcldu",
-                "title": "WhatsApp Image 2026-06-16 at 11.27.31"
-              },
-              {
-                "src": "https://drive.google.com/uc?id=1iM6r2-9I5Ux61Dp5nOJgE6vzfnvZvSYL",
-                "title": "WhatsApp Image 2026-06-16 at 11.27.32 (1)"
-              },
-              {
-                "src": "https://drive.google.com/uc?id=19BUCaEWTBY6Chb7gfARCUq27URpnLP3Q",
-                "title": "WhatsApp Image 2026-06-16 at 11.27.32 (2)"
-              },
-              {
-                "src": "https://drive.google.com/uc?id=1pk8U2UWy7l2e3EviboUYkkAAVM0lKEn9",
-                "title": "WhatsApp Image 2026-06-16 at 11.27.32 (3)"
-              },
-              {
-                "src": "https://drive.google.com/uc?id=1QzuJbnjHHoN9sDE0lGiYpmj9yfc2VNZv",
-                "title": "WhatsApp Image 2026-06-16 at 11.27.32"
-              }
-            ]
-          }
-        },
-        {
-          "isPast": true,
-          "timestamp": 1781560800000,
-          "text": "16.06.2026<br>rem kolhass coming <br> this could be your advertisement this could be your advertisement this could be your advertisement  this could be your advertisement  this could be your advertisement   ",
-          "imgId": "1BofgQEVPOC1dg-3UYeWaRIpkh_wZNUhl",
           "spreadData": null
         },
         {
@@ -591,7 +546,7 @@
         {
           "isPast": true,
           "timestamp": 1779141600000,
-          "text": "19.05.2026<br>aperetivo <br> this could be your advertisement this could be your advertisement this could be your advertisement  this could be your advertisement  this could be your advertisement   ",
+          "text": "19.05.2026<br>examn season <br> everyday we saw your amazing work beeing put together, all the future models beeing build and we want everyone to see these incredible projects",
           "imgId": "1BofgQEVPOC1dg-3UYeWaRIpkh_wZNUhl",
           "spreadData": null
         },
@@ -604,16 +559,16 @@
             "id": "calevt_3",
             "metadata": {
               "name": "20.04.2026",
-              "dateOverride": "Aperetivo",
+              "dateOverride": "TABELING",
               "year": "2026",
               "author": "Apollo",
-              "course": "“traces” Workshop No.1",
+              "course": "sketch your project",
               "track": "",
-              "description": "The first time ever we meet some of you and it was amazing! Thanks to everyone joining, helping us make this a lively community!<br>",
+              "description": "sunny day and we set up out table on the engineering campus to meet as much of you as we could and get some sketches of what you are currently working on - thank you for for the amazing feedback we got. We are really proud that our name starts to get recognized and it is always nice to meet you guys in person!<br>",
               "tags": [
                 "Event"
               ],
-              "dateoverride": "09.04"
+              "dateoverride": "20.04"
             },
             "titleImage": "https://drive.google.com/uc?id=1Cj9cM5CQCd2upnJAKYfAaVelZLLjVVwf",
             "images": [
@@ -638,7 +593,7 @@
               "author": "Apollo",
               "course": "“traces” Workshop No.1",
               "track": "",
-              "description": "The first time ever we meet some of you and it was amazing! Thanks to everyone joining, helping us make this a lively community!",
+              "description": "The first time ever we meet some of you and it was amazing! We wanted to get some attention to our upcoming, first ever magazine and get you into the theme with a quick thought paid by a beer - thanks to everyone joining, helping us make this a lively community! There is more to come soon",
               "tags": [
                 "Event"
               ],
@@ -747,7 +702,7 @@
         "https://drive.google.com/uc?export=view&id=1o_FHDcN99cBTSDDEWKBph2pifdho9fSP",
         "https://drive.google.com/uc?export=view&id=1Ubs951DirNA2e_u5NPw_OAtGFLa3WNEO",
         "https://drive.google.com/uc?export=view&id=1v-NroPoFSL68dmvjJlHUgjGI_jPP_Z2P",
-        "https://drive.google.com/uc?export=view&id=1J5ZxgAClqrZh816XH8FKwJ8Z7lgWg6F5"
+        "https://drive.google.com/uc?export=view&id=1un23U-JPXsTsUfjddRSAA1h5TLmwb5Fd"
       ],
       "chapters": [
         {
@@ -771,11 +726,11 @@
         {},
         {},
         {
-          "audioUrl": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3"
+          "audioUrl": "https://drive.google.com/open?id=155WFEMOh2IyeaYY-6OpmHXKn_NP89feR&usp=drive_fs"
         },
         {},
         {
-          "audioUrl": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3"
+          "audioUrl": "https://drive.google.com/open?id=155WFEMOh2IyeaYY-6OpmHXKn_NP89feR&usp=drive_fs"
         },
         {},
         {}
@@ -785,23 +740,23 @@
   "history": [
     {
       "title": "expansion",
-      "text": "danny wants an empire - so he went out to build one danny wants an empire - so he went out to build one <br>danny wants an empire - so he went out to build one <br>danny wants an empire - so he went out to build one <br>danny wants an empire - so he went out to build one <br>danny wants an empire - so he went out to build one <br>danny wants an empire - so he went out to build one <br>"
+      "text": "Over the time our group grew continuously, starting with three initial members, to eight when we started beeing public and now with the help of friends and interested students we grew to an amazing and motivated group of 16 people, working on the magazine, preparing posts, approaching people, coming up with ideas, everything while we are all following our regular schedule. We are amazed by what we accomplished so far, we grew to over 800 followers in just a few months, got a lot of attention from international architecture pages, professors, magazines and we are excited to continue this journey - this is just the start."
     },
     {
       "title": "The Start",
-      "text": " lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>lets get started<br>"
+      "text": "We launched Apollo.Review with our first ever post on September 8th 2025 and a poster campaign. Our first ever submission and project post followed on November 2nd, by that time we already grew to a team of 8 people working on ideas how to expand, what our publication would look like, develop the theme and motivating people to upload their work. We started posting more frequently and had our first workshop for the magazine, which was also the first time we met our growing community in person. <br>With design week we saw all these amazing pavilions beeing build by students, coming from a competition they won to participate but no representation through official school channels - so we approached everyone we could find, gather all the materials we could get to post it. We started to gain traction and a lot of submission so we decided to post three times a week - until this day <br>"
     },
     {
       "title": "Who is apollo",
-      "text": "why dont we make a funny group picture which is not pretentious or some funny documentation why dont we make a funny group picture which is not pretentious or some funny documentation why dont we make a funny group picture which is not pretentious or some funny documentation why dont we make a funny group picture which is not pretentious or some funny documentation why dont we make a funny group picture which is not pretentious or some funny documentation why dont we make a funny group picture which is not pretentious or some funny documentation<br><br><br><br><br>"
+      "text": "We are a group of students across all tracks, initially it was just three of us, arriving in Milan for our masters in september 2025, wondering why there is no place where students' work is properly represented. From our own experience we knew how a full semester's work just disappears in a drawer somewhere without ever getting the attention it deserves. We want to show everyone which amazing work polimi students are creating so people thinking about studying at polimi know what to expect. By creating this platform we not only aim at future students but also the global architectural community and architectural discourse.  <br>"
     }
   ],
   "audio": [
     {
       "category": "Comments",
       "title": "chapter 1",
-      "file": "assets/audio/1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr.mp3",
-      "url": "assets/audio/1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr.mp3",
+      "file": "1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr",
+      "url": "1SH6kx1FuRzvyqT-ZjeTkAzbkYOSqXvjr",
       "year": "2026",
       "type": "Audio",
       "format": "MP3",
@@ -810,8 +765,8 @@
     {
       "category": "Traces",
       "title": "chapter 1",
-      "file": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3",
-      "url": "assets/audio/155WFEMOh2IyeaYY-6OpmHXKn_NP89feR.mp3",
+      "file": "155WFEMOh2IyeaYY-6OpmHXKn_NP89feR",
+      "url": "155WFEMOh2IyeaYY-6OpmHXKn_NP89feR",
       "year": "2026",
       "type": "Audio",
       "format": "MP3",
