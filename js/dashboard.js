@@ -41,7 +41,7 @@ function renderCalendar(data) {
                 if (lines.length > 0) {
                     detailsHtml = lines.shift();
                     if (lines.length > 0) {
-                        detailsHtml += `<br><div style="font-size: 0.9em; margin-top: 0.2rem;">${lines.join('<br>')}</div>`;
+                        detailsHtml += `<br><div style="font-size: 0.9em; margin-top: 0.2rem; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">${lines.join('<br>')}</div>`;
                     }
                 }
 

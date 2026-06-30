@@ -86,11 +86,11 @@ window.toggleMagazineAudio = function(passedTrackUrl) {
     }
 
     if (!trackUrl.startsWith('http') && /^[a-zA-Z0-9_-]{25,40}$/.test(trackUrl)) {
-        trackUrl = `https://drive.google.com/uc?export=download&confirm=t&id=\${trackUrl}`;
+        trackUrl = `https://drive.google.com/uc?export=download&confirm=t&id=${trackUrl}`;
     } else if (trackUrl.includes('drive.google.com')) {
         const idMatch = trackUrl.match(new RegExp("(?:id=|/d/)([a-zA-Z0-9_-]+)"));
         if (idMatch) {
-            trackUrl = `https://drive.google.com/uc?export=download&confirm=t&id=\${idMatch[1]}`;
+            trackUrl = `https://drive.google.com/uc?export=download&confirm=t&id=${idMatch[1]}`;
         }
     }
 
@@ -101,7 +101,16 @@ window.toggleMagazineAudio = function(passedTrackUrl) {
 
     let currentSrc = magAudio.src || "";
     let isNewTrack = true;
+    
+    let driveId = "";
+    if (trackUrl.includes('drive.google.com')) {
+        const match = trackUrl.match(new RegExp("(?:id=|/d/)([a-zA-Z0-9_-]+)"));
+        if (match) driveId = match[1];
+    }
+
     if (currentSrc === trackUrl || decodeURIComponent(currentSrc) === trackUrl || currentSrc.endsWith(trackUrl)) {
+        isNewTrack = false;
+    } else if (driveId && currentSrc.includes(driveId)) {
         isNewTrack = false;
     }
 

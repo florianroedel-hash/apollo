@@ -24,3 +24,7 @@ body.magazine-open #main-footer { opacity: 0; pointer-events: none; }
 .highlight-link::after { content: ' ]'; opacity: 0; transition: 0.2s; position: absolute; right: -0.5rem; }
 .highlight-link:hover::before, .highlight-link:hover::after, .highlight-link.active-tag::before, .highlight-link.active-tag::after { opacity: 1; }
 
+/* Use Helvetica Neue for long reading text */
+p, .note-text-content, .history-partition-text {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+}

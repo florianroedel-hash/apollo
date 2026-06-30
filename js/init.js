@@ -48,6 +48,23 @@ async function init() {
     try {
         const res = await fetch(URL_MASTER, { redirect: 'follow' });
         const masterData = await res.json();
+        // Normalize custom fields that should be part of description (like "Jury statement")
+        function normalizeMetadata(obj) {
+            if (Array.isArray(obj)) {
+                obj.forEach(normalizeMetadata);
+            } else if (obj !== null && typeof obj === 'object') {
+                if (obj.metadata) {
+                    let keys = Object.keys(obj.metadata);
+                    let juryKey = keys.find(k => k.toLowerCase().trim() === 'jury statement');
+                    if (juryKey && obj.metadata[juryKey]) {
+                        obj.metadata.description = (obj.metadata.description ? obj.metadata.description + '<br><br>' : '') + 'Jury statement:<br>' + obj.metadata[juryKey];
+                        delete obj.metadata[juryKey];
+                    }
+                }
+                Object.values(obj).forEach(normalizeMetadata);
+            }
+        }
+        normalizeMetadata(masterData);
         
         // The master script sends { archive, calendar, magazine, history, audio }
         archiveData = masterData.archive || [];
@@ -206,30 +223,7 @@ function generateDynamicTags() {
         };
         filterBar.appendChild(magBtn);
     }
-    
-    // Add Events tag
-    if (calendarData.length > 0 && calendarData[0].events && calendarData[0].events.some(e => e.isPast && e.spreadData && e.spreadData.titleImage)) {
-        const evtBtn = document.createElement('span');
-        evtBtn.className = 'tag-filter highlight-link dynamic-tag-item';
-        evtBtn.style.display = 'none';
-        evtBtn.innerText = 'events';
-        evtBtn.onclick = (e) => {
-            const overlay = document.getElementById('search-overlay');
-            if (overlay) {
-                overlay.remove();
-                document.removeEventListener('keydown', window._searchEscHandler);
-                document.body.classList.remove('search-open');
-            }
-            filterProjects('events', evtBtn);
-            if (window.innerWidth <= 900) {
-                const centerLine = filterBar.getBoundingClientRect().width / 2;
-                const rect = evtBtn.getBoundingClientRect();
-                const btnCenter = rect.left - filterBar.getBoundingClientRect().left + rect.width / 2;
-                filterBar.scrollBy({ left: btnCenter - centerLine, behavior: 'smooth' });
-            }
-        };
-        filterBar.appendChild(evtBtn);
-    }
+
 
     // Initialize state & Bind hover listeners
     if (window.innerWidth <= 900) {

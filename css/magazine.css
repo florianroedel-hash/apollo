@@ -140,7 +140,9 @@
     width: 0.5rem;
     height: 0.5rem;
     border-radius: 50%;
-    background: #000;
+    background: transparent;
+    border: 1px solid #000;
+    box-sizing: border-box;
     cursor: pointer;
     max-width: 0;
     opacity: 0;

@@ -123,83 +123,132 @@ window.openHistory = function() {
         { title: "Digital Pivot 2021", text: "In 2021, Apollo pivoted to a digital-first format, pioneering the web-based archive format you see today..." },
         { title: "Magazine Launch 2022", text: "The Apollo Magazine launched in 2022 as a curated editorial platform for longform architectural writing..." },
         { title: "Present Day 2026", text: "Today, Apollo operates as a fully independent platform with contributors from across Europe and beyond..." }
-    ];
-
-    const docs = (historyData && historyData.length > 0) ? historyData : dummyHistory;
-    const N = docs.length;
-    const latchW = 100 / N; 
+    ];    let parsedDocs = (historyData && historyData.length > 0) ? historyData : dummyHistory;
     
-    let sheetsHtml = docs.map((doc, i) => {
-        const angle = (Math.random() * 8 - 4); 
-        const dx = (Math.random() * 4 - 2); 
-        const dy = (Math.random() * 3 - 1.5); 
-        const zIdx = N - i;
-        const latchLeft = i * latchW; 
+    // Sort descending by date so newest is left (index 0) and oldest is right
+    parsedDocs.sort((a, b) => {
+        const dateA = a.Date || a.date || '';
+        const dateB = b.Date || b.date || '';
+        if (dateA && dateB) {
+            return new Date(dateB) - new Date(dateA);
+        }
+        return 0;
+    });
+
+    let sheetsHtml = parsedDocs.map((doc, i) => {
+        const title = doc['Name / File'] || doc.name || doc.title || 'Untitled';
+        const text = doc.text || doc.content || '';
+        const imageUrl = doc['Image URL'] || doc.imageUrl || '';
+        const audioUrl = getHDImageUrl(doc['Audio URL'] || doc.audioUrl || '');
         
-        const isRightSide = Math.random() > 0.5;
-        const clipTop = 5 + (Math.random() * 10);
-        const clipRight = isRightSide ? '-1.55%' : 'auto';
-        const clipLeft = isRightSide ? 'auto' : '-1.55%';
-        const scaleX = isRightSide ? 1 : -1;
-        const shadowX = isRightSide ? '0.1rem' : '-0.1rem';
+        const alignmentClass = (i % 2 === 0) ? 'align-top' : 'align-bottom';
+        
+        let imageHtml = '';
+        if (imageUrl) {
+            if (imageUrl.toLowerCase().trim().endsWith('.mp4')) {
+                const realUrl = imageUrl.trim().slice(0, -4);
+                imageHtml = `<video src="${getHDImageUrl(realUrl)}" class="history-partition-image" autoplay loop muted playsinline></video>`;
+            } else {
+                imageHtml = `<img src="${getSafeImg(imageUrl)}" class="history-partition-image" alt="${title}" />`;
+            }
+        }
+        let audioHtml = audioUrl ? `
+            <div style="margin-top: 0.5rem; text-align: left;">
+                <span class="magazine-audio-btn mag-listen-btn" style="font-family: 'Ufficio', sans-serif; font-size: inherit; opacity: 1; text-decoration: none; cursor: pointer;" onclick="event.stopPropagation(); if(typeof toggleMagazineAudio === 'function') toggleMagazineAudio('${audioUrl}')">${typeof magAudioState !== 'undefined' ? magAudioState : 'listen'}</span>
+            </div>` : '';
 
         return `
-            <div class="history-sheet" 
-                 style="transform: rotate(${angle}deg) translate(${dx}vw, ${dy}vw); z-index: ${zIdx}; --clip-top: ${clipTop}%; --clip-right: ${clipRight}; --clip-left: ${clipLeft}; --clip-scale-x: ${scaleX}; --clip-shadow-x: ${shadowX};"
-                 data-index="${i}"
-                 onclick="historyShuffleToBack(this, event)">
-                <div class="history-latch" style="left: ${latchLeft}%; width: ${latchW}%;">
-                    <span class="history-latch-title">${doc.title}</span>
+            <div class="history-partition ${alignmentClass}" data-index="${i}">
+                <div class="history-partition-text">
+                    <p style="margin-bottom: 0;">${text}</p>
+                    ${audioHtml}
                 </div>
-                <div class="history-sheet-content">
-                    <p>${doc.text}</p>
-                </div>
+                <div class="history-partition-title">${title}</div>
+                ${imageHtml}
             </div>`;
     }).join('');
     
+    window.closeHistory = function(e) {
+        if(e) e.preventDefault();
+        document.body.classList.remove('spread-open'); 
+        document.body.classList.remove('history-open'); 
+        if (over._resizeHandler) window.removeEventListener('resize', over._resizeHandler);
+        over.remove(); 
+        const colArch = document.getElementById('col-archive');
+        if (colArch) colArch.style.opacity = '1'; 
+        const mq = document.querySelector('.marquee-wrapper'); 
+        if (mq) mq.style.opacity='1'; 
+        const fb = document.getElementById('filter-bar'); 
+        if (fb) { fb.style.opacity=''; fb.style.pointerEvents=''; }
+        if (window.innerWidth <= 900 && typeof window.updateMobileTitles === 'function') window.updateMobileTitles();
+    };
+
     over.innerHTML = `
-        <div class="close-minus" onclick="document.body.classList.remove('spread-open'); document.body.classList.remove('history-open'); this.parentElement.remove(); document.getElementById('col-archive').style.opacity = '1'; const mq=document.querySelector('.marquee-wrapper'); if(mq) mq.style.opacity='1'; const fb=document.getElementById('filter-bar'); if(fb){ fb.style.opacity=''; fb.style.pointerEvents=''; } if (window.innerWidth <= 900 && typeof window.updateMobileTitles === 'function') window.updateMobileTitles();" ontouchstart="document.body.classList.remove('spread-open'); document.body.classList.remove('history-open'); this.parentElement.remove(); document.getElementById('col-archive').style.opacity = '1'; const mq=document.querySelector('.marquee-wrapper'); if(mq) mq.style.opacity='1'; const fb=document.getElementById('filter-bar'); if(fb){ fb.style.opacity=''; fb.style.pointerEvents=''; } if (window.innerWidth <= 900 && typeof window.updateMobileTitles === 'function') window.updateMobileTitles();">–</div>
-        <div class="history-pile-wrapper">
-            <div class="history-pile">
-                ${sheetsHtml}
+        <div class="close-minus" onclick="window.closeHistory(event)" ontouchstart="window.closeHistory(event)">–</div>
+        <div class="history-pile-wrapper" id="history-scroll-container">
+            <div class="history-endless-roll">
+                <div class="history-paper-strip">
+                    ${sheetsHtml}
+                </div>
             </div>
         </div>
     `;
     
     document.body.appendChild(over);
-};
 
-window.historyShuffleToBack = function(sheet, event) {
-    event.stopPropagation();
-    const pile = sheet.parentElement;
-    const allSheets = Array.from(pile.querySelectorAll('.history-sheet'));
-    const maxZ = Math.max(...allSheets.map(s => parseInt(s.style.zIndex || '0')));
-    if (parseInt(sheet.style.zIndex) !== maxZ) return;
+    const scrollContainer = document.getElementById('history-scroll-container');
     
-    sheet.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
-    sheet.style.opacity = '0';
-    sheet.style.transform += ' translateY(-8vw) rotate(15deg)';
-    
-    setTimeout(() => {
-        pile.appendChild(sheet); 
-        const sheets = Array.from(pile.querySelectorAll('.history-sheet'));
-        const N = sheets.length;
-        sheets.forEach((s, idx) => {
-            s.style.zIndex = N - idx;
-        });
-        const angle = (Math.random() * 8 - 4);
-        const dx = (Math.random() * 4 - 2);
-        const dy = (Math.random() * 3 - 1.5);
-        sheet.style.transition = 'none';
-        sheet.style.opacity = '0';
-        sheet.style.transform = `rotate(${angle}deg) translate(${dx}vw, ${dy}vw)`;
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                sheet.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
-                sheet.style.opacity = '1';
+    // Give browser a moment to mount before measuring columns
+    if (scrollContainer) {
+        
+        function updatePartitionWidths() {
+            const parts = over.querySelectorAll('.history-partition');
+            
+            // 1. Reset widths to let CSS calculate base minimums
+            parts.forEach(p => {
+                p.style.width = '';
             });
+            
+            // Force browser layout calculation
+            void scrollContainer.offsetHeight;
+            
+            // 2. Expand width to encapsulate overflowed columns
+            parts.forEach(p => {
+                const textContainer = p.querySelector('.history-partition-text');
+                if (textContainer) {
+                    const range = document.createRange();
+                    range.selectNodeContents(textContainer);
+                    const rect = range.getBoundingClientRect();
+                    
+                    const containerRect = textContainer.getBoundingClientRect();
+                    
+                    const visualWidth = rect.right - containerRect.left;
+                    const cssWidth = textContainer.offsetWidth; 
+                    
+                    if (visualWidth > cssWidth) {
+                        const extraWidthNeeded = visualWidth - cssWidth;
+                        p.style.width = (p.offsetWidth + extraWidthNeeded) + 'px';
+                    }
+                }
+            });
+        }
+
+        // Run once strictly after layout painting
+        setTimeout(updatePartitionWidths, 100);
+        
+        // And recalculate on window resize
+        window.addEventListener('resize', updatePartitionWidths);
+        over._resizeHandler = updatePartitionWidths;
+
+        // Desktop horizontal scroll mapping
+        scrollContainer.addEventListener('wheel', (e) => {
+            // Only map if deltaY exists and deltaX is very small (standard mouse wheel, not trackpad swipe)
+            if (Math.abs(e.deltaY) > 0 && Math.abs(e.deltaX) < 10) {
+                e.preventDefault();
+                scrollContainer.scrollLeft += e.deltaY * 1.5;
+            }
         });
-    }, 500);
+    }
 };
 
 // ---------------------------------------------------------------------------
@@ -214,7 +263,10 @@ window.closeAudioLibrary = function() {
     const over = document.getElementById('unfold-overlay');
     if (over) over.remove();
     const colArch = document.getElementById('col-archive');
-    if (colArch) colArch.style.opacity = '1';
+    if (colArch) {
+        colArch.style.opacity = '1';
+        colArch.style.pointerEvents = '';
+    }
     const mq = document.querySelector('.marquee-wrapper');
     if (mq) mq.style.opacity = '1';
     const fb = document.getElementById('filter-bar');

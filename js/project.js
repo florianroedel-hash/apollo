@@ -128,8 +128,17 @@ window.openLightbox = function(index, event) {
         const safeSrc = getSafeImg(item.src);
         const desc = item.desc;
         contentHtml = `
-            <img src="${safeSrc}" alt="Detail View" onclick="event.stopPropagation()">
-            ${desc ? `<div class="lightbox-caption" onclick="event.stopPropagation()">${desc}</div>` : ''}
+            <div style="display: inline-flex; flex-direction: column; align-items: stretch; max-width: 90vw; max-height: 90vh;">
+                <img src="${safeSrc}" alt="Detail View" onclick="event.stopPropagation()" style="width: auto; max-width: 100%; max-height: 75vh; box-shadow: 0 1.5rem 4.5rem rgba(0,0,0,0.2); border: 1px solid #eaeaea; background: white; padding: 2rem; border-radius: 0.2rem; object-fit: contain;">
+                ${desc || item.audioUrl ? `
+                <div style="position: relative; margin-top: 1.5rem; width: 100%; box-sizing: border-box;">
+                    ${item.audioUrl ? `<div style="position: absolute; left: 0; top: 0;"><span class="magazine-audio-btn mag-listen-btn" style="font-family: 'Ufficio', sans-serif; font-size: 0.9rem; cursor: pointer; text-decoration: none; color: #FFF; opacity: 1; pointer-events: auto;" onclick="event.stopPropagation(); if(typeof toggleMagazineAudio === 'function') toggleMagazineAudio('${item.audioUrl}')">${typeof magAudioState !== 'undefined' ? magAudioState : 'listen'}</span></div>` : ''}
+                    <div class="lightbox-caption" style="text-align: center; width: 100%; font-family: 'Ufficio', sans-serif; font-size: 0.9rem; color: white; opacity: 0.7; pointer-events: none; margin: 0; max-width: none;" onclick="event.stopPropagation()">
+                        ${desc ? `${desc}` : ''}
+                    </div>
+                </div>
+                ` : ''}
+            </div>
         `;
     }
 
@@ -558,7 +567,7 @@ function unfoldProject(id) {
     // Collect all items
     const allItems = [
         { type: 'postit', p: p },
-        { type: 'image', src: p.titleImage, name: "cover drawing", desc: 'cover drawing' }
+        { type: 'image', src: p.titleImage, name: "cover drawing", desc: 'cover drawing', audioUrl: p.titleAudio }
     ];
     (p.images || []).forEach((img, i) => {
         let name = "drawing " + (i+1);
@@ -572,7 +581,8 @@ function unfoldProject(id) {
         
         // Ensure we extract the URL string if img is an object
         let imgUrl = typeof img === 'string' ? img : (img.src || '');
-        allItems.push({ type: 'image', src: imgUrl, name: name, desc: name });
+        let audioUrl = typeof img === 'string' ? null : (img.audioUrl || null);
+        allItems.push({ type: 'image', src: imgUrl, name: name, desc: name, audioUrl: audioUrl });
     });
 
     // 1. Preload images
@@ -790,7 +800,10 @@ function unfoldProject(id) {
                             <div class="mobile-img-container" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow-x: hidden;" ${isWide ? 'onclick="window.toggleMobileImageZoom(this.parentElement)"' : ''}>
                                 <img src="${getSafeImg(item.src)}" alt="${item.name}" style="width: 90%; height: 100%; object-fit: contain; ${isWide ? 'cursor: zoom-in;' : ''}">
                             </div>
-                            <div class="mobile-img-title" style="position: absolute; bottom: 0; width: 100%; left: 0; font-family: monospace; font-size: 0.9rem; text-align: center; color: #FFF; opacity: 0.7;">${item.name}</div>
+                            ${item.audioUrl ? `<div style="position: absolute; bottom: 1.5rem; left: 5vw; z-index: 10;"><span class="magazine-audio-btn mag-listen-btn" style="font-family: 'Ufficio', sans-serif; font-size: 0.9rem; cursor: pointer; text-decoration: none; color: #FFF; opacity: 1;" onclick="event.stopPropagation(); if(typeof toggleMagazineAudio === 'function') toggleMagazineAudio('${item.audioUrl}')">${typeof magAudioState !== 'undefined' ? magAudioState : 'listen'}</span></div>` : ''}
+                            <div class="mobile-img-title" style="position: absolute; bottom: 0; width: 100%; left: 0; font-family: 'Ufficio', sans-serif; font-size: 0.9rem; text-align: center; color: #FFF; opacity: 0.7; padding-bottom: 0.5rem;">
+                                ${item.name}
+                            </div>
                         </div>`;
                     });
 
@@ -826,15 +839,6 @@ function unfoldProject(id) {
 
                         allItems.forEach((item, idx) => {
                             if (item.type === 'postit') {
-                                const thumb = document.createElement('div');
-                                thumb.dataset.slideIndex = 0;
-                                thumb.style.cssText = 'font-family: monospace; font-size: 0.9rem; color: #FFF; opacity: 0.7; letter-spacing: 0.05em; margin-right: 1.5rem; white-space: nowrap; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 2.5rem;';
-                                thumb.innerHTML = 'swipe →';
-                                thumb.onclick = () => {
-                                    const target = slides[0];
-                                    if (target && gallery) gallery.scrollTo({ left: target.offsetLeft, behavior: 'smooth' });
-                                };
-                                filterBar.appendChild(thumb);
                                 return;
                             }
                             
@@ -935,7 +939,12 @@ function unfoldProject(id) {
                                 <div class="unfold-grid-item" style="width:100%; height:auto;">
                                     <img src="${getSafeImg(item.src)}" alt="${item.name}" onclick="openLightbox(${imgIndex}, event)" style="position: relative; z-index: 1; width: 100%; max-height:none; height:auto; object-fit: contain; display: block;">
                                 </div>
-                                <div style="width: 100%; text-align: center; font-size: 0.6rem; margin-top: 1.5rem; opacity: 0.8; font-weight: bold; text-transform: lowercase; font-family: monospace; color: black; text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(255,255,255,0.8);">${item.name}</div>
+                                <div style="width: 100%; position: relative; margin-top: 1rem;">
+                                    ${item.audioUrl ? `<div style="position: absolute; left: 0; top: 0;"><span class="magazine-audio-btn mag-listen-btn" style="font-family: 'Ufficio', sans-serif; font-size: 0.6rem; cursor: pointer; text-decoration: none; color: black; opacity: 1; pointer-events: auto;" onclick="event.stopPropagation(); if(typeof toggleMagazineAudio === 'function') toggleMagazineAudio('${item.audioUrl}')">${typeof magAudioState !== 'undefined' ? magAudioState : 'listen'}</span></div>` : ''}
+                                    <div style="width: 100%; text-align: center; font-size: 0.6rem; opacity: 0.8; font-weight: bold; text-transform: lowercase; font-family: 'Ufficio', sans-serif; color: black; text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(255,255,255,0.8); pointer-events: none; padding-top: 0.1rem;">
+                                        ${item.name}
+                                    </div>
+                                </div>
                             </div>`;
                         }
                     });

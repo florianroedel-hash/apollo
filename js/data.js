@@ -79,7 +79,9 @@ function getNoteGridHtml(p) {
     
     for (let key of priorityKeys) {
         if (meta[key]) {
-            html += `<div>${labels[key] || key}</div><div>${meta[key]}</div>`;
+            let val = meta[key];
+            if (typeof val === 'string') val = val.replace(/,\s*/g, '<br>');
+            html += `<div>${labels[key] || key}</div><div>${val}</div>`;
         }
     }
     
@@ -93,6 +95,7 @@ function getNoteGridHtml(p) {
             let label = cleanKey.charAt(0).toUpperCase() + cleanKey.slice(1);
             let val = meta[key];
             if (val && typeof val === 'string' && val.trim() !== '') {
+                val = val.replace(/,\s*/g, '<br>');
                 html += `<div>${label}</div><div>${val}</div>`;
             }
         }

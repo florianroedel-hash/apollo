@@ -126,72 +126,54 @@ window.openHistory = function() {
     ];
 
     const docs = (historyData && historyData.length > 0) ? historyData : dummyHistory;
-    const N = docs.length;
-    const latchW = 100 / N; 
     
     let sheetsHtml = docs.map((doc, i) => {
-        const angle = (Math.random() * 8 - 4); 
-        const dx = (Math.random() * 4 - 2); 
-        const dy = (Math.random() * 3 - 1.5); 
-        const zIdx = N - i;
-        const latchLeft = i * latchW; 
         return `
-            <div class="history-sheet" 
-                 style="transform: rotate(${angle}deg) translate(${dx}vw, ${dy}vw); z-index: ${zIdx};"
-                 data-index="${i}"
-                 onclick="historyShuffleToBack(this, event)">
-                <div class="history-latch" style="left: ${latchLeft}%; width: ${latchW}%;">
-                    <span class="history-latch-title">${doc.title}</span>
-                </div>
-                <div class="history-sheet-content">
+            <div class="history-partition" data-index="${i}">
+                <div class="history-partition-title">${doc.title}</div>
+                <div class="history-partition-text">
                     <p>${doc.text}</p>
                 </div>
             </div>`;
     }).join('');
     
+    window.closeHistory = function(e) {
+        if(e) e.preventDefault();
+        document.body.classList.remove('spread-open'); 
+        document.body.classList.remove('history-open'); 
+        over.remove(); 
+        const colArch = document.getElementById('col-archive');
+        if (colArch) colArch.style.opacity = '1'; 
+        const mq = document.querySelector('.marquee-wrapper'); 
+        if (mq) mq.style.opacity='1'; 
+        const fb = document.getElementById('filter-bar'); 
+        if (fb) { fb.style.opacity=''; fb.style.pointerEvents=''; }
+    };
+
     over.innerHTML = `
-        <div class="close-minus" onclick="document.body.classList.remove('spread-open'); document.body.classList.remove('history-open'); this.parentElement.remove(); document.getElementById('col-archive').style.opacity = '1'; const mq=document.querySelector('.marquee-wrapper'); if(mq) mq.style.opacity='1'; const fb=document.getElementById('filter-bar'); if(fb){ fb.style.opacity=''; fb.style.pointerEvents=''; }" ontouchstart="document.body.classList.remove('spread-open'); document.body.classList.remove('history-open'); this.parentElement.remove(); document.getElementById('col-archive').style.opacity = '1'; const mq=document.querySelector('.marquee-wrapper'); if(mq) mq.style.opacity='1'; const fb=document.getElementById('filter-bar'); if(fb){ fb.style.opacity=''; fb.style.pointerEvents=''; }">–</div>
-        <div class="history-pile-wrapper">
-            <div class="history-pile">
-                ${sheetsHtml}
+        <div class="close-minus" onclick="window.closeHistory(event)" ontouchstart="window.closeHistory(event)">–</div>
+        <div class="history-pile-wrapper" id="history-scroll-container">
+            <div class="history-endless-roll">
+                <div class="history-paper-strip">
+                    ${sheetsHtml}
+                </div>
             </div>
         </div>
     `;
     
     document.body.appendChild(over);
-};
 
-window.historyShuffleToBack = function(sheet, event) {
-    event.stopPropagation();
-    const pile = sheet.parentElement;
-    const allSheets = Array.from(pile.querySelectorAll('.history-sheet'));
-    const maxZ = Math.max(...allSheets.map(s => parseInt(s.style.zIndex || '0')));
-    if (parseInt(sheet.style.zIndex) !== maxZ) return;
-    
-    sheet.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
-    sheet.style.opacity = '0';
-    sheet.style.transform += ' translateY(-8vw) rotate(15deg)';
-    
-    setTimeout(() => {
-        pile.appendChild(sheet); 
-        const sheets = Array.from(pile.querySelectorAll('.history-sheet'));
-        const N = sheets.length;
-        sheets.forEach((s, idx) => {
-            s.style.zIndex = N - idx;
+    // Desktop horizontal scroll mapping
+    const scrollContainer = document.getElementById('history-scroll-container');
+    if (scrollContainer) {
+        scrollContainer.addEventListener('wheel', (e) => {
+            // Only map if deltaY exists and deltaX is very small (standard mouse wheel, not trackpad swipe)
+            if (Math.abs(e.deltaY) > 0 && Math.abs(e.deltaX) < 10) {
+                e.preventDefault();
+                scrollContainer.scrollLeft += e.deltaY * 1.5;
+            }
         });
-        const angle = (Math.random() * 8 - 4);
-        const dx = (Math.random() * 4 - 2);
-        const dy = (Math.random() * 3 - 1.5);
-        sheet.style.transition = 'none';
-        sheet.style.opacity = '0';
-        sheet.style.transform = `rotate(${angle}deg) translate(${dx}vw, ${dy}vw)`;
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                sheet.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
-                sheet.style.opacity = '1';
-            });
-        });
-    }, 500);
+    }
 };
 
 // ---------------------------------------------------------------------------
