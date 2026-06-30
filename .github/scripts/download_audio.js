@@ -26,8 +26,18 @@ function downloadFile(id, destPath) {
         console.log(`Downloading ${id} to ${destPath}...`);
         
         const file = fs.createWriteStream(destPath);
+        file.on('error', (err) => {
+            console.error(`File stream error for ${id}:`, err);
+            fs.unlink(destPath, () => {});
+            reject(err);
+        });
         
         const request = (downloadUrl) => {
+            // Handle relative redirects
+            if (downloadUrl.startsWith('/')) {
+                downloadUrl = 'https://drive.google.com' + downloadUrl;
+            }
+            
             https.get(downloadUrl, (response) => {
                 // Handle redirects
                 if (response.statusCode === 301 || response.statusCode === 302 || response.statusCode === 303) {
