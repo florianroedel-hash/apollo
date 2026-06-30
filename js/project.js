@@ -9,7 +9,7 @@ window.revealInstagramHandles = function(btn, rawHandles) {
             let handle = match[2].trim();
             let rest = match[3];
             let linkText = name ? name : '@' + handle;
-            out.push(`<a href="https://www.instagram.com/${handle}/" target="_blank" style="color:inherit; text-decoration:underline;" onclick="event.stopPropagation()">${linkText}</a>${rest}`);
+            out.push(`<a href="https://www.instagram.com/${handle}/" target="_blank" style="color:inherit; text-decoration:none;" onclick="event.stopPropagation()">${linkText}</a>${rest}`);
         } else {
             out.push(line);
         }
@@ -120,7 +120,7 @@ window.openLightbox = function(index, event) {
                     ${noteHtml}
                 </div>
                 ${(p.metadata.instagram || p.metadata['instagram handles']) ? 
-                    `<div class="lightbox-caption" style="cursor: pointer; margin-top: 2rem;" onclick="window.revealInstagramHandles(this, '${(p.metadata.instagram || p.metadata['instagram handles']).replace(/'/g, "\\'")}')">contact</div>` 
+                    `<div style="cursor: pointer; margin-top: 2rem; text-align: center; width: 100%; font-family: 'Ufficio', sans-serif; font-size: 0.9rem; color: white; opacity: 0.7;" onclick="window.revealInstagramHandles(this, '${(p.metadata.instagram || p.metadata['instagram handles']).replace(/'/g, "\\'")}')">contact</div>` 
                 : ''}
             </div>
         `;
@@ -771,7 +771,7 @@ function unfoldProject(id) {
                         <div class="mobile-gallery-box" style="flex-shrink: 0; scroll-snap-align: center; width: 100vw; height: 100%; min-height: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 0 2rem; box-sizing: border-box; position: relative;">
                             <div class="mobile-postit-wrapper" style="width: 100%; height: 100%; min-height: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; background: transparent;">
                                 <div class="bookmark-note spread-note" style="position: relative; width: 90%; max-width: 400px; transform: none; box-shadow: 0 0.5rem 2rem rgba(0,0,0,0.08); padding: 1.5rem; max-height: 100%; display: flex; flex-direction: column; margin-bottom: 1.5rem;">
-                                    <div style="overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; touch-action: pan-y; z-index: 1; width: 100%; height: 100%; font-size: clamp(0.7rem, 2.5vw, 1rem); word-break: break-word;">
+                                    <div style="overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; z-index: 1; width: 100%; height: 100%; font-size: clamp(0.7rem, 2.5vw, 1rem); word-break: break-word;">
                                         <img src="assets/images/logo.png" class="stamp-logo">
                                         <div class="note-ref-code">[ REF: ARC-${postitItem.p.id.substring(0,6).toUpperCase()} ]</div>
                                         <div class="note-divider"></div>
@@ -783,9 +783,9 @@ function unfoldProject(id) {
                                     </div>
                                 </div>
                                 <div style="display: flex; gap: 1rem; align-items: center; justify-content: center; margin-top: 1rem;">
-                                    <button style="cursor: pointer; background: transparent; border: none; font-family: inherit; font-size: 1rem; color: #FFF; text-transform: lowercase; font-weight: bold; padding: 0.4rem 0.8rem;" onclick="window.copyProjectUrl('${postitItem.p.id}', this)">share</button>
+                                    <button style="cursor: pointer; background: transparent; border: none; font-family: monospace; font-size: 0.9rem; color: #FFF; opacity: 0.7; font-weight: normal; text-transform: none; padding: 0.4rem 0.8rem;" onclick="window.copyProjectUrl('${postitItem.p.id}', this)">share</button>
                                     ${(postitItem.p.metadata.instagram || postitItem.p.metadata['instagram handles']) ? 
-                                        `<button style="cursor: pointer; background: transparent; border: none; font-family: inherit; font-size: 1rem; color: #FFF; text-transform: lowercase; font-weight: bold; padding: 0.4rem 0.8rem;" onclick="window.revealInstagramHandles(this, '${(postitItem.p.metadata.instagram || postitItem.p.metadata['instagram handles']).replace(/'/g, "\\'")}')">contact</button>` 
+                                        `<button style="cursor: pointer; background: transparent; border: none; font-family: monospace; font-size: 0.9rem; color: #FFF; opacity: 0.7; font-weight: normal; text-transform: none; padding: 0.4rem 0.8rem;" onclick="window.revealInstagramHandles(this, '${(postitItem.p.metadata.instagram || postitItem.p.metadata['instagram handles']).replace(/'/g, "\\'")}')">contact</button>` 
                                     : ''}
                                 </div>
                             </div>
@@ -800,9 +800,11 @@ function unfoldProject(id) {
                             <div class="mobile-img-container" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow-x: hidden;" ${isWide ? 'onclick="window.toggleMobileImageZoom(this.parentElement)"' : ''}>
                                 <img src="${getSafeImg(item.src)}" alt="${item.name}" style="width: 90%; height: 100%; object-fit: contain; ${isWide ? 'cursor: zoom-in;' : ''}">
                             </div>
-                            ${item.audioUrl ? `<div style="position: absolute; bottom: 1.5rem; left: 5vw; z-index: 10;"><span class="magazine-audio-btn mag-listen-btn" style="font-family: 'Ufficio', sans-serif; font-size: 0.9rem; cursor: pointer; text-decoration: none; color: #FFF; opacity: 1;" onclick="event.stopPropagation(); if(typeof toggleMagazineAudio === 'function') toggleMagazineAudio('${item.audioUrl}')">${typeof magAudioState !== 'undefined' ? magAudioState : 'listen'}</span></div>` : ''}
-                            <div class="mobile-img-title" style="position: absolute; bottom: 0; width: 100%; left: 0; font-family: 'Ufficio', sans-serif; font-size: 0.9rem; text-align: center; color: #FFF; opacity: 0.7; padding-bottom: 0.5rem;">
-                                ${item.name}
+                            <div style="position: absolute; bottom: 0; width: 100%; left: 0; padding-bottom: 0.5rem; box-sizing: border-box; display: flex; align-items: center; justify-content: center;">
+                                ${item.audioUrl ? `<span class="magazine-audio-btn mag-listen-btn" style="position: absolute; left: 5vw; font-family: 'Ufficio', sans-serif; font-size: 0.9rem; cursor: pointer; text-decoration: none; color: #FFF; opacity: 1;" onclick="event.stopPropagation(); if(typeof toggleMagazineAudio === 'function') toggleMagazineAudio('${item.audioUrl}')">${typeof magAudioState !== 'undefined' ? magAudioState : 'listen'}</span>` : ''}
+                                <div class="mobile-img-title" style="font-family: 'Ufficio', sans-serif; font-size: 0.9rem; text-align: center; color: #FFF; opacity: 0.7;">
+                                    ${item.name}
+                                </div>
                             </div>
                         </div>`;
                     });
@@ -929,7 +931,7 @@ function unfoldProject(id) {
                                     <div class="note-text-content" style="display: block; -webkit-line-clamp: unset; overflow: visible;">${item.p.metadata.description || ''}</div>
                                 </div>
                                 ${(item.p.metadata.instagram || item.p.metadata['instagram handles']) ? 
-                                    `<div class="insta-contact-btn" onclick="window.revealInstagramHandles(this, '${(item.p.metadata.instagram || item.p.metadata['instagram handles']).replace(/'/g, "\\'")}')" style="position: absolute; top: 100%; margin-top: 1.5rem; width: 100%; text-align: center; font-size: 0.6rem; opacity: 0.8; font-weight: bold; text-transform: lowercase; font-family: monospace; color: black; text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(255,255,255,0.8); cursor: pointer; pointer-events: auto;">contact</div>` 
+                                    `<div onclick="window.revealInstagramHandles(this, '${(item.p.metadata.instagram || item.p.metadata['instagram handles']).replace(/'/g, "\\'")}')" style="position: absolute; top: 100%; margin-top: 1.5rem; width: 100%; text-align: center; font-size: 0.6rem; opacity: 0.6; font-family: monospace; color: inherit; cursor: pointer; pointer-events: auto;">contact</div>` 
                                 : ''}
                             </div>`;
                         } else {

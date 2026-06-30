@@ -1,0 +1,2092 @@
+<USER_REQUEST>
+this is the whole script part for the json - find the way how to impelemtn and connect it into the wokring mp3 architecture if that makes the most sense : // ==========================================
+// DATA BUILDERS
+// ==========================================
+
+function extractImageId(url) {
+  if (!url) return null;
+  const match = url.match(/(?:id=|\/d\/)([a-zA-Z0-9_-]+)/);
+  return match ? match[1] : null;
+}
+
+// --- NEW SMART PARSER HELPER ---
+function parseMetadataDoc(docId) {
+  let meta = {};
+  let desc = "";
+  try {
+    const text = DocumentApp.openById(docId).getBody().getText();
+    let lines = text.split('\n');
+    let currentKey = null;
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+      let match = line.match(/^([A-Za-z0-9 ]+):\s*(.*)$/);
+      
+      if (match) {
+        let key = match[1].trim().toLowerCase();
+        let val = match[2].trim();
+        
+        if (key === 'description') {
+           let descLines = [];
+           if (val) descLines.push(val);
+           let j = i + 1;
+           // Keep reading until we hit another key like "Instagram Handles:"
+           while (j < lines.length) {
+              if (lines[j].match(/^([A-Za-z0-9 ]+):\s*(.*)$/)) break;
+              descLines.push(lines[j]);
+              j++;
+           }
+           desc = descLines.join('<br>').trim();
+           i = j - 1; // Fast-forward the main loop
+        } else if (key === 'instagram handles' || key === 'instagram') {
+           let instaLines = [];
+           if (val) instaLines.push(val);
+           let j = i + 1;
+           while (j < lines.length) {
+              if (lines[j].match(/^([A-Za-z0-9 ]+):\s*(.*)$/)) break;
+              instaLines.push(lines[j]);
+              j++;
+           }
+           meta['instagram handles'] = instaLines.join('<br>').trim();
+           i = j - 1;
+        } else {
+           if (key === 'note') key = 'author';
+           if (key === 'event') key = 'course';
+           if (key === 'date') key = 'dateoverride';
+           currentKey = key;
+           meta[currentKey] = val;
+        }
+      } else if (currentKey && line.trim() !== "") {
+        meta[currentKey] += " " + line.trim();
+      }
+    }
+    
+    if (meta.tags && typeof meta.tags === 'string') {
+       meta.tags = meta.tags.split(',').map(t => t.trim()).filter(t => t);
+    }
+  } catch(e) {}
+  
+  return { meta: meta, desc: desc };
+}
+
+// --- CALENDAR (FROM SHEET) ---
+function buildCalendarData(ss) {
+  const sheet = ss.getSheetByName("Calendar");
+  if (!sheet) return [];
+  const rawData = sheet.getDataRange().getValues();
+  const displayData = sheet.getDataRange().getDisplayValues();
+  
+  let events = [];
+  let pastUpcomingLists = { past: [], upcoming: [] };
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  let statsUpdates = [];
+  
+  for (let i = 1; i < displayData.length; i++) {
+    let dateObj = rawData[i][0]; 
+    let dateStr = displayData[i][0];
+    let details = displayData[i][1];
+    let link = displayData[i][2]; 
+    
+    if (dateStr && dateStr.includes('-------')) {
+      statsUpdates.push([""]);
+      continue;
+    }
+    
+    let isPast = false;
+    let parsedDate = null;
+    let statText = "";
+    
+    if (dateObj instanceof Date) parsedDate = dateObj;
+    else {
+       let matchEu = String(dateStr).match(/(\d{1,2})[\.\/ -](\d{1,2})[\.\/ -](\d{2,4})/);
+       if (matchEu) {
+         let yr = parseInt(matchEu[3]);
+         if (yr < 100) yr += 2000;
+         parsedDate = new Date(yr, parseInt(matchEu[2])-1, matchEu[1]);
+       } else parsedDate = new Date(dateStr);
+    }
+
+    if (parsedDate && !isNaN(parsedDate.getTime()) && parsedDate < now) isPast = true;
+    
+    let imgId = null;
+    let spreadData = null;
+    
+    if (link) {
+      let extractedId = null;
+      if (link.includes('drive.google.com')) extractedId = extractImageId(link);
+      else extractedId = link.trim();
+      
+      if (extractedId) {
+        try {
+          const folder = DriveApp.getFolderById(extractedId);
+          const files = folder.getFiles();
+          let fileList = [];
+          
+          let evMeta = { name: dateStr, dateOverride: dateStr, year: "2026", author: "Apollo", course: "", track: "", description: details, tags: ["Event"] };
+          
+          while (files.hasNext()) {
+            let f = files.next();
+            if (f.getMimeType().includes('image') || f.getMimeType() === MimeType.PDF) {
+               try { f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch(e){}
+               fileList.push({name: f.getName(), url: "https://drive.google.com/uc?id=" + f.getId()});
+            } else if (f.getMimeType() === MimeType.GOOGLE_DOCS) {
+               let parsed = parseMetadataDoc(f.getId());
+               for (let k in parsed.meta) {
+                 if (k === 'name' || k === 'title') evMeta.dateOverride = parsed.meta[k]; 
+                 else evMeta[k] = parsed.meta[k];
+               }
+               if (parsed.desc) evMeta.description = parsed.desc;
+            }
+          }
+          fileList.sort((a,b) => a.name.localeCompare(b.name));
+          statText = fileList.length + " files found";
+          
+          if (fileList.length > 0) {
+            imgId = extractImageId(fileList[0].url); 
+            if (isPast) {
+              evMeta.tags = ["Event"]; 
+              spreadData = {
+                id: "calevt_" + i,
+                metadata: evMeta,
+                titleImage: fileList[0].url,
+                images: fileList.length > 1 ? fileList.slice(1).map(f => {
+                   let cleanName = f.name.split('.').slice(0, -1).join('.') || f.name;
+                   return { src: f.url, title: cleanName };
+                }) : []
+              };
+            }
+          } else {
+            imgId = extractedId;
+            try { DriveApp.getFileById(imgId).setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch(e){}
+            statText = "1 direct link";
+          }
+        } catch(e) { 
+          imgId = extractedId; 
+          statText = "1 direct link";
+          try { DriveApp.getFileById(imgId).setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch(e){}
+        }
+      } else statText = "Invalid link";
+    } else {
+      if (dateStr && !dateStr.toLowerCase().includes('marquee')) statText = "No images";
+    }
+    
+    let eventObj = { isPast: isPast, timestamp: (parsedDate && !isNaN(parsedDate.getTime())) ? parsedDate.getTime() : null, text: dateStr + "<br>" + details, imgId: imgId, spreadData: spreadData };
+    if (isPast) pastUpcomingLists.past.push(eventObj);
+    else if (dateStr && !dateStr.toLowerCase().includes('marquee')) pastUpcomingLists.upcoming.push(eventObj);
+    statsUpdates.push([statText]);
+  }
+  
+  if (statsUpdates.length > 0) sheet.getRange(2, 4, statsUpdates.length, 1).setValues(statsUpdates);
+  
+  pastUpcomingLists.upcoming.sort((a, b) => b.timestamp - a.timestamp);
+  pastUpcomingLists.past.sort((a, b) => b.timestamp - a.timestamp);
+  events = pastUpcomingLists.upcoming.concat(pastUpcomingLists.past);
+  
+  let marquees = [];
+  const marqSheet = ss.getSheetByName('Marquee');
+  if (marqSheet) {
+    const mRaw = marqSheet.getDataRange().getValues();
+    const mDisplay = marqSheet.getDataRange().getDisplayValues();
+    for (let i = 1; i < mRaw.length; i++) {
+      let msg = String(mDisplay[i][0]).trim();
+      if (!msg) continue;
+      let marqueeObj = { message: msg };
+      if (mRaw[i][1]) marqueeObj.startTime = (mRaw[i][1] instanceof Date) ? mRaw[i][1].toISOString() : String(mDisplay[i][1]).trim();
+      if (mRaw[i][2]) marqueeObj.endTime = (mRaw[i][2] instanceof Date) ? mRaw[i][2].toISOString() : String(mDisplay[i][2]).trim();
+      if (mRaw[i][3] instanceof Date) marqueeObj.startDate = mRaw[i][3].getFullYear() + "-" + String(mRaw[i][3].getMonth()+1).padStart(2,'0') + "-" + String(mRaw[i][3].getDate()).padStart(2,'0');
+      else if (mDisplay[i][3]) marqueeObj.startDate = String(mDisplay[i][3]).trim();
+      if (mRaw[i][4] instanceof Date) marqueeObj.endDate = mRaw[i][4].getFullYear() + "-" + String(mRaw[i][4].getMonth()+1).padStart(2,'0') + "-" + String(mRaw[i][4].getDate()).padStart(2,'0');
+      else if (mDisplay[i][4]) marqueeObj.endDate = String(mDisplay[i][4]).trim();
+      if (mDisplay[i][5]) marqueeObj.dayOfWeek = String(mDisplay[i][5]).trim();
+      marquees.push(marqueeObj);
+    }
+  }
+  return [{ events: events, marquees: marquees }];
+}
+
+
+// --- PROJECTS (DYNAMIC FOLDERS) ---
+function buildProjectsData() {
+  const projects = [];
+  try {
+    const root = DriveApp.getFolderById(FOLDERS.PROJECTS);
+    const folders = root.getFolders();
+    while (folders.hasNext()) {
+      const folder = folders.next();
+      let projectData = { id: folder.getId(), images: [], titleImage: "", metadata: { name: folder.getName(), author: "—", year: "-", tags: [], description: "" } };
+      const files = folder.getFiles();
+      while (files.hasNext()) {
+        const file = files.next();
+        const mime = file.getMimeType();
+        const name = file.getName().toLowerCase();
+        const url = "https://drive.google.com/uc?export=view&id=" + file.getId();
+        
+        if (name.includes('title')) {
+          projectData.titleImage = url;
+        } else if (mime.includes('image')) {
+          let cleanName = file.getName().split('.').slice(0, -1).join('.') || file.getName();
+          projectData.images.push({
+            src: url,
+            title: cleanName
+          });
+        }
+        else if (mime === MimeType.GOOGLE_DOCS) {
+          let parsed = parseMetadataDoc(file.getId());
+          for (let k in parsed.meta) projectData.metadata[k] = parsed.meta[k];
+          if (parsed.desc) projectData.metadata.description = parsed.desc;
+        }
+      }
+      if (projectData.titleImage) projects.push(projectData);
+    }
+  } catch (err) {}
+  return projects;
+}
+
+// --- MAGAZINE (DYNAMIC FOLDERS) ---
+function buildMagazineData() {
+  try {
+    const root = DriveApp.getFolderById(FOLDERS.MAGAZINE);
+    let issuesPayload = [];
+    let issueFolders = root.getFolders();
+    let issueList = [];
+    while(issueFolders.hasNext()) issueList.push(issueFolders.next());
+    issueList.sort((a,b) => a.getName().localeCompare(b.getName()));
+    const now = new Date(); now.setHours(0,0,0,0);
+    
+    for (let x = 0; x < issueList.length; x++) {
+       let issueFolder = issueList[x], currentIssueTitle = issueFolder.getName();
+       let files = issueFolder.getFilesByType(MimeType.GOOGLE_SHEETS);
+       if (!files.hasNext()) continue;
+       const sheetFile = files.next();
+       const data = SpreadsheetApp.openById(sheetFile.getId()).getSheets()[0].getDataRange().getValues();
+       
+       let fileUrls = {};
+       let issueFiles = issueFolder.getFiles();
+       while(issueFiles.hasNext()) {
+         let img = issueFiles.next();
+         if(img.getMimeType().includes('image')) fileUrls[img.getName()] = "https://drive.google.com/uc?export=view&id=" + img.getId();
+       }
+       
+       let subfolders = issueFolder.getFolders();
+       while(subfolders.hasNext()) {
+         let sub = subfolders.next(), imgs = sub.getFiles();
+         while(imgs.hasNext()) {
+           let img = imgs.next();
+           if(img.getMimeType().includes('image')) fileUrls[img.getName()] = "https://drive.google.com/uc?export=view&id=" + img.getId();
+         }
+       }
+       
+       let currentImageFiles = [], currentChapters = [], currentPages = [], currentChapterName = "", globalPageIndex = 0;
+       let comingSoonUrl = null, hasLockedPages = false;
+       
+       for (let fName in fileUrls) {
+          if (fName.toLowerCase().replace(/[^a-z0-9]/g, '').includes('comingsoon')) { comingSoonUrl = fileUrls[fName]; break; }
+       }
+       
+       for (let i = 1; i < data.length; i++) {
+          let type = data[i][0], name = data[i][1], audioUrl = data[i][2] ? String(data[i][2]).trim() : null, dateRaw = data[i][3];
+          
+          if (type === "📂 CHAPTER") currentChapterName = name; 
+          else if (type === "📄 Page" && name) {
+            let isLocked = false;
+            if (dateRaw) {
+              let parsedDate = new Date(dateRaw);
+              if (!isNaN(parsedDate.getTime()) && parsedDate > now) isLocked = true;
+            }
+            if (isLocked) {
+              hasLockedPages = true;
+              if (!currentChapters.find(c => c.name === currentChapterName)) currentChapters.push({ name: currentChapterName, page: "LOCKED" });
+              continue; 
+            }
+            let fileUrl = fileUrls[name];
+            if (fileUrl) {
+              currentImageFiles.push(fileUrl);
+              let pageMeta = {}; if (audioUrl) pageMeta.audioUrl = audioUrl;
+              currentPages.push(pageMeta);
+              if (!currentChapters.find(c => c.name === currentChapterName)) currentChapters.push({ name: currentChapterName, page: globalPageIndex });
+              globalPageIndex++;
+            }
+          }
+       }
+       
+       let finalComingSoonIndex = currentImageFiles.length; 
+       if (hasLockedPages && comingSoonUrl) {
+          currentImageFiles.push(comingSoonUrl); currentPages.push({}); 
+          currentChapters.forEach(c => { if (c.page === "LOCKED") c.page = finalComingSoonIndex; });
+       } else currentChapters = currentChapters.filter(c => c.page !== "LOCKED");
+       
+       if (currentImageFiles.length > 0) issuesPayload.push({ title: currentIssueTitle, images: currentImageFiles, chapters: currentChapters, pages: currentPages });
+    }
+    return issuesPayload;
+  } catch (err) { return []; }
+}
+
+// --- HISTORY (DYNAMIC FOLDERS) ---
+function buildHistoryData() {
+  try {
+    const folder = DriveApp.getFolderById(FOLDERS.HISTORY);
+    const files = folder.getFilesByType(MimeType.GOOGLE_DOCS);
+    let historyDocs = [];
+    while (files.hasNext()) {
+      const file = files.next();
+      const doc = DocumentApp.openById(file.getId());
+      let rawName = file.getName();
+      let cleanTitle = rawName.replace(/^\d+[_ -]/, '').trim(); 
+      let text = doc.getBody().getText().replace(/\n/g, '<br>');
+      if (text) historyDocs.push({ rawName: rawName, title: cleanTitle, text: text });
+    }
+    historyDocs.sort((a, b) => a.rawName.localeCompare(b.rawName));
+    return historyDocs.map(d => ({ title: d.title, text: d.text }));
+  } catch (err) { return []; }
+}
+
+// --- AUDIO (DYNAMIC FOLDERS) ---
+function buildAudioData() {
+  try {
+    const root = DriveApp.getFolderById(FOLDERS.AUDIO);
+    const audioData = [];
+    const categoryFolders = root.getFolders();
+    while (categoryFolders.hasNext()) {
+      const categoryFolder = categoryFolders.next();
+      const cleanCategoryName = categoryFolder.getName().replace(/^\d+[_ -]/, '').trim(); 
+      const tracks = categoryFolder.getFolders();
+      while (tracks.hasNext()) {
+        const trackFolder = tracks.next();
+        const cleanTrackName = trackFolder.getName().replace(/^\d+[_ -]/, '').trim();
+        let trackObj = { category: cleanCategoryName, title: cleanTrackName, file: "", url: "", year: "2026", type: "Audio", format: "MP3", desc: "No description provided." };
+        const files = trackFolder.getFiles();
+        while (files.hasNext()) {
+          const file = files.next();
+          const mime = file.getMimeType();
+          if (mime.includes('audio') || mime.includes('video')) { 
+            trackObj.file = file.getId(); trackObj.url = file.getId();
+          } 
+          else if (mime === MimeType.GOOGLE_DOCS) {
+            let parsed = parseMetadataDoc(file.getId());
+            if (parsed.meta.name || parsed.meta.title) trackObj.title = parsed.meta.name || parsed.meta.title;
+            if (parsed.desc) trackObj.desc = parsed.desc;
+          }
+        }
+        if (trackObj.file) audioData.push(trackObj);
+      }
+    }
+    return audioData;
+  } catch (err) { return []; }
+}
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-29T17:06:32+02:00.
+</ADDITIONAL_METADATA>
+<USER_REQUEST>
+i will give you all parts of the script code ( 6 at the moment) and you check if this change works within this strcutre and edit everyhting that needs to be edited, remove parts connected to the audio workflow that arent needed anymore - also should the audio part be a seperate part in app script ? 1. config.gs: // --- LIVE FOLDER IDS ---
+const FOLDERS = {
+  PROJECTS: '15Ev7o_hvTIE2pxX52gPaCjjg94s_YKhx',
+  MAGAZINE: '1hKrjvKFwtQBgTabHBbjWmkpvXYKJKWGL',
+  HISTORY:  '121w6NuphbGREP_jOBBVKShAaeXFhsmgi',
+  AUDIO:    '1Z_C_TiQmY1OWf1OumYbOMDdWL2PO_H0c'
+};
+
+// --- STAGING ENVIRONMENT ID ---
+const STAGING_ROOT = '1U43eo48-117XuN5rUywJz5XCWm6qLwGc';
+
+// --- UTILITY: SAFE ALERT ---
+// Safely shows popups if a user is clicking the button, but skips silently on background timers!
+function safeAlert(title, message) {
+  try {
+    const ui = SpreadsheetApp.getUi();
+    if (message) {
+      ui.alert(title, message, ui.ButtonSet.OK);
+    } else {
+      ui.alert(title);
+    }
+  } catch (e) {
+    console.log("Background run: " + title + " - " + (message || ""));
+  }
+} menu.gs : // --- CUSTOM MENU ---
+function onOpen() {
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu('Apollo CMS')
+      .addItem('1. Setup Master Tabs', 'setupMasterTabs')
+      .addSeparator()
+      .addItem('2. Verify Pipeline Status', 'verifyPipeline')
+      .addItem('3. Scan Live Inventory', 'scanLiveInventory')
+      .addSeparator()
+      .addItem('4. Generate Missing Metadata Docs', 'generateMissingMetadataDocs')
+      .addItem('5. Sync Magazine Index', 'syncMagazineIndex')
+      .addSeparator()
+      .addItem('🌟 Publish to Live Website', 'publishToLive')
+      .addToUi();
+}
+
+// --- 1. SETUP TABS ---
+function setupMasterTabs() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // 1. Live Inventory
+  let inv = ss.getSheetByName('Live Inventory') || ss.insertSheet('Live Inventory', 0);
+  if (inv.getLastRow() === 0) {
+    inv.appendRow(["Category", "Name / Title", "Contents / Details", "Status", "Google Drive Link"]);
+    inv.getRange("A1:E1").setFontWeight("bold").setBackground("#e0e0e0");
+    inv.setFrozenRows(1);
+    inv.setColumnWidth(2, 300);
+    inv.setColumnWidth(3, 250);
+  }
+  inv.getRange("A:E").setVerticalAlignment("top");
+  inv.getRange("C:E").setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
+  
+  // 2. Pipeline
+  let pipe = ss.getSheetByName('Pipeline') || ss.insertSheet('Pipeline', 1);
+  if (pipe.getLastRow() === 0) {
+    pipe.appendRow([
+      "Post Date", "Content Type", "Target Name", "Editor", "Contents / Details", "Notes", 
+      "CHECK: Found", "CHECK: Assets", "CHECK: Metadata", "PIPELINE STATUS"
+    ]);
+    
+    const hRange = pipe.getRange("A1:J1");
+    hRange.setFontWeight("bold");
+    pipe.getRange("A1:F1").setBackground("#d9ead3"); 
+    pipe.getRange("G1:J1").setBackground("#f4cccc"); 
+    pipe.setFrozenRows(1);
+    pipe.setColumnWidth(3, 200);
+    pipe.setColumnWidth(5, 200);
+    pipe.setColumnWidth(6, 250);
+  }
+  pipe.getRange("A:J").setVerticalAlignment("top");
+  pipe.getRange("E:F").setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
+
+  const dateRule = SpreadsheetApp.newDataValidation().requireDate().setAllowInvalid(false).build();
+  pipe.getRange("A2:A100").setDataValidation(dateRule);
+  
+  // 3. Calendar
+  let cal = ss.getSheetByName('Calendar') || ss.insertSheet('Calendar', 2);
+  if (cal.getLastRow() === 0) {
+    cal.appendRow(["Date", "Details (Use <br> for line breaks)", "Flyer Image ID (Optional)", "Stats"]);
+    cal.getRange("A1:D1").setFontWeight("bold").setBackground("#e0e0e0");
+    cal.setFrozenRows(1);
+    cal.setColumnWidth(2, 300);
+    cal.setColumnWidth(4, 150);
+  } else if (cal.getLastColumn() < 4) {
+    cal.getRange(1, 4).setValue("Stats").setFontWeight("bold").setBackground("#e0e0e0");
+    cal.setColumnWidth(4, 150);
+  }
+  cal.getRange("A:D").setVerticalAlignment("top");
+  cal.getRange("B:B").setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
+  cal.getRange("A2:A100").setDataValidation(dateRule);
+  
+  // 4. Marquee
+  let marq = ss.getSheetByName('Marquee') || ss.insertSheet('Marquee', 3);
+  if (marq.getLastRow() === 0 || marq.getLastColumn() < 7) {
+    marq.getRange(1, 1, 1, 7).setValues([["Message", "Start Time", "End Time", "Start Date", "End Date", "Day of Week", "Summary"]]);
+    marq.getRange("A1:G1").setFontWeight("bold").setBackground("#e0e0e0");
+    marq.setFrozenRows(1);
+    marq.setColumnWidth(1, 300);
+    marq.setColumnWidth(7, 400);
+  }
+  
+  // 5. System Cache (Hidden)
+  let cache = ss.getSheetByName('System_Cache') || ss.insertSheet('System_Cache');
+  cache.hideSheet();
+  
+  safeAlert("Setup Complete! Tooltips, Date Pickers, and Wrap Formatting applied.");
+} scanners.gs: // --- 2. THE PIPELINE ROBOT ---
+function verifyPipeline() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const pipe = ss.getSheetByName('Pipeline');
+  
+  const lastRow = pipe.getLastRow();
+  if (lastRow > 1) {
+    pipe.getRange(2, 1, Math.max(1, lastRow - 1), 10).clearContent();
+    pipe.getRange(2, 1, Math.max(1, lastRow - 1), 10).clearFormat();
+  }
+  
+  let rowData = [];
+  
+  function getStatus(assets, meta) {
+    if (assets.includes("Error")) return "Blocked: Format Error";
+    if (assets.includes("Missing") || meta.includes("Missing") || meta.includes("empty")) return "Work in Progress";
+    return "Ready to Publish";
+  }
+
+  function evaluateItem(type, fileOrFolder) {
+    let checkAssets = "Missing";
+    let checkMeta = "Missing";
+    let checkContents = "";
+    
+    if (type === 'Project') {
+      let fileCount = 0, hasTitle = false, docFilled = false, hasDoc = false;
+      let files = fileOrFolder.getFiles();
+      while (files.hasNext()) {
+        fileCount++;
+        let f = files.next();
+        if (f.getName().toLowerCase().includes('title')) hasTitle = true;
+        if (f.getMimeType() === MimeType.GOOGLE_DOCS) {
+          hasDoc = true;
+          let txt = DocumentApp.openById(f.getId()).getBody().getText();
+          if (txt.includes('Name:') && txt.length > 30) docFilled = true;
+        }
+      }
+      checkContents = fileCount + " files";
+      checkAssets = hasTitle ? "Valid" : "Missing 'title' image";
+      checkMeta = docFilled ? "Valid" : (hasDoc ? "Doc empty" : "Missing doc");
+    } 
+    else if (type === 'Magazine') {
+      let fileCount = 0, hasUnsupported = false;
+      let chaps = fileOrFolder.getFolders();
+      while (chaps.hasNext()) {
+        let chap = chaps.next();
+        let files = chap.getFiles();
+        while (files.hasNext()) {
+          fileCount++;
+          if (!files.next().getMimeType().includes('image')) hasUnsupported = true;
+        }
+      }
+      checkContents = fileCount + " pages";
+      checkAssets = hasUnsupported ? "Error: Non-image files found" : "Valid";
+      checkMeta = "N/A";
+    }
+    else if (type === 'Audio') {
+      let fileCount = 0, hasAudio = false, docFilled = false, hasDoc = false;
+      let files = fileOrFolder.getFiles();
+      while (files.hasNext()) {
+        fileCount++;
+        let f = files.next();
+        let mime = f.getMimeType();
+        if (mime.includes('audio') || mime.includes('video')) hasAudio = true;
+        if (mime === MimeType.GOOGLE_DOCS) {
+          hasDoc = true;
+          let txt = DocumentApp.openById(f.getId()).getBody().getText();
+          if (txt.includes('Title:') && txt.length > 20) docFilled = true;
+          if (txt.includes('Name:') && txt.length > 20) docFilled = true;
+        }
+      }
+      checkContents = fileCount + " files";
+      checkAssets = hasAudio ? "Valid" : "Missing audio file";
+      checkMeta = docFilled ? "Valid" : (hasDoc ? "Doc empty" : "Missing doc");
+    }
+    else if (type === 'History') {
+      checkContents = "Google Doc";
+      checkAssets = "N/A";
+      let txt = DocumentApp.openById(fileOrFolder.getId()).getBody().getText();
+      checkMeta = (txt.length > 20) ? "Valid" : "Doc is empty";
+    }
+    else if (type === 'Calendar') {
+      checkContents = "1 image";
+      checkMeta = "N/A";
+      checkAssets = fileOrFolder.getMimeType().includes('image') ? "Valid" : "Error: Not an image";
+    }
+    
+    return [checkContents, "Found", checkAssets, checkMeta, getStatus(checkAssets, checkMeta)];
+  }
+
+  // A. SCAN STAGING
+  const root = DriveApp.getFolderById(STAGING_ROOT);
+  const stgFolders = root.getFolders();
+  while(stgFolders.hasNext()) {
+    let catFolder = stgFolders.next();
+    let name = catFolder.getName().toLowerCase();
+    let type = "";
+    if(name.includes('project')) type = 'Project';
+    else if(name.includes('magazine')) type = 'Magazine';
+    else if(name.includes('audio')) type = 'Audio';
+    else if(name.includes('history')) type = 'History';
+    else if(name.includes('calendar')) type = 'Calendar';
+    
+    if (type) {
+      if (type === 'History' || type === 'Calendar') {
+         let files = catFolder.getFiles();
+         while(files.hasNext()) {
+            let f = files.next();
+            let ev = evaluateItem(type, f);
+            rowData.push(["", type, f.getName(), "Auto", ev[0], "", ev[1], ev[2], ev[3], ev[4]]);
+         }
+      } else {
+         let subs = catFolder.getFolders();
+         while(subs.hasNext()) {
+            let f = subs.next();
+            if (type === 'Audio') {
+               let tracks = f.getFolders();
+               while(tracks.hasNext()) {
+                 let t = tracks.next();
+                 let ev = evaluateItem(type, t);
+                 rowData.push(["", type, f.getName() + " / " + t.getName(), "Auto", ev[0], "", ev[1], ev[2], ev[3], ev[4]]);
+               }
+            } else {
+               let ev = evaluateItem(type, f);
+               rowData.push(["", type, f.getName(), "Auto", ev[0], "", ev[1], ev[2], ev[3], ev[4]]);
+            }
+         }
+      }
+    }
+  }
+  
+  // DIVIDER
+  rowData.push(["-------", "-------", "-------", "-------", "-------", "-------", "-------", "-------", "-------", "-------"]);
+  let dividerIndex = rowData.length;
+  
+  // B. SCAN LIVE FOLDERS FOR ERRORS
+  function scanLiveForErrors(type, parentFolderId) {
+    try {
+      const pFolder = DriveApp.getFolderById(parentFolderId);
+      if (type === 'History') {
+         let files = pFolder.getFilesByType(MimeType.GOOGLE_DOCS);
+         while(files.hasNext()) {
+            let f = files.next();
+            let ev = evaluateItem(type, f);
+            if (ev[4] !== "Ready to Publish") rowData.push(["", type, f.getName(), "Live Alert", ev[0], "Broken in Live", ev[1], ev[2], ev[3], ev[4]]);
+         }
+      } else {
+         let folders = pFolder.getFolders();
+         while(folders.hasNext()) {
+            let f = folders.next();
+            if (type === 'Audio') {
+               let tracks = f.getFolders();
+               while(tracks.hasNext()) {
+                 let t = tracks.next();
+                 let ev = evaluateItem(type, t);
+                 if (ev[4] !== "Ready to Publish") rowData.push(["", type, f.getName() + " / " + t.getName(), "Live Alert", ev[0], "Broken in Live", ev[1], ev[2], ev[3], ev[4]]);
+               }
+            } else {
+               let ev = evaluateItem(type, f);
+               if (ev[4] !== "Ready to Publish") rowData.push(["", type, f.getName(), "Live Alert", ev[0], "Broken in Live", ev[1], ev[2], ev[3], ev[4]]);
+            }
+         }
+      }
+    } catch(e){}
+  }
+  
+  scanLiveForErrors('Project', FOLDERS.PROJECTS);
+  scanLiveForErrors('Magazine', FOLDERS.MAGAZINE);
+  scanLiveForErrors('Audio', FOLDERS.AUDIO);
+  scanLiveForErrors('History', FOLDERS.HISTORY);
+
+  if (rowData.length > 0) {
+    pipe.getRange(2, 1, Math.max(1, rowData.length), 10).setValues(rowData);
+    pipe.getRange(Math.max(1, dividerIndex + 1), 1, 1, 10).setBackground("#fff2cc"); 
+    
+    // Color coding
+    for (let i = 0; i < rowData.length; i++) {
+      if (rowData[i][0] === "-------") continue;
+      let stat = rowData[i][9];
+      let color = (stat === "Ready to Publish") ? "#38761d" : (stat.includes("Blocked") ? "#cc0000" : "#e69138");
+      pipe.getRange(i+2, 10).setFontColor(color).setFontWeight("bold");
+    }
+  }
+  safeAlert("Pipeline Automatically Generated! Live folders were also checked for errors.");
+}
+
+// --- 3. LIVE INVENTORY SCANNER ---
+function scanLiveInventory() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const inv = ss.getSheetByName('Live Inventory');
+  
+  const lastRow = inv.getLastRow();
+  if (lastRow > 1) {
+    inv.getRange(2, 1, Math.max(1, lastRow - 1), 5).clearContent();
+    inv.getRange(2, 1, Math.max(1, lastRow - 1), 5).clearFormat(); 
+  }
+  
+  let rowData = [];
+  function addDivider() { rowData.push(["-------", "-------", "-------", "-------", "-------"]); }
+  
+  let livePayload = null;
+  const cacheSheet = ss.getSheetByName("System_Cache");
+  if (cacheSheet) {
+    try {
+      const values = cacheSheet.getDataRange().getValues();
+      let jsonStr = "";
+      for (let i = 0; i < values.length; i++) jsonStr += values[i][0];
+      if (jsonStr) livePayload = JSON.parse(jsonStr);
+    } catch(e) {}
+  }
+  
+  const liveProjectIds = new Set(livePayload?.archive?.map(p => p.id) || []);
+  const liveAudioNames = new Set(livePayload?.audio?.map(a => a.category + a.title) || []);
+  const liveHistoryTitles = new Set(livePayload?.history?.map(h => h.title) || []);
+  const liveMagazineTitles = new Set(livePayload?.magazine?.map(m => m.title) || []);
+  
+  const liveCalTitles = new Set();
+  if (livePayload?.calendar && livePayload.calendar[0]?.events) {
+    livePayload.calendar[0].events.forEach(e => liveCalTitles.add(e.text));
+  }
+  
+  const calSheet = ss.getSheetByName('Calendar');
+  const calUrl = ss.getUrl() + "#gid=" + calSheet.getSheetId();
+  const cal = calSheet.getDataRange().getDisplayValues();
+  let calFound = false;
+  for (let i = 1; i < cal.length; i++) {
+    if (cal[i][0] && !cal[i][0].includes('-------')) {
+      calFound = true;
+      let date = cal[i][0];
+      let rawDetails = cal[i][1];
+      let parts = rawDetails.split('<br>');
+      let title = date + " - " + (parts[0] ? parts[0].trim() : "");
+      let details = parts.slice(1).join('\n').trim() || "No extra details";
+      let exactText = date + (rawDetails ? "<br>" + rawDetails : "");
+      let status = liveCalTitles.has(exactText) ? "✅ Live" : "⏳ Pending Publish";
+      rowData.push(["Calendar", title, details, status, calUrl]);
+    }
+  }
+  if (calFound) addDivider();
+  
+  const marqSheet = ss.getSheetByName('Marquee');
+  if (marqSheet) {
+    const marqUrl = ss.getUrl() + "#gid=" + marqSheet.getSheetId();
+    const marq = marqSheet.getDataRange().getDisplayValues();
+    
+    // Extract live marquees for comparison
+    let liveMarquees = [];
+    if (livePayload?.calendar && livePayload.calendar[0]?.marquees) {
+      liveMarquees = livePayload.calendar[0].marquees.map(m => m.message);
+    } else if (livePayload?.calendar && livePayload.calendar[0]?.marquee) {
+      liveMarquees = [livePayload.calendar[0].marquee]; // Legacy support
+    }
+    
+    let marqFound = false;
+    for (let i = 1; i < marq.length; i++) {
+      let mText = String(marq[i][0]).trim();
+      let mSummary = String(marq[i][6]).trim(); // Pulls the formula summary from Column G
+      if (mText) {
+        marqFound = true;
+        let status = liveMarquees.includes(mText) ? "✅ Live" : "⏳ Pending Publish";
+        rowData.push(["Marquee", mText, mSummary || "Always active", status, marqUrl]);
+      }
+    }
+    if (marqFound) addDivider();
+  }
+  
+  let magFound = false;
+  const magFolder = DriveApp.getFolderById(FOLDERS.MAGAZINE);
+  const mIssues = magFolder.getFolders();
+  while (mIssues.hasNext()) {
+    magFound = true;
+    let issue = mIssues.next();
+    
+    // Count chapters inside for details
+    let chapterCount = 0;
+    let chapters = issue.getFolders();
+    while(chapters.hasNext()) { chapters.next(); chapterCount++; }
+    
+    let status = liveMagazineTitles.has(issue.getName()) ? "✅ Live" : "⏳ Pending Publish";
+    rowData.push(["Magazine", issue.getName(), chapterCount + " chapters inside", status, issue.getUrl()]);
+  }
+  if (magFound) addDivider();
+  
+  let projFound = false;
+  const projFolder = DriveApp.getFolderById(FOLDERS.PROJECTS);
+  const pFolders = projFolder.getFolders();
+  while (pFolders.hasNext()) {
+    projFound = true;
+    let f = pFolders.next();
+    let fileCount = 0;
+    let files = f.getFiles();
+    while(files.hasNext()) { files.next(); fileCount++; }
+    let status = liveProjectIds.has(f.getId()) ? "✅ Live" : "⏳ Pending Publish";
+    rowData.push(["Project", f.getName(), fileCount + " files inside", status, f.getUrl()]);
+  }
+  if (projFound) addDivider();
+  
+  let audFound = false;
+  const audFolder = DriveApp.getFolderById(FOLDERS.AUDIO);
+  const aCats = audFolder.getFolders();
+  while (aCats.hasNext()) {
+    const categoryFolder = aCats.next();
+    const cleanCategoryName = categoryFolder.getName().replace(/^\d+[_ -]/, '').trim(); 
+    const tracks = categoryFolder.getFolders();
+    while (tracks.hasNext()) {
+      audFound = true;
+      let t = tracks.next();
+      let fileCount = 0;
+      let files = t.getFiles();
+      while(files.hasNext()) { files.next(); fileCount++; }
+      const cleanTrackName = t.getName().replace(/^\d+[_ -]/, '').trim();
+      let status = liveAudioNames.has(cleanCategoryName + cleanTrackName) ? "✅ Live" : "⏳ Pending Publish";
+      rowData.push(["Audio", t.getName(), fileCount + " files inside", status, t.getUrl()]);
+    }
+  }
+  if (audFound) addDivider();
+  
+  let histFound = false;
+  const histFolder = DriveApp.getFolderById(FOLDERS.HISTORY);
+  const hDocs = histFolder.getFilesByType(MimeType.GOOGLE_DOCS);
+  while (hDocs.hasNext()) {
+    histFound = true;
+    let d = hDocs.next();
+    let cleanTitle = d.getName().replace(/^\d+[_ -]/, '').trim(); 
+    let status = liveHistoryTitles.has(cleanTitle) ? "✅ Live" : "⏳ Pending Publish";
+    rowData.push(["History", d.getName(), "Google Doc", status, d.getUrl()]);
+  }
+  if (histFound) addDivider();
+  
+  if (rowData.length > 0) {
+    let range = inv.getRange(2, 1, Math.max(1, rowData.length), 5);
+    range.setValues(rowData);
+    for (let i = 0; i < rowData.length; i++) {
+      if (rowData[i][3] === "✅ Live") inv.getRange(i+2, 4).setFontColor("#38761d").setFontWeight("bold");
+      else if (rowData[i][3] === "⏳ Pending Publish") inv.getRange(i+2, 4).setFontColor("#e69138").setFontWeight("bold");
+    }
+  }
+  safeAlert("Inventory scan complete. Checked against Live Cache.");
+} publish.gs: // ==========================================
+// PUBLISHING SYSTEM (GITHUB ENGINE)
+// ==========================================
+
+function publishToLive() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  updateCalendarVisuals(ss);
+
+  const payload = {
+    archive: buildProjectsData(),
+    calendar: buildCalendarData(ss),
+    magazine: buildMagazineData(),
+    history: buildHistoryData(),
+    audio: buildAudioData()
+  };
+  
+  // This JSON contains all the raw Google Drive URLs initially
+  const jsonStr = JSON.stringify(payload, null, 2);
+
+  // --- NEW: Update the JSON file on Google Drive ---
+  const DRIVE_JSON_FILE_ID = "1oDBMKGxKuPPgXgyieXHY2je95-_vjld1"; 
+  try {
+    // This will overwrite the entire file with the latest JSON data
+    DriveApp.getFileById(DRIVE_JSON_FILE_ID).setContent(jsonStr);
+  } catch(e) {
+    console.error("Failed to update Drive file: " + e);
+  }
+  // -------------------------------------------------
+  
+  // -- GITHUB PUSH LOGIC --
+  const GITHUB_TOKEN = PropertiesService.getScriptProperties().getProperty('GITHUB_PAT');
+  const REPO = 'florianroedel-hash/apollo';
+  const FILE_PATH = 'data.json';
+  
+  if (!GITHUB_TOKEN) {
+    safeAlert("❌ Missing GitHub Token", "Please add a GITHUB_PAT token in your Script Properties.");
+    return;
+  }
+  
+  try {
+    const apiUrl = `https://api.github.com/repos/${REPO}/contents/${FILE_PATH}`;
+    const headers = {
+      "Authorization": "Bearer " + GITHUB_TOKEN,
+      "Accept": "application/vnd.github.v3+json",
+      "X-GitHub-Api-Version": "2022-11-28"
+    };
+    
+    // 1. Get current file SHA to update it (required by GitHub API)
+    let sha = null;
+    const getRes = UrlFetchApp.fetch(apiUrl, { method: "get", headers: headers, muteHttpExceptions: true });
+    if (getRes.getResponseCode() === 200) {
+      const currentFile = JSON.parse(getRes.getContentText());
+      sha = currentFile.sha;
+    }
+    
+    // 2. Put new file
+    const contentEncoded = Utilities.base64Encode(Utilities.newBlob(jsonStr).getBytes());
+    const putPayload = {
+      message: "Automated publish from Google Sheets",
+      content: contentEncoded,
+      branch: "main"
+    };
+    if (sha) putPayload.sha = sha;
+    
+    const putRes = UrlFetchApp.fetch(apiUrl, {
+      method: "put",
+      headers: headers,
+      contentType: "application/json",
+      payload: JSON.stringify(putPayload),
+      muteHttpExceptions: true
+    });
+    
+    if (putRes.getResponseCode() === 200 || putRes.getResponseCode() === 201) {
+       // Save to Cache Sheet so Inventory can verify what is currently live
+       const CHUNK_SIZE = 40000; 
+       let chunks = [];
+       for (let i = 0; i < jsonStr.length; i += CHUNK_SIZE) chunks.push([jsonStr.substring(i, i + CHUNK_SIZE)]);
+       let cacheSheet = ss.getSheetByName("System_Cache");
+       if (!cacheSheet) { cacheSheet = ss.insertSheet("System_Cache"); cacheSheet.hideSheet(); }
+       cacheSheet.clear();
+       cacheSheet.getRange(1, 1, chunks.length, 1).setValues(chunks);
+       
+       scanLiveInventory();
+       safeAlert("✅ Publish Successful!", "Your JSON data was pushed to GitHub and updated on Google Drive! The automated MP3 Delivery Guy is now downloading your audio files.");
+    } else {
+       safeAlert("❌ Publish Failed", "GitHub Error: " + putRes.getContentText());
+    }
+  } catch(e) {
+    safeAlert("❌ Publish Error", e.toString());
+  }
+}
+
+function updateCalendarVisuals(ss) {
+  const calSheet = ss.getSheetByName("Calendar");
+  if (!calSheet) return;
+  const data = calSheet.getDataRange().getValues();
+  
+  for (let i = data.length; i >= 1; i--) {
+    let dateStr = String(calSheet.getRange(i, 1).getValue());
+    if (dateStr.includes('-------')) calSheet.deleteRow(i);
+  }
+  
+  const newData = calSheet.getDataRange().getValues();
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  
+  let insertIndex = -1;
+  let lastWasPast = null;
+  
+  for (let i = 1; i < newData.length; i++) {
+    let raw = newData[i][0];
+    if (!raw) continue;
+    if (String(raw).toLowerCase().includes('marquee')) continue;
+    
+    let parsed = null;
+    if (raw instanceof Date) parsed = raw;
+    else {
+       let m = String(raw).match(/(\d{1,2})[\.\/ -](\d{1,2})[\.\/ -](\d{2,4})/);
+       if (m) {
+         let yr = parseInt(m[3]);
+         if (yr < 100) yr += 2000;
+         parsed = new Date(yr, parseInt(m[2])-1, m[1]);
+       } else parsed = new Date(raw);
+    }
+    
+    if (parsed && !isNaN(parsed.getTime())) {
+      let isPast = parsed < now;
+      if (lastWasPast !== null && lastWasPast !== isPast) {
+         insertIndex = i + 1;
+         break;
+      }
+      lastWasPast = isPast;
+    }
+  }
+  
+  if (insertIndex > -1) {
+    calSheet.insertRowBefore(insertIndex);
+    calSheet.getRange(insertIndex, 1).clearDataValidations();
+    calSheet.getRange(insertIndex, 1, 1, 3).setValues([["-------", "-------", "-------"]]);
+    calSheet.getRange(insertIndex, 1, 1, 3).setBackground("#fff2cc");
+  }
+} DataBuilders.gs : // ==========================================
+// DATA BUILDERS
+// ==========================================
+
+function extractImageId(url) {
+  if (!url) return null;
+  const match = url.match(/(?:id=|\/d\/)([a-zA-Z0-9_-]+)/);
+  return match ? match[1] : null;
+}
+
+// --- NEW SMART PARSER HELPER ---
+function parseMetadataDoc(docId) {
+  let meta = {};
+  let desc = "";
+  try {
+    const text = DocumentApp.openById(docId).getBody().getText();
+    let lines = text.split('\n');
+    let currentKey = null;
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+      let match = line.match(/^([A-Za-z0-9 ]+):\s*(.*)$/);
+      
+      if (match) {
+        let key = match[1].trim().toLowerCase();
+        let val = match[2].trim();
+        
+        if (key === 'description') {
+           let descLines = [];
+           if (val) descLines.push(val);
+           let j = i + 1;
+           // Keep reading until we hit another key like "Instagram Handles:"
+           while (j < lines.length) {
+              if (lines[j].match(/^([A-Za-z0-9 ]+):\s*(.*)$/)) break;
+              descLines.push(lines[j]);
+              j++;
+           }
+           desc = descLines.join('<br>').trim();
+           i = j - 1; // Fast-forward the main loop
+        } else if (key === 'instagram handles' || key === 'instagram') {
+           let instaLines = [];
+           if (val) instaLines.push(val);
+           let j = i + 1;
+           while (j < lines.length) {
+              if (lines[j].match(/^([A-Za-z0-9 ]+):\s*(.*)$/)) break;
+              instaLines.push(lines[j]);
+              j++;
+           }
+           meta['instagram handles'] = instaLines.join('<br>').trim();
+           i = j - 1;
+        } else {
+           if (key === 'note') key = 'author';
+           if (key === 'event') key = 'course';
+           if (key === 'date') key = 'dateoverride';
+           currentKey = key;
+           meta[currentKey] = val;
+        }
+      } else if (currentKey && line.trim() !== "") {
+        meta[currentKey] += " " + line.trim();
+      }
+    }
+    
+    if (meta.tags && typeof meta.tags === 'string') {
+       meta.tags = meta.tags.split(',').map(t => t.trim()).filter(t => t);
+    }
+  } catch(e) {}
+  
+  return { meta: meta, desc: desc };
+}
+
+// --- CALENDAR (FROM SHEET) ---
+function buildCalendarData(ss) {
+  const sheet = ss.getSheetByName("Calendar");
+  if (!sheet) return [];
+  const rawData = sheet.getDataRange().getValues();
+  const displayData = sheet.getDataRange().getDisplayValues();
+  
+  let events = [];
+  let pastUpcomingLists = { past: [], upcoming: [] };
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  let statsUpdates = [];
+  
+  for (let i = 1; i < displayData.length; i++) {
+    let dateObj = rawData[i][0]; 
+    let dateStr = displayData[i][0];
+    let details = displayData[i][1];
+    let link = displayData[i][2]; 
+    
+    if (dateStr && dateStr.includes('-------')) {
+      statsUpdates.push([""]);
+      continue;
+    }
+    
+    let isPast = false;
+    let parsedDate = null;
+    let statText = "";
+    
+    if (dateObj instanceof Date) parsedDate = dateObj;
+    else {
+       let matchEu = String(dateStr).match(/(\d{1,2})[\.\/ -](\d{1,2})[\.\/ -](\d{2,4})/);
+       if (matchEu) {
+         let yr = parseInt(matchEu[3]);
+         if (yr < 100) yr += 2000;
+         parsedDate = new Date(yr, parseInt(matchEu[2])-1, matchEu[1]);
+       } else parsedDate = new Date(dateStr);
+    }
+
+    if (parsedDate && !isNaN(parsedDate.getTime()) && parsedDate < now) isPast = true;
+    
+    let imgId = null;
+    let spreadData = null;
+    
+    if (link) {
+      let extractedId = null;
+      if (link.includes('drive.google.com')) extractedId = extractImageId(link);
+      else extractedId = link.trim();
+      
+      if (extractedId) {
+        try {
+          const folder = DriveApp.getFolderById(extractedId);
+          const files = folder.getFiles();
+          let fileList = [];
+          
+          let evMeta = { name: dateStr, dateOverride: dateStr, year: "2026", author: "Apollo", course: "", track: "", description: details, tags: ["Event"] };
+          
+          while (files.hasNext()) {
+            let f = files.next();
+            if (f.getMimeType().includes('image') || f.getMimeType() === MimeType.PDF) {
+               try { f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch(e){}
+               fileList.push({name: f.getName(), url: "https://drive.google.com/uc?id=" + f.getId()});
+            } else if (f.getMimeType() === MimeType.GOOGLE_DOCS) {
+               let parsed = parseMetadataDoc(f.getId());
+               for (let k in parsed.meta) {
+                 if (k === 'name' || k === 'title') evMeta.dateOverride = parsed.meta[k]; 
+                 else evMeta[k] = parsed.meta[k];
+               }
+               if (parsed.desc) evMeta.description = parsed.desc;
+            }
+          }
+          fileList.sort((a,b) => a.name.localeCompare(b.name));
+          statText = fileList.length + " files found";
+          
+          if (fileList.length > 0) {
+            imgId = extractImageId(fileList[0].url); 
+            if (isPast) {
+              evMeta.tags = ["Event"]; 
+              spreadData = {
+                id: "calevt_" + i,
+                metadata: evMeta,
+                titleImage: fileList[0].url,
+                images: fileList.length > 1 ? fileList.slice(1).map(f => {
+                   let cleanName = f.name.split('.').slice(0, -1).join('.') || f.name;
+                   return { src: f.url, title: cleanName };
+                }) : []
+              };
+            }
+          } else {
+            imgId = extractedId;
+            try { DriveApp.getFileById(imgId).setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch(e){}
+            statText = "1 direct link";
+          }
+        } catch(e) { 
+          imgId = extractedId; 
+          statText = "1 direct link";
+          try { DriveApp.getFileById(imgId).setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch(e){}
+        }
+      } else statText = "Invalid link";
+    } else {
+      if (dateStr && !dateStr.toLowerCase().includes('marquee')) statText = "No images";
+    }
+    
+    let eventObj = { isPast: isPast, timestamp: (parsedDate && !isNaN(parsedDate.getTime())) ? parsedDate.getTime() : null, text: dateStr + "<br>" + details, imgId: imgId, spreadData: spreadData };
+    if (isPast) pastUpcomingLists.past.push(eventObj);
+    else if (dateStr && !dateStr.toLowerCase().includes('marquee')) pastUpcomingLists.upcoming.push(eventObj);
+    statsUpdates.push([statText]);
+  }
+  
+  if (statsUpdates.length > 0) sheet.getRange(2, 4, statsUpdates.length, 1).setValues(statsUpdates);
+  
+  pastUpcomingLists.upcoming.sort((a, b) => b.timestamp - a.timestamp);
+  pastUpcomingLists.past.sort((a, b) => b.timestamp - a.timestamp);
+  events = pastUpcomingLists.upcoming.concat(pastUpcomingLists.past);
+  
+  let marquees = [];
+  const marqSheet = ss.getSheetByName('Marquee');
+  if (marqSheet) {
+    const mRaw = marqSheet.getDataRange().getValues();
+    const mDisplay = marqSheet.getDataRange().getDisplayValues();
+    for (let i = 1; i < mRaw.length; i++) {
+      let msg = String(mDisplay[i][0]).trim();
+      if (!msg) continue;
+      let marqueeObj = { message: msg };
+      if (mRaw[i][1]) marqueeObj.startTime = (mRaw[i][1] instanceof Date) ? mRaw[i][1].toISOString() : String(mDisplay[i][1]).trim();
+      if (mRaw[i][2]) marqueeObj.endTime = (mRaw[i][2] instanceof Date) ? mRaw[i][2].toISOString() : String(mDisplay[i][2]).trim();
+      if (mRaw[i][3] instanceof Date) marqueeObj.startDate = mRaw[i][3].getFullYear() + "-" + String(mRaw[i][3].getMonth()+1).padStart(2,'0') + "-" + String(mRaw[i][3].getDate()).padStart(2,'0');
+      else if (mDisplay[i][3]) marqueeObj.startDate = String(mDisplay[i][3]).trim();
+      if (mRaw[i][4] instanceof Date) marqueeObj.endDate = mRaw[i][4].getFullYear() + "-" + String(mRaw[i][4].getMonth()+1).padStart(2,'0') + "-" + String(mRaw[i][4].getDate()).padStart(2,'0');
+      else if (mDisplay[i][4]) marqueeObj.endDate = String(mDisplay[i][4]).trim();
+      if (mDisplay[i][5]) marqueeObj.dayOfWeek = String(mDisplay[i][5]).trim();
+      marquees.push(marqueeObj);
+    }
+  }
+  return [{ events: events, marquees: marquees }];
+}
+
+
+// --- PROJECTS (DYNAMIC FOLDERS) ---
+function buildProjectsData() {
+  const projects = [];
+  try {
+    const root = DriveApp.getFolderById(FOLDERS.PROJECTS);
+    const folders = root.getFolders();
+    while (folders.hasNext()) {
+      const folder = folders.next();
+      let projectData = { id: folder.getId(), images: [], titleImage: "", metadata: { name: folder.getName(), author: "—", year: "-", tags: [], description: "" } };
+      const files = folder.getFiles();
+      while (files.hasNext()) {
+        const file = files.next();
+        const mime = file.getMimeType();
+        const name = file.getName().toLowerCase();
+        const url = "https://drive.google.com/uc?export=view&id=" + file.getId();
+        
+        if (name.includes('title')) {
+          projectData.titleImage = url;
+        } else if (mime.includes('image')) {
+          let cleanName = file.getName().split('.').slice(0, -1).join('.') || file.getName();
+          projectData.images.push({
+            src: url,
+            title: cleanName
+          });
+        }
+        else if (mime === MimeType.GOOGLE_DOCS) {
+          let parsed = parseMetadataDoc(file.getId());
+          for (let k in parsed.meta) projectData.metadata[k] = parsed.meta[k];
+          if (parsed.desc) projectData.metadata.description = parsed.desc;
+        }
+      }
+      if (projectData.titleImage) projects.push(projectData);
+    }
+  } catch (err) {}
+  return projects;
+}
+
+// --- MAGAZINE (DYNAMIC FOLDERS) ---
+function buildMagazineData() {
+  try {
+    const root = DriveApp.getFolderById(FOLDERS.MAGAZINE);
+    let issuesPayload = [];
+    let issueFolders = root.getFolders();
+    let issueList = [];
+    while(issueFolders.hasNext()) issueList.push(issueFolders.next());
+    issueList.sort((a,b) => a.getName().localeCompare(b.getName()));
+    const now = new Date(); now.setHours(0,0,0,0);
+    
+    for (let x = 0; x < issueList.length; x++) {
+       let issueFolder = issueList[x], currentIssueTitle = issueFolder.getName();
+       let files = issueFolder.getFilesByType(MimeType.GOOGLE_SHEETS);
+       if (!files.hasNext()) continue;
+       const sheetFile = files.next();
+       const data = SpreadsheetApp.openById(sheetFile.getId()).getSheets()[0].getDataRange().getValues();
+       
+       let fileUrls = {};
+       let issueFiles = issueFolder.getFiles();
+       while(issueFiles.hasNext()) {
+         let img = issueFiles.next();
+         if(img.getMimeType().includes('image')) fileUrls[img.getName()] = "https://drive.google.com/uc?export=view&id=" + img.getId();
+       }
+       
+       let subfolders = issueFolder.getFolders();
+       while(subfolders.hasNext()) {
+         let sub = subfolders.next(), imgs = sub.getFiles();
+         while(imgs.hasNext()) {
+           let img = imgs.next();
+           if(img.getMimeType().includes('image')) fileUrls[img.getName()] = "https://drive.google.com/uc?export=view&id=" + img.getId();
+         }
+       }
+       
+       let currentImageFiles = [], currentChapters = [], currentPages = [], currentChapterName = "", globalPageIndex = 0;
+       let comingSoonUrl = null, hasLockedPages = false;
+       
+       for (let fName in fileUrls) {
+          if (fName.toLowerCase().replace(/[^a-z0-9]/g, '').includes('comingsoon')) { comingSoonUrl = fileUrls[fName]; break; }
+       }
+       
+       for (let i = 1; i < data.length; i++) {
+          let type = data[i][0], name = data[i][1], audioUrl = data[i][2] ? String(data[i][2]).trim() : null, dateRaw = data[i][3];
+          
+          if (type === "📂 CHAPTER") currentChapterName = name; 
+          else if (type === "📄 Page" && name) {
+            let isLocked = false;
+            if (dateRaw) {
+              let parsedDate = new Date(dateRaw);
+              if (!isNaN(parsedDate.getTime()) && parsedDate > now) isLocked = true;
+            }
+            if (isLocked) {
+              hasLockedPages = true;
+              if (!currentChapters.find(c => c.name === currentChapterName)) currentChapters.push({ name: currentChapterName, page: "LOCKED" });
+              continue; 
+            }
+            let fileUrl = fileUrls[name];
+            if (fileUrl) {
+              currentImageFiles.push(fileUrl);
+              let pageMeta = {}; if (audioUrl) pageMeta.audioUrl = audioUrl;
+              currentPages.push(pageMeta);
+              if (!currentChapters.find(c => c.name === currentChapterName)) currentChapters.push({ name: currentChapterName, page: globalPageIndex });
+              globalPageIndex++;
+            }
+          }
+       }
+       
+       let finalComingSoonIndex = currentImageFiles.length; 
+       if (hasLockedPages && comingSoonUrl) {
+          currentImageFiles.push(comingSoonUrl); currentPages.push({}); 
+          currentChapters.forEach(c => { if (c.page === "LOCKED") c.page = finalComingSoonIndex; });
+       } else currentChapters = currentChapters.filter(c => c.page !== "LOCKED");
+       
+       if (currentImageFiles.length > 0) issuesPayload.push({ title: currentIssueTitle, images: currentImageFiles, chapters: currentChapters, pages: currentPages });
+    }
+    return issuesPayload;
+  } catch (err) { return []; }
+}
+
+// --- UPDATED HISTORY (USING INDEX SHEET) ---
+// --- UPDATED HISTORY (USING INDEX SHEET & SUBFOLDERS) ---
+function buildHistoryData() {
+  try {
+    const folder = DriveApp.getFolderById(FOLDERS.HISTORY);
+    const historyData = [];
+    
+    // 1. Find the "index" Google Sheet (Assumes it is still in the main History folder)
+    let indexSheetFile = null;
+    const sheets = folder.getFilesByType(MimeType.GOOGLE_SHEETS);
+    while (sheets.hasNext()) {
+      let sheet = sheets.next();
+      if (sheet.getName().toLowerCase() === "index") {
+        indexSheetFile = sheet;
+        break;
+      }
+    }
+    
+    if (!indexSheetFile) return historyData; 
+    
+    // 2. Open the Sheet and read the data
+    const ss = SpreadsheetApp.openById(indexSheetFile.getId());
+    const sheet = ss.getSheets()[0]; 
+    const lastRow = sheet.getLastRow();
+    
+    if (lastRow <= 1) return historyData; 
+    
+    const dataRange = sheet.getRange(2, 1, lastRow - 1, 4);
+    const dataValues = dataRange.getValues();
+    
+    // 3. Map Google Docs recursively (Scans main folder AND all subfolders)
+    const docsInFolder = {};
+    
+    function scanFolderForDocs(currentFolder) {
+      // Get docs in this folder
+      let docsFiles = currentFolder.getFilesByType(MimeType.GOOGLE_DOCS);
+      while (docsFiles.hasNext()) {
+        let docFile = docsFiles.next();
+        docsInFolder[docFile.getName()] = docFile;
+      }
+      // Recursively dive into any subfolders
+      let subfolders = currentFolder.getFolders();
+      while (subfolders.hasNext()) {
+        scanFolderForDocs(subfolders.next());
+      }
+    }
+    
+    scanFolderForDocs(folder); // Kick off the scan from the main History root!
+    
+    // 4. URL Converter to match the rest of your architecture (export=view format)
+    function makeDirectLink(url) {
+      if (!url || typeof url !== "string") return "";
+      let match = url.match(/[-\w]{25,}/); 
+      if (match && url.includes("drive.google.com")) {
+        return "https://drive.google.com/uc?export=view&id=" + match[0];
+      }
+      return url; 
+    }
+    
+    // 5. Match the rows to the Google Docs
+    for (let i = 0; i < dataValues.length; i++) {
+      const row = dataValues[i];
+      const dateVal = row[0];
+      const nameVal = String(row[1]).trim();
+      
+      const audioUrlVal = makeDirectLink(row[2]);
+      const imageUrlVal = makeDirectLink(row[3]);
+      
+      if (!nameVal) continue;
+      
+      const matchedDocFile = docsInFolder[nameVal];
+      if (!matchedDocFile) {
+        console.warn("History Doc missing for: " + nameVal);
+        continue;
+      }
+      
+      const doc = DocumentApp.openById(matchedDocFile.getId());
+      
+      // Extract text and perfectly preserve your <br> formatting
+      const textContent = doc.getBody().getText().replace(/\n/g, '<br>');
+      
+      historyData.push({
+        date: dateVal instanceof Date ? dateVal.toISOString() : dateVal,
+        name: nameVal,
+        audioUrl: audioUrlVal,
+        imageUrl: imageUrlVal,
+        text: textContent
+      });
+    }
+    
+    return historyData;
+  } catch (err) { 
+    return []; 
+  }
+}
+// --- AUDIO (DYNAMIC FOLDERS) ---
+function buildAudioData() {
+  try {
+    const root = DriveApp.getFolderById(FOLDERS.AUDIO);
+    const audioData = [];
+    const categoryFolders = root.getFolders();
+    while (categoryFolders.hasNext()) {
+      const categoryFolder = categoryFolders.next();
+      const cleanCategoryName = categoryFolder.getName().replace(/^\d+[_ -]/, '').trim(); 
+      const tracks = categoryFolder.getFolders();
+      while (tracks.hasNext()) {
+        const trackFolder = tracks.next();
+        const cleanTrackName = trackFolder.getName().replace(/^\d+[_ -]/, '').trim();
+        let trackObj = { category: cleanCategoryName, title: cleanTrackName, file: "", url: "", year: "2026", type: "Audio", format: "MP3", desc: "No description provided." };
+        const files = trackFolder.getFiles();
+        while (files.hasNext()) {
+          const file = files.next();
+          const mime = file.getMimeType();
+          if (mime.includes('audio') || mime.includes('video')) { 
+            trackObj.file = file.getId(); trackObj.url = file.getId();
+          } 
+          else if (mime === MimeType.GOOGLE_DOCS) {
+            let parsed = parseMetadataDoc(file.getId());
+            if (parsed.meta.name || parsed.meta.title) trackObj.title = parsed.meta.name || parsed.meta.title;
+            if (parsed.desc) trackObj.desc = parsed.desc;
+          }
+        }
+        if (trackObj.file) audioData.push(trackObj);
+      }
+    }
+    return audioData;
+  } catch (err) { return []; }
+} Utilities.gs: // ==========================================
+// UTILITIES
+// ==========================================
+
+// --- SYNC MAGAZINE INDEX ---
+function syncMagazineIndex() {
+  const root = DriveApp.getFolderById(FOLDERS.MAGAZINE);
+  let issueFolders = root.getFolders();
+  let issuesProcessed = 0;
+  
+  while(issueFolders.hasNext()) {
+    let issueFolder = issueFolders.next();
+    issuesProcessed++;
+    let files = issueFolder.getFilesByType(MimeType.GOOGLE_SHEETS);
+    let sheetFile = null;
+    while (files.hasNext()) {
+      let f = files.next();
+      if (f.getName().toLowerCase().includes("index") || sheetFile === null) {
+        sheetFile = f;
+        if (f.getName().toLowerCase().includes("index")) break;
+      }
+    }
+    
+    let ss;
+    if (!sheetFile) {
+      ss = SpreadsheetApp.create("Index_" + issueFolder.getName());
+      DriveApp.getFileById(ss.getId()).moveTo(issueFolder);
+    } else ss = SpreadsheetApp.openById(sheetFile.getId());
+    
+    let sheet = ss.getSheets()[0];
+    let existingData = {};
+    if (sheet.getLastRow() > 1) {
+      let rawData = sheet.getRange(2, 1, sheet.getLastRow() - 1, 4).getDisplayValues();
+      for (let i = 0; i < rawData.length; i++) {
+        let type = rawData[i][0], name = rawData[i][1], audio = rawData[i][2], date = rawData[i][3];
+        if (type === "📄 Page" && name) existingData[name] = { audio: audio, date: date };
+      }
+    }
+    
+    let chapterFolders = issueFolder.getFolders();
+    let chapterList = [];
+    while(chapterFolders.hasNext()) chapterList.push(chapterFolders.next());
+    chapterList.sort((a,b) => a.getName().localeCompare(b.getName()));
+    
+    let newRows = [];
+    for (let i = 0; i < chapterList.length; i++) {
+      let f = chapterList[i], chapterName = f.getName();
+      newRows.push(["📂 CHAPTER", chapterName, "", ""]);
+      let imgFiles = f.getFiles(), fileList = [];
+      while(imgFiles.hasNext()) {
+        let file = imgFiles.next();
+        let fname = file.getName(), cleanName = fname.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if(file.getMimeType().includes('image') && !cleanName.includes('comingsoon')) fileList.push(fname);
+      }
+      fileList.sort((a,b) => a.localeCompare(b));
+      for(let j = 0; j < fileList.length; j++) {
+        let fName = fileList[j];
+        newRows.push(["📄 Page", fName, existingData[fName] ? existingData[fName].audio : "", existingData[fName] ? existingData[fName].date : ""]);
+      }
+    }
+    
+    sheet.clear();
+    sheet.appendRow(["Type", "Name / File", "Audio URL", "Publish Date"]);
+    sheet.getRange("A1:D1").setFontWeight("bold").setBackground("#e0e0e0");
+    sheet.setColumnWidth(1, 120); sheet.setColumnWidth(2, 300); sheet.setColumnWidth(3, 250); sheet.setColumnWidth(4, 150);
+    
+    if (newRows.length > 0) {
+      let range = sheet.getRange(2, 1, newRows.length, 4);
+      range.setValues(newRows);
+      for (let i = 0; i < newRows.length; i++) {
+        if (newRows[i][0] === "📂 CHAPTER") sheet.getRange(i+2, 1, 1, 4).setBackground("#d9ead3").setFontColor("#000000").setFontWeight("bold");
+        else sheet.getRange(i+2, 1, 1, 4).setBackground("#ffffff").setFontColor("#000000").setFontWeight("normal");
+      }
+    }
+    const dateRule = SpreadsheetApp.newDataValidation().requireDate().setAllowInvalid(false).build();
+    sheet.getRange("D2:D1000").setDataValidation(dateRule);
+  }
+  
+  if (issuesProcessed === 0) safeAlert("No Issues Found", "Make sure you create an Issue folder (e.g. 'Issue_01') inside the Magazine folder first!");
+  else safeAlert("All Issues Synced!", `Successfully synced ${issuesProcessed} magazine issues.\n\nOpen the Index sheets inside your Issue folders to set Publish Dates and Audio URLs!`);
+}
+
+// --- AUTO-GENERATE METADATA DOCS ---
+function generateMissingMetadataDocs() {
+  const projectTemplate = 
+`Name: [Project Name]
+Author: [Author Name]
+Year: 2026
+Course: [Course Name]
+Track: [Track Name]
+Tags: architecture, model
+Description:
+[Project Description here]`;
+
+  const eventTemplate = 
+`Name: [Event Title]
+Author: [Speaker or Organizer]
+Year: 2026
+Description:
+[Event Description here]`;
+
+  const audioTemplate = 
+`Name: [Track Title]
+Description:
+[Audio Description here]`;
+
+  function createDocIfMissing(folder, templateText) {
+      let hasDoc = false;
+      const files = folder.getFilesByType(MimeType.GOOGLE_DOCS);
+      
+      // Original logic: If ANY Google Doc exists in this folder, skip generation
+      while (files.hasNext()) { hasDoc = true; files.next(); }
+      
+      if (!hasDoc) {
+        let finalTemplateText = templateText;
+        const folderName = folder.getName();
+        
+        // --- NEW DATA INJECTION LOGIC ---
+        const SUBMISSIONS_FOLDER_ID = "1M4OW1tWqAEdN5C901EmczVbRCPIdAr8l"; 
+        
+        try {
+          const submissionsRoot = DriveApp.getFolderById(SUBMISSIONS_FOLDER_ID);
+          const matchedFolders = submissionsRoot.searchFolders(`title = "${folderName}"`);
+          
+          if (matchedFolders.hasNext()) {
+            const submissionFolder = matchedFolders.next();
+            const subFiles = submissionFolder.getFilesByType(MimeType.GOOGLE_DOCS);
+            let captionText = "";
+            
+            while (subFiles.hasNext()) {
+              let f = subFiles.next();
+              if (f.getName().toLowerCase().includes("caption")) {
+                captionText = DocumentApp.openById(f.getId()).getBody().getText();
+                break;
+              }
+            }
+            
+            if (captionText) {
+               if (templateText.includes("[Course Name]")) {
+                  finalTemplateText = parseProjectCaption(captionText, templateText, folderName);
+               } else {
+                  finalTemplateText = templateText
+                                      .replace("[Event Title]", folderName)
+                                      .replace("[Track Title]", folderName)
+                                      .replace("[Event Description here]", captionText)
+                                      .replace("[Audio Description here]", captionText);
+               }
+            }
+          }
+        } catch(e) {
+          console.error("Error pulling from submissions: " + e.toString());
+        }
+        // ---------------------------------
+        
+        const doc = DocumentApp.create('Metadata_' + folderName);
+        doc.getBody().setText(finalTemplateText);
+        doc.saveAndClose();
+        DriveApp.getFileById(doc.getId()).moveTo(folder);
+      }
+  }
+
+    // --- Parser for the Caption Doc ---
+  function parseProjectCaption(rawText, baseTemplate, folderName) {
+    const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    
+    if (lines.length < 2) {
+      return baseTemplate.replace("[Project Name]", folderName).replace("[Project Description here]", rawText);
+    }
+
+    const title = lines[0];       
+    let course = "[Course Name]";      
+    let cycleInfo = "[Track Name]";   
+    let descriptionStartIndex = 1;
+    
+    // Look ahead at line 1 and 2 to figure out which is Course and which is Track
+    let line1 = lines.length > 1 ? lines[1] : "";
+    let line2 = lines.length > 2 ? lines[2] : "";
+    
+    // Look for the year (e.g. 2026) to anchor our parsing
+    const yearRegex = /\b20\d{2}\b/;
+    
+    if (line1.match(yearRegex)) {
+       // If line 1 contains the year, it's the Track! The Course was completely skipped.
+       cycleInfo = line1;
+       descriptionStartIndex = 2; // Description starts immediately after
+    } else if (line2.match(yearRegex)) {
+       // If line 2 contains the year, then line 1 is Course, line 2 is Track.
+       course = line1;
+       cycleInfo = line2;
+       descriptionStartIndex = 3;
+  
+<truncated 5755 bytes>
+
+NOTE: The output was truncated because it was too long. Use a more targeted query or a smaller range to get the information you need.
+<USER_REQUEST>
+check also the data builderfile: // ==========================================
+// DATA BUILDERS
+// ==========================================
+
+function extractImageId(url) {
+  if (!url) return null;
+  const match = url.match(/(?:id=|\/d\/)([a-zA-Z0-9_-]+)/);
+  return match ? match[1] : null;
+}
+
+// --- NEW SMART PARSER HELPER ---
+function parseMetadataDoc(docId) {
+  let meta = {};
+  let desc = "";
+  try {
+    const text = DocumentApp.openById(docId).getBody().getText();
+    let lines = text.split('\n');
+    let currentKey = null;
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+      let match = line.match(/^([A-Za-z0-9 ]+):\s*(.*)$/);
+      
+      if (match) {
+        let key = match[1].trim().toLowerCase();
+        let val = match[2].trim();
+        
+        if (key === 'description') {
+           let descLines = [];
+           if (val) descLines.push(val);
+           let j = i + 1;
+           // Keep reading until we hit another key like "Instagram Handles:"
+           while (j < lines.length) {
+              if (lines[j].match(/^([A-Za-z0-9 ]+):\s*(.*)$/)) break;
+              descLines.push(lines[j]);
+              j++;
+           }
+           desc = descLines.join('<br>').trim();
+           i = j - 1; 
+        } else if (key === 'instagram handles' || key === 'instagram') {
+           let instaLines = [];
+           if (val) instaLines.push(val);
+           let j = i + 1;
+           while (j < lines.length) {
+              if (lines[j].match(/^([A-Za-z0-9 ]+):\s*(.*)$/)) break;
+              instaLines.push(lines[j]);
+              j++;
+           }
+           meta['instagram handles'] = instaLines.join('<br>').trim();
+           i = j - 1;
+        } else {
+           if (key === 'note') key = 'author';
+           if (key === 'event') key = 'course';
+           if (key === 'date') key = 'dateoverride';
+           currentKey = key;
+           meta[currentKey] = val;
+        }
+      } else if (currentKey && line.trim() !== "") {
+        meta[currentKey] += " " + line.trim();
+      }
+    }
+    
+    if (meta.tags && typeof meta.tags === 'string') {
+       meta.tags = meta.tags.split(',').map(t => t.trim()).filter(t => t);
+    }
+  } catch(e) {}
+  
+  return { meta: meta, desc: desc };
+}
+
+// --- CALENDAR (FROM SHEET) ---
+function buildCalendarData(ss) {
+  const sheet = ss.getSheetByName("Calendar");
+  if (!sheet) return [];
+  const rawData = sheet.getDataRange().getValues();
+  const displayData = sheet.getDataRange().getDisplayValues();
+  
+  let events = [];
+  let pastUpcomingLists = { past: [], upcoming: [] };
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  let statsUpdates = [];
+  
+  for (let i = 1; i < displayData.length; i++) {
+    let dateObj = rawData[i][0]; 
+    let dateStr = displayData[i][0];
+    let details = displayData[i][1];
+    let link = displayData[i][2]; 
+    
+    if (dateStr && dateStr.includes('-------')) {
+      statsUpdates.push([""]);
+      continue;
+    }
+    
+    let isPast = false;
+    let parsedDate = null;
+    let statText = "";
+    
+    if (dateObj instanceof Date) parsedDate = dateObj;
+    else {
+       let matchEu = String(dateStr).match(/(\d{1,2})[\.\/ -](\d{1,2})[\.\/ -](\d{2,4})/);
+       if (matchEu) {
+         let yr = parseInt(matchEu[3]);
+         if (yr < 100) yr += 2000;
+         parsedDate = new Date(yr, parseInt(matchEu[2])-1, matchEu[1]);
+       } else parsedDate = new Date(dateStr);
+    }
+
+    if (parsedDate && !isNaN(parsedDate.getTime()) && parsedDate < now) isPast = true;
+    
+    let imgId = null;
+    let spreadData = null;
+    
+    if (link) {
+      let extractedId = null;
+      if (link.includes('drive.google.com')) extractedId = extractImageId(link);
+      else extractedId = link.trim();
+      
+      if (extractedId) {
+        try {
+          const folder = DriveApp.getFolderById(extractedId);
+          const files = folder.getFiles();
+          let fileList = [];
+          
+          let evMeta = { name: dateStr, dateOverride: dateStr, year: "2026", author: "Apollo", course: "", track: "", description: details, tags: ["Event"] };
+          
+          while (files.hasNext()) {
+            let f = files.next();
+            if (f.getMimeType().includes('image') || f.getMimeType() === MimeType.PDF) {
+               try { f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch(e){}
+               fileList.push({name: f.getName(), url: "https://drive.google.com/uc?id=" + f.getId()});
+            } else if (f.getMimeType() === MimeType.GOOGLE_DOCS) {
+               let parsed = parseMetadataDoc(f.getId());
+               for (let k in parsed.meta) {
+                 if (k === 'name' || k === 'title') evMeta.dateOverride = parsed.meta[k]; 
+                 else evMeta[k] = parsed.meta[k];
+               }
+               if (parsed.desc) evMeta.description = parsed.desc;
+            }
+          }
+          fileList.sort((a,b) => a.name.localeCompare(b.name));
+          statText = fileList.length + " files found";
+          
+          if (fileList.length > 0) {
+            imgId = extractImageId(fileList[0].url); 
+            if (isPast) {
+              evMeta.tags = ["Event"]; 
+              spreadData = {
+                id: "calevt_" + i,
+                metadata: evMeta,
+                titleImage: fileList[0].url,
+                images: fileList.length > 1 ? fileList.slice(1).map(f => {
+                   let cleanName = f.name.split('.').slice(0, -1).join('.') || f.name;
+                   return { src: f.url, title: cleanName };
+                }) : []
+              };
+            }
+          } else {
+            imgId = extractedId;
+            try { DriveApp.getFileById(imgId).setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch(e){}
+            statText = "1 direct link";
+          }
+        } catch(e) { 
+          imgId = extractedId; 
+          statText = "1 direct link";
+          try { DriveApp.getFileById(imgId).setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch(e){}
+        }
+      } else statText = "Invalid link";
+    } else {
+      if (dateStr && !dateStr.toLowerCase().includes('marquee')) statText = "No images";
+    }
+    
+    let eventObj = { isPast: isPast, timestamp: (parsedDate && !isNaN(parsedDate.getTime())) ? parsedDate.getTime() : null, text: dateStr + "<br>" + details, imgId: imgId, spreadData: spreadData };
+    if (isPast) pastUpcomingLists.past.push(eventObj);
+    else if (dateStr && !dateStr.toLowerCase().includes('marquee')) pastUpcomingLists.upcoming.push(eventObj);
+    statsUpdates.push([statText]);
+  }
+  
+  if (statsUpdates.length > 0) sheet.getRange(2, 4, statsUpdates.length, 1).setValues(statsUpdates);
+  
+  pastUpcomingLists.upcoming.sort((a, b) => b.timestamp - a.timestamp);
+  pastUpcomingLists.past.sort((a, b) => b.timestamp - a.timestamp);
+  events = pastUpcomingLists.upcoming.concat(pastUpcomingLists.past);
+  
+  let marquees = [];
+  const marqSheet = ss.getSheetByName('Marquee');
+  if (marqSheet) {
+    const mRaw = marqSheet.getDataRange().getValues();
+    const mDisplay = marqSheet.getDataRange().getDisplayValues();
+    for (let i = 1; i < mRaw.length; i++) {
+      let msg = String(mDisplay[i][0]).trim();
+      if (!msg) continue;
+      let marqueeObj = { message: msg };
+      if (mRaw[i][1]) marqueeObj.startTime = (mRaw[i][1] instanceof Date) ? mRaw[i][1].toISOString() : String(mDisplay[i][1]).trim();
+      if (mRaw[i][2]) marqueeObj.endTime = (mRaw[i][2] instanceof Date) ? mRaw[i][2].toISOString() : String(mDisplay[i][2]).trim();
+      if (mRaw[i][3] instanceof Date) marqueeObj.startDate = mRaw[i][3].getFullYear() + "-" + String(mRaw[i][3].getMonth()+1).padStart(2,'0') + "-" + String(mRaw[i][3].getDate()).padStart(2,'0');
+      else if (mDisplay[i][3]) marqueeObj.startDate = String(mDisplay[i][3]).trim();
+      if (mRaw[i][4] instanceof Date) marqueeObj.endDate = mRaw[i][4].getFullYear() + "-" + String(mRaw[i][4].getMonth()+1).padStart(2,'0') + "-" + String(mRaw[i][4].getDate()).padStart(2,'0');
+      else if (mDisplay[i][4]) marqueeObj.endDate = String(mDisplay[i][4]).trim();
+      if (mDisplay[i][5]) marqueeObj.dayOfWeek = String(mDisplay[i][5]).trim();
+      marquees.push(marqueeObj);
+    }
+  }
+  return [{ events: events, marquees: marquees }];
+}
+
+// --- PROJECTS (DYNAMIC FOLDERS) ---
+// --- PROJECTS (DYNAMIC FOLDERS) ---
+function buildProjectsData() {
+  const projects = [];
+  try {
+    const root = DriveApp.getFolderById(FOLDERS.PROJECTS);
+    const folders = root.getFolders();
+    while (folders.hasNext()) {
+      const folder = folders.next();
+      let projectData = { id: folder.getId(), images: [], titleImage: "", metadata: { name: folder.getName(), author: "—", year: "-", tags: [], description: "" } };
+      
+      // NEW: Read the Index sheet for Audio Links
+      let audioMap = {};
+      let sheets = folder.getFilesByType(MimeType.GOOGLE_SHEETS);
+      while(sheets.hasNext()) {
+        let s = sheets.next();
+        if(s.getName().toLowerCase().includes("index")) {
+          let ss = SpreadsheetApp.openById(s.getId()).getSheets()[0];
+          if(ss.getLastRow() > 1) {
+            let data = ss.getRange(2, 1, ss.getLastRow()-1, 2).getValues();
+            for(let i=0; i<data.length; i++) {
+              if(data[i][0] && data[i][1]) {
+                 // Push the audio to Github natively!
+                 audioMap[data[i][0]] = uploadAudioToGitHub(String(data[i][1]).trim());
+              }
+            }
+          }
+          break; // Stop looking after we find the index
+        }
+      }
+      
+      const files = folder.getFiles();
+      while (files.hasNext()) {
+        const file = files.next();
+        const mime = file.getMimeType();
+        const name = file.getName();
+        const url = "https://drive.google.com/uc?export=view&id=" + file.getId();
+        
+        let audioUrl = audioMap[name] || null;
+        
+        if (name.toLowerCase().includes('title')) {
+          projectData.titleImage = url;
+          if (audioUrl) projectData.titleAudio = audioUrl; // Attaches audio to the title image
+        } else if (mime.includes('image')) {
+          let cleanName = name.split('.').slice(0, -1).join('.') || name;
+          let imgObj = { src: url, title: cleanName };
+          if (audioUrl) imgObj.audioUrl = audioUrl; // Attaches audio to specific page/image
+          projectData.images.push(imgObj);
+        }
+        else if (mime === MimeType.GOOGLE_DOCS) {
+          let parsed = parseMetadataDoc(file.getId());
+          for (let k in parsed.meta) projectData.metadata[k] = parsed.meta[k];
+          if (parsed.desc) projectData.metadata.description = parsed.desc;
+        }
+      }
+      if (projectData.titleImage) projects.push(projectData);
+    }
+  } catch (err) {}
+  return projects;
+}
+
+// --- MAGAZINE (DYNAMIC FOLDERS) ---
+function buildMagazineData() {
+  try {
+    const root = DriveApp.getFolderById(FOLDERS.MAGAZINE);
+    let issuesPayload = [];
+    let issueFolders = root.getFolders();
+    let issueList = [];
+    while(issueFolders.hasNext()) issueList.push(issueFolders.next());
+    issueList.sort((a,b) => a.getName().localeCompare(b.getName()));
+    const now = new Date(); now.setHours(0,0,0,0);
+    
+    for (let x = 0; x < issueList.length; x++) {
+       let issueFolder = issueList[x], currentIssueTitle = issueFolder.getName();
+       let files = issueFolder.getFilesByType(MimeType.GOOGLE_SHEETS);
+       if (!files.hasNext()) continue;
+       const sheetFile = files.next();
+       const data = SpreadsheetApp.openById(sheetFile.getId()).getSheets()[0].getDataRange().getValues();
+       
+       let fileUrls = {};
+       let issueFiles = issueFolder.getFiles();
+       while(issueFiles.hasNext()) {
+         let img = issueFiles.next();
+         if(img.getMimeType().includes('image')) fileUrls[img.getName()] = "https://drive.google.com/uc?export=view&id=" + img.getId();
+       }
+       
+       let subfolders = issueFolder.getFolders();
+       while(subfolders.hasNext()) {
+         let sub = subfolders.next(), imgs = sub.getFiles();
+         while(imgs.hasNext()) {
+           let img = imgs.next();
+           if(img.getMimeType().includes('image')) fileUrls[img.getName()] = "https://drive.google.com/uc?export=view&id=" + img.getId();
+         }
+       }
+       
+       let currentImageFiles = [], currentChapters = [], currentPages = [], currentChapterName = "", globalPageIndex = 0;
+       let comingSoonUrl = null, hasLockedPages = false;
+       
+       for (let fName in fileUrls) {
+          if (fName.toLowerCase().replace(/[^a-z0-9]/g, '').includes('comingsoon')) { comingSoonUrl = fileUrls[fName]; break; }
+       }
+       
+       for (let i = 1; i < data.length; i++) {
+          let type = data[i][0], name = data[i][1], audioUrlRaw = data[i][2] ? String(data[i][2]).trim() : null, dateRaw = data[i][3];
+          
+          if (type === "📂 CHAPTER") currentChapterName = name; 
+          else if (type === "📄 Page" && name) {
+            let isLocked = false;
+            if (dateRaw) {
+              let parsedDate = new Date(dateRaw);
+              if (!isNaN(parsedDate.getTime()) && parsedDate > now) isLocked = true;
+            }
+            if (isLocked) {
+              hasLockedPages = true;
+              if (!currentChapters.find(c => c.name === currentChapterName)) currentChapters.push({ name: currentChapterName, page: "LOCKED" });
+              continue; 
+            }
+            let fileUrl = fileUrls[name];
+            if (fileUrl) {
+              currentImageFiles.push(fileUrl);
+              let pageMeta = {}; 
+              // Upload magazine audio to Github natively
+              if (audioUrlRaw) pageMeta.audioUrl = uploadAudioToGitHub(audioUrlRaw);
+              currentPages.push(pageMeta);
+              if (!currentChapters.find(c => c.name === currentChapterName)) currentChapters.push({ name: currentChapterName, page: globalPageIndex });
+              globalPageIndex++;
+            }
+          }
+       }
+       
+       let finalComingSoonIndex = currentImageFiles.length; 
+       if (hasLockedPages && comingSoonUrl) {
+          currentImageFiles.push(comingSoonUrl); currentPages.push({}); 
+          currentChapters.forEach(c => { if (c.page === "LOCKED") c.page = finalComingSoonIndex; });
+       } else currentChapters = currentChapters.filter(c => c.page !== "LOCKED");
+       
+       if (currentImageFiles.length > 0) issuesPayload.push({ title: currentIssueTitle, images: currentImageFiles, chapters: currentChapters, pages: currentPages });
+    }
+    return issuesPayload;
+  } catch (err) { return []; }
+}
+
+// --- UPDATED HISTORY (USING INDEX SHEET & SUBFOLDERS) ---
+function buildHistoryData() {
+  try {
+    const folder = DriveApp.getFolderById(FOLDERS.HISTORY);
+    const historyData = [];
+    
+    let indexSheetFile = null;
+    const sheets = folder.getFilesByType(MimeType.GOOGLE_SHEETS);
+    while (sheets.hasNext()) {
+      let sheet = sheets.next();
+      if (sheet.getName().toLowerCase() === "index") {
+        indexSheetFile = sheet;
+        break;
+      }
+    }
+    
+    if (!indexSheetFile) return historyData; 
+    
+    const ss = SpreadsheetApp.openById(indexSheetFile.getId());
+    const sheet = ss.getSheets()[0]; 
+    const lastRow = sheet.getLastRow();
+    
+    if (lastRow <= 1) return historyData; 
+    
+    const dataRange = sheet.getRange(2, 1, lastRow - 1, 4);
+    const dataValues = dataRange.getValues();
+    
+    const docsInFolder = {};
+    
+    function scanFolderForDocs(currentFolder) {
+      let docsFiles = currentFolder.getFilesByType(MimeType.GOOGLE_DOCS);
+      while (docsFiles.hasNext()) {
+        let docFile = docsFiles.next();
+        docsInFolder[docFile.getName()] = docFile;
+      }
+      let subfolders = currentFolder.getFolders();
+      while (subfolders.hasNext()) {
+        scanFolderForDocs(subfolders.next());
+      }
+    }
+    
+    scanFolderForDocs(folder); 
+    
+    function makeDirectLink(url) {
+      if (!url || typeof url !== "string") return "";
+      let match = url.match(/[-\w]{25,}/); 
+      if (match && url.includes("drive.google.com")) {
+        return "https://drive.google.com/uc?export=view&id=" + match[0];
+      }
+      return url; 
+    }
+    
+    for (let i = 0; i < dataValues.length; i++) {
+      const row = dataValues[i];
+      const dateVal = row[0];
+      const nameVal = String(row[1]).trim();
+      
+      // Push history audio straight to GitHub natively!
+      const audioUrlVal = uploadAudioToGitHub(row[2]);
+      const imageUrlVal = makeDirectLink(row[3]);
+      
+      if (!nameVal) continue;
+      
+      const matchedDocFile = docsInFolder[nameVal];
+      if (!matchedDocFile) {
+        console.warn("History Doc missing for: " + nameVal);
+        continue;
+      }
+      
+      const doc = DocumentApp.openById(matchedDocFile.getId());
+      const textContent = doc.getBody().getText().replace(/\n/g, '<br>');
+      
+      historyData.push({
+        date: dateVal instanceof Date ? dateVal.toISOString() : dateVal,
+        name: nameVal,
+        audioUrl: audioUrlVal,
+        imageUrl: imageUrlVal,
+        text: textContent
+      });
+    }
+    
+    return historyData;
+  } catch (err) { 
+    return []; 
+  }
+}
+
+// --- AUDIO (DYNAMIC FOLDERS) ---
+function buildAudioData() {
+  try {
+    const root = DriveApp.getFolderById(FOLDERS.AUDIO);
+    const audioData = [];
+    const categoryFolders = root.getFolders();
+    while (categoryFolders.hasNext()) {
+      const categoryFolder = categoryFolders.next();
+      const cleanCategoryName = categoryFolder.getName().replace(/^\d+[_ -]/, '').trim(); 
+      const tracks = categoryFolder.getFolders();
+      while (tracks.hasNext()) {
+        const trackFolder = tracks.next();
+        const cleanTrackName = trackFolder.getName().replace(/^\d+[_ -]/, '').trim();
+        let trackObj = { category: cleanCategoryName, title: cleanTrackName, file: "", url: "", year: "2026", type: "Audio", format: "MP3", desc: "No description provided." };
+        const files = trackFolder.getFiles();
+        while (files.hasNext()) {
+          const file = files.next();
+          const mime = file.getMimeType();
+          if (mime.includes('audio') || mime.includes('video')) { 
+            // ----- UPLOAD TO GITHUB DIRECTLY -----
+            let uploadedPath = uploadAudioToGitHub(file.getId());
+            trackObj.file = uploadedPath; 
+            trackObj.url = uploadedPath;
+            // -------------------------------------
+          } 
+          else if (mime === MimeType.GOOGLE_DOCS) {
+            let parsed = parseMetadataDoc(file.getId());
+            if (parsed.meta.name || parsed.meta.title) trackObj.title = parsed.meta.name || parsed.meta.title;
+            if (parsed.desc) trackObj.desc = parsed.desc;
+          }
+        }
+        if (trackObj.file) audioData.push(trackObj);
+      }
+    }
+    return audioData;
+  } catch (err) { return []; }
+}
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-30T11:58:16+02:00.
+</ADDITIONAL_METADATA>
