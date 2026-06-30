@@ -13,7 +13,8 @@
         },
         {
           "src": "https://drive.google.com/uc?export=view&id=16CVv8jqpOUvETB8zSui0qzg6mq06IlAR",
-          "title": "tavola intera"
+          "title": "tavola intera",
+          "audioUrl": "audio/dummy.mp3"
         }
       ],
       "titleImage": "https://drive.google.com/uc?export=view&id=14CqPoAtgsM8Y4gAaux24kjPyjCpSUt72",
@@ -649,7 +650,6 @@
     {
       "title": "Issue_01",
       "images": [
-        "https://drive.google.com/uc?export=view&id=1NA4a3fISWIvWB8KqnJkISqhJCTo_oCsl",
         "https://drive.google.com/uc?export=view&id=1qgrF42BBcqxb39av_k8QtbC-cOkUPu3B",
         "https://drive.google.com/uc?export=view&id=1eQYcd18OfbjcwCH8EXpUuFONIYbssm9Z",
         "https://drive.google.com/uc?export=view&id=14ZodmwxEBNUIp0CQvn-IEDY7lWicpxFh",
@@ -663,59 +663,12 @@
       ],
       "chapters": [
         {
-          "name": "00_cover",
+          "name": "01_editorial",
           "page": 0
         },
         {
-          "name": "01_editorial",
-          "page": 1
-        },
-        {
           "name": "02_projects",
-          "page": 4
-        },
-        {
-          "name": "04_interviews",
-          "page": 7
-        }
-      ],
-      "pages": [
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {}
-      ]
-    },
-    {
-      "title": "Issue_02 ",
-      "images": [
-        "https://drive.google.com/uc?export=view&id=1dUNuIGyU1Z40JK6cun4FcO7aztjOSajL",
-        "https://drive.google.com/uc?export=view&id=1KIhGLlunstMNhlk7kD_o7WxvO5yrjFPc",
-        "https://drive.google.com/uc?export=view&id=1tKnoP5eY2Z0jOVrW8B2Lx02afYWzpx7e",
-        "https://drive.google.com/uc?export=view&id=1o_FHDcN99cBTSDDEWKBph2pifdho9fSP",
-        "https://drive.google.com/uc?export=view&id=1Ubs951DirNA2e_u5NPw_OAtGFLa3WNEO",
-        "https://drive.google.com/uc?export=view&id=1v-NroPoFSL68dmvjJlHUgjGI_jPP_Z2P",
-        "https://drive.google.com/uc?export=view&id=1un23U-JPXsTsUfjddRSAA1h5TLmwb5Fd"
-      ],
-      "chapters": [
-        {
-          "name": "00_cover",
-          "page": 0
-        },
-        {
-          "name": "01_editorial",
-          "page": 1
-        },
-        {
-          "name": "02_projects",
-          "page": 4
+          "page": 3
         },
         {
           "name": "04_interviews",
@@ -725,13 +678,12 @@
       "pages": [
         {},
         {},
-        {
-          "audioUrl": "audio/dadidum.mp3"
-        },
         {},
-        {
-          "audioUrl": "audio/dadidum.mp3"
-        },
+        {},
+        {},
+        {},
+        {},
+        {},
         {},
         {}
       ]
