@@ -32,16 +32,24 @@ function downloadFile(id, destPath) {
             reject(err);
         });
         
+        let redirectCount = 0;
         const request = (downloadUrl) => {
-            // Handle relative redirects
-            if (downloadUrl.startsWith('/')) {
-                downloadUrl = 'https://drive.google.com' + downloadUrl;
+            if (redirectCount > 5) {
+                file.close();
+                fs.unlink(destPath, () => {});
+                return reject(new Error(`Failed to download ${id}: Too many redirects`));
             }
-            
+            redirectCount++;
+
             https.get(downloadUrl, (response) => {
                 // Handle redirects
                 if (response.statusCode === 301 || response.statusCode === 302 || response.statusCode === 303) {
-                    return request(response.headers.location);
+                    let location = response.headers.location;
+                    if (location.startsWith('/')) {
+                        const urlObj = new URL(downloadUrl);
+                        location = urlObj.origin + location;
+                    }
+                    return request(location);
                 }
                 
                 if (response.statusCode !== 200) {
