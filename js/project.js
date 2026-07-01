@@ -120,7 +120,7 @@ window.openLightbox = function(index, event) {
                     ${noteHtml}
                 </div>
                 ${(p.metadata.instagram || p.metadata['instagram handles']) ? 
-                    `<div style="cursor: pointer; margin-top: 2rem; text-align: center; width: 100%; font-family: 'Ufficio', sans-serif; font-size: 0.9rem; color: white; opacity: 0.7;" onclick="window.revealInstagramHandles(this, '${(p.metadata.instagram || p.metadata['instagram handles']).replace(/'/g, "\\'")}')">contact</div>` 
+                    `<div style="cursor: pointer; margin-top: 2rem; text-align: center; width: 100%; font-family: 'Ufficio', sans-serif; font-size: 0.9rem; color: white; opacity: 1;" onclick="window.revealInstagramHandles(this, '${(p.metadata.instagram || p.metadata['instagram handles']).replace(/'/g, "\\'")}')">contact</div>` 
                 : ''}
             </div>
         `;
@@ -133,7 +133,7 @@ window.openLightbox = function(index, event) {
                 ${desc || item.audioUrl ? `
                 <div style="position: relative; margin-top: 1.5rem; width: 100%; box-sizing: border-box;">
                     ${item.audioUrl ? `<div style="position: absolute; left: 0; top: 0;"><span class="magazine-audio-btn mag-listen-btn" style="font-family: 'Ufficio', sans-serif; font-size: 0.9rem; cursor: pointer; text-decoration: none; color: #FFF; opacity: 1; pointer-events: auto;" onclick="event.stopPropagation(); if(typeof toggleMagazineAudio === 'function') toggleMagazineAudio('${item.audioUrl}')">${typeof magAudioState !== 'undefined' ? magAudioState : 'listen'}</span></div>` : ''}
-                    <div class="lightbox-caption" style="text-align: center; width: 100%; font-family: 'Ufficio', sans-serif; font-size: 0.9rem; color: white; opacity: 0.7; pointer-events: none; margin: 0; max-width: none;" onclick="event.stopPropagation()">
+                    <div class="lightbox-caption" style="text-align: center; width: 100%; font-family: 'Ufficio', sans-serif; font-size: 0.9rem; color: white; opacity: 1; pointer-events: none; margin: 0; max-width: none;" onclick="event.stopPropagation()">
                         ${desc ? `${desc}` : ''}
                     </div>
                 </div>
@@ -783,9 +783,9 @@ function unfoldProject(id) {
                                     </div>
                                 </div>
                                 <div style="display: flex; gap: 1rem; align-items: center; justify-content: center; margin-top: 1rem;">
-                                    <button style="cursor: pointer; background: transparent; border: none; font-family: monospace; font-size: 0.9rem; color: #FFF; opacity: 0.7; font-weight: normal; text-transform: none; padding: 0.4rem 0.8rem;" onclick="window.copyProjectUrl('${postitItem.p.id}', this)">share</button>
+                                    <button style="cursor: pointer; background: transparent; border: none; font-family: monospace; font-size: 0.9rem; color: #FFF; opacity: 1; font-weight: normal; text-transform: none; padding: 0.4rem 0.8rem;" onclick="window.copyProjectUrl('${postitItem.p.id}', this)">share</button>
                                     ${(postitItem.p.metadata.instagram || postitItem.p.metadata['instagram handles']) ? 
-                                        `<button style="cursor: pointer; background: transparent; border: none; font-family: monospace; font-size: 0.9rem; color: #FFF; opacity: 0.7; font-weight: normal; text-transform: none; padding: 0.4rem 0.8rem;" onclick="window.revealInstagramHandles(this, '${(postitItem.p.metadata.instagram || postitItem.p.metadata['instagram handles']).replace(/'/g, "\\'")}')">contact</button>` 
+                                        `<button style="cursor: pointer; background: transparent; border: none; font-family: monospace; font-size: 0.9rem; color: #FFF; opacity: 1; font-weight: normal; text-transform: none; padding: 0.4rem 0.8rem;" onclick="window.revealInstagramHandles(this, '${(postitItem.p.metadata.instagram || postitItem.p.metadata['instagram handles']).replace(/'/g, "\\'")}')">contact</button>` 
                                     : ''}
                                 </div>
                             </div>
@@ -798,12 +798,15 @@ function unfoldProject(id) {
                         html += `
                         <div class="mobile-gallery-box" style="flex-shrink: 0; scroll-snap-align: center; height: 100%; min-height: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 0 2rem; box-sizing: border-box; position: relative; width: 100vw;">
                             <div class="mobile-img-container" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow-x: hidden;" ${isWide ? 'onclick="window.toggleMobileImageZoom(this.parentElement)"' : ''}>
-                                <img src="${getSafeImg(item.src)}" alt="${item.name}" style="width: 90%; height: 100%; object-fit: contain; ${isWide ? 'cursor: zoom-in;' : ''}">
-                            </div>
-                            <div style="position: absolute; bottom: 0; width: 100%; left: 0; padding-bottom: 0.5rem; box-sizing: border-box; display: flex; align-items: center; justify-content: center;">
-                                ${item.audioUrl ? `<span class="magazine-audio-btn mag-listen-btn" style="position: absolute; left: 5vw; font-family: 'Ufficio', sans-serif; font-size: 0.9rem; cursor: pointer; text-decoration: none; color: #FFF; opacity: 1;" onclick="event.stopPropagation(); if(typeof toggleMagazineAudio === 'function') toggleMagazineAudio('${item.audioUrl}')">${typeof magAudioState !== 'undefined' ? magAudioState : 'listen'}</span>` : ''}
-                                <div class="mobile-img-title" style="font-family: 'Ufficio', sans-serif; font-size: 0.9rem; text-align: center; color: #FFF; opacity: 0.7;">
-                                    ${item.name}
+                                <div style="position: relative; max-width: 90%; max-height: calc(100% - 3rem); display: inline-flex; justify-content: center; align-items: center;">
+                                    <img src="${getSafeImg(item.src)}" alt="${item.name}" style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; ${isWide ? 'cursor: zoom-in;' : ''}">
+                                    
+                                    <div style="position: absolute; top: 100%; left: 0; width: 100%; display: grid; grid-template-columns: 1fr; align-items: baseline; margin-top: 0.5rem;">
+                                        ${item.audioUrl ? `<span class="magazine-audio-btn mag-listen-btn" style="grid-column: 1; grid-row: 1; justify-self: start; font-family: 'Ufficio', sans-serif; font-size: 0.9rem; cursor: pointer; text-decoration: none; color: #FFF; opacity: 1;" onclick="event.stopPropagation(); if(typeof toggleMagazineAudio === 'function') toggleMagazineAudio('${item.audioUrl}')">${typeof magAudioState !== 'undefined' ? magAudioState : 'listen'}</span>` : ''}
+                                        <div class="mobile-img-title" style="grid-column: 1; grid-row: 1; justify-self: center; font-family: 'Ufficio', sans-serif; font-size: 0.9rem; text-align: center; color: #FFF; opacity: 1;">
+                                            ${item.name}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>`;
@@ -931,7 +934,7 @@ function unfoldProject(id) {
                                     <div class="note-text-content" style="display: block; -webkit-line-clamp: unset; overflow: visible;">${item.p.metadata.description || ''}</div>
                                 </div>
                                 ${(item.p.metadata.instagram || item.p.metadata['instagram handles']) ? 
-                                    `<div onclick="window.revealInstagramHandles(this, '${(item.p.metadata.instagram || item.p.metadata['instagram handles']).replace(/'/g, "\\'")}')" style="position: absolute; top: 100%; margin-top: 1.5rem; width: 100%; text-align: center; font-size: 0.6rem; opacity: 0.6; font-family: monospace; color: inherit; cursor: pointer; pointer-events: auto;">contact</div>` 
+                                    `<div onclick="window.revealInstagramHandles(this, '${(item.p.metadata.instagram || item.p.metadata['instagram handles']).replace(/'/g, "\\'")}')" style="position: absolute; top: 100%; margin-top: 1.5rem; width: 100%; text-align: center; font-size: 0.6rem; opacity: 1; font-family: monospace; color: inherit; cursor: pointer; pointer-events: auto;">contact</div>` 
                                 : ''}
                             </div>`;
                         } else {
@@ -943,7 +946,7 @@ function unfoldProject(id) {
                                 </div>
                                 <div style="width: 100%; position: relative; margin-top: 1rem;">
                                     ${item.audioUrl ? `<div style="position: absolute; left: 0; top: 0;"><span class="magazine-audio-btn mag-listen-btn" style="font-family: 'Ufficio', sans-serif; font-size: 0.6rem; cursor: pointer; text-decoration: none; color: black; opacity: 1; pointer-events: auto;" onclick="event.stopPropagation(); if(typeof toggleMagazineAudio === 'function') toggleMagazineAudio('${item.audioUrl}')">${typeof magAudioState !== 'undefined' ? magAudioState : 'listen'}</span></div>` : ''}
-                                    <div style="width: 100%; text-align: center; font-size: 0.6rem; opacity: 0.8; font-weight: bold; text-transform: lowercase; font-family: 'Ufficio', sans-serif; color: black; text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(255,255,255,0.8); pointer-events: none; padding-top: 0.1rem;">
+                                    <div style="width: 100%; text-align: center; font-size: 0.6rem; opacity: 1; font-weight: bold; text-transform: lowercase; font-family: 'Ufficio', sans-serif; color: black; text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(255,255,255,0.8); pointer-events: none; padding-top: 0.1rem;">
                                         ${item.name}
                                     </div>
                                 </div>

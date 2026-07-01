@@ -13,11 +13,12 @@ body.grid-mode .side-column { display: none !important; }
 /* Card wrappers: centered inside grid cells */
 .card-wrapper { position: relative; filter: drop-shadow(0 0.2rem 0.8rem rgba(0,0,0,0.08)); transition: 0.5s; display: flex; justify-content: center; align-items: center; will-change: transform, top, left; backface-visibility: hidden; } 
 body.grid-mode .card-wrapper { 
-    filter: drop-shadow(0 0.2rem 0.8rem rgba(0,0,0,0.08));
-    -webkit-clip-path: inset(-10rem -10rem -0.2rem -10rem);
-    clip-path: inset(-10rem -10rem -0.2rem -10rem);
+    filter: drop-shadow(0 0.5rem 1rem rgba(0,0,0,0.15));
+    -webkit-clip-path: none !important;
+    clip-path: none !important;
 } 
 body.grid-mode .mag-tube-wrapper {
+    filter: drop-shadow(0 0.5rem 1rem rgba(0,0,0,0.15));
     -webkit-clip-path: none !important;
     clip-path: none !important; /* Prevent text cropping */
 }
@@ -126,7 +127,7 @@ body.grid-mode .bookmark-note { width: 6vw; min-width: 10rem; font-size: 0.8rem;
 
 /* POST-IT TYPOGRAPHY (Dossier/Receipt Style) */
 .calendar-separator { width: 100%; transition: opacity 0.4s; }
-.note-ref-code { width: 100%; text-align: right; font-family: monospace; font-size: 0.8em; opacity: 0.6; margin-bottom: 0.4rem; letter-spacing: 0.05em; }
+.note-ref-code { width: 100%; text-align: right; font-family: monospace; font-size: 0.8em; opacity: 1; margin-bottom: 0.4rem; letter-spacing: 0.05em; }
 .note-divider { width: 100%; height: 1px; background: rgba(0,0,0,0.3); margin: 0.4rem 0; flex-shrink: 0; }
 .note-title { font-size: 1.2em; font-weight: bold; margin: 0.4rem 0; text-transform: capitalize; position: relative; z-index: 2; line-height: 1.2; flex-shrink: 0; }
 .note-meta-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 0.2rem 1rem; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 0.75em; opacity: 1; margin: 0.4rem 0; max-height: 8rem; overflow-y: auto; scrollbar-width: none; flex-shrink: 0; }

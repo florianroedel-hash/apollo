@@ -157,16 +157,17 @@
     background-color: white; /* Matches .paper-card-bg */
     box-shadow: 0 1rem 3rem rgba(0,0,0,0.15);
     position: relative;
+    padding-right: 10vw; /* extend paper past the last column so date markers aren't clipped */
     
     /* Punch holes using mask-image */
     -webkit-mask-image: 
-        radial-gradient(circle at 1rem 1.2rem, transparent 0.4rem, black 0.45rem),
-        radial-gradient(circle at 1rem 1.2rem, transparent 0.4rem, black 0.45rem),
+        radial-gradient(circle at 1.5rem 1.05rem, transparent 0.32rem, black 0.37rem),
+        radial-gradient(circle at 1.5rem 1.05rem, transparent 0.32rem, black 0.37rem),
         linear-gradient(black, black);
     -webkit-mask-size: 
-        2rem 2.4rem, 
-        2rem 2.4rem, 
-        100% calc(100% - 4.8rem);
+        3rem 2.1rem, 
+        3rem 2.1rem, 
+        100% calc(100% - 4.2rem);
     -webkit-mask-position: 
         top left, 
         bottom left, 
@@ -177,13 +178,13 @@
         no-repeat;
 
     mask-image: 
-        radial-gradient(circle at 1rem 1.2rem, transparent 0.4rem, black 0.45rem),
-        radial-gradient(circle at 1rem 1.2rem, transparent 0.4rem, black 0.45rem),
+        radial-gradient(circle at 1.5rem 1.05rem, transparent 0.32rem, black 0.37rem),
+        radial-gradient(circle at 1.5rem 1.05rem, transparent 0.32rem, black 0.37rem),
         linear-gradient(black, black);
     mask-size: 
-        2rem 2.4rem, 
-        2rem 2.4rem, 
-        100% calc(100% - 4.8rem);
+        3rem 2.1rem, 
+        3rem 2.1rem, 
+        100% calc(100% - 4.2rem);
     mask-position: 
         top left, 
         bottom left, 
@@ -205,8 +206,8 @@
 .history-paper-strip::after {
     content: "";
     position: absolute;
-    top: 2.8rem; /* slightly below holes */
-    bottom: 2.8rem;
+    top: 2.1rem; /* slightly below holes */
+    bottom: 2.1rem;
     left: 0;
     right: 0;
     pointer-events: none;
@@ -219,68 +220,95 @@
 }
 
 .history-partition {
-    width: 30vw;
-    flex: 0 0 30vw;
-    height: 100%; /* Spans full height so shadows mimic the whole page */
+    width: 22.5vw;
+    flex: 0 0 22.5vw;
+    height: 100%; 
     position: relative;
-    padding: 4.5rem 3rem; /* 4.5rem top/bottom safe zone for holes */
+    padding: 4.5rem 3rem; 
     box-sizing: border-box;
     
     display: flex; 
     flex-direction: column;
-    justify-content: flex-start; /* Stack from top */
-    
-    box-shadow: inset -1.5rem 0 2rem -1.5rem rgba(0,0,0,0.1);
-    border-right: 1px solid rgba(0,0,0,0.05);
-}
-
-.history-partition.align-top {
-    /* Normal column layout: stacks Text -> Title -> Image downwards from the top safe zone */
-}
-
-.history-partition.align-bottom {
-    flex-direction: column-reverse; /* Reverses order to Image -> Title -> Text */
-    justify-content: flex-start; /* In column-reverse, flex-start is the absolute BOTTOM */
+    justify-content: center; /* Ensures fallback centering */
+    gap: 0.5rem; /* Replaces padding on individual elements to maintain even spacing regardless of order */
+    /* border-right removed */
 }
 
 .history-partition:last-child {
-    box-shadow: none;
-    border-right: none;
+    /* border-right removed */
+}
+
+.history-partition-image-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center; 
+    padding-bottom: 0; /* managed by parent gap now */
+    position: relative;
+    width: 12vw;
+    margin: 0 auto;
+}
+
+/* Exact Apollo Blue Tint Overlay - now tightly wrapped to the image */
+.image-tint-wrapper::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #A6BBD1; /* Apollo Blue */
+    mix-blend-mode: color;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.title-marker {
+    background-color: #000;
+    color: #fff;
+    padding: 0.1rem 0.3rem;
+    display: none; /* titles removed */
 }
 
 .history-partition > * { position: relative; z-index: 3; }
 
 .history-partition-title {
-    font-size: clamp(0.9rem, 2.5vw, 1.2rem);
-    font-weight: bold;
-    text-transform: uppercase;
-    color: #000;
-    display: block;
-    width: 100%;
-    margin-bottom: 0;
-    padding: 0.5rem 0; 
-    opacity: 1;
+    display: none; /* titles removed entirely from layout flow */
+}
+
+.history-caption {
+    font-size: 0.75rem;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    color: #333;
     text-align: center;
+    padding: 0;
+    margin: 0.5rem 0 0 0;
+    width: 100%;
+    position: relative;
+    z-index: 6; /* stay above the blue tint */
 }
 
 .history-partition-image {
     display: block;
-    margin: 3rem auto;
-    max-height: 14vh;
-    max-width: 100%;
-    object-fit: contain;
+    margin: 0 auto; /* center image in wrapper */
+    width: 12vw; /* force exact match to text body */
+    max-height: 18vh; /* cap height to prevent massive vertical scaling */
+    object-fit: cover; /* cleanly fill the box if capped */
+    border: none;
+    filter: grayscale(100%); /* automatically make images black and white */
 }
 
 .history-partition-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; 
     font-size: clamp(0.5rem, 1.2vw, 0.7rem);
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     line-height: 1.6;
     color: #444;
-    text-align: justify;
+    text-align: justify; /* 'blocksatz' restored */
     
     width: 12vw;
     margin: 0 auto;
-    
-    min-height: 0; /* allows multi-column to calculate height correctly in flex parent */
+    padding-top: 0;
+    min-height: 0; 
 }
 
 body.spread-open .title-wrapper { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
@@ -297,8 +325,13 @@ body.spread-open .title-wrapper { opacity: 0; pointer-events: none; transition: 
         scroll-snap-align: center;
         padding: 4.5rem 2rem;
     }
-    .history-partition-text {
+    .history-partition-text,
+    .history-partition-title,
+    .history-partition-image-wrapper {
         width: 40vw;
+    }
+    .history-partition-image {
+        width: 40vw; /* match mobile text width exactly */
     }
 }
 

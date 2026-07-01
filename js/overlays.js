@@ -135,8 +135,26 @@ window.openHistory = function() {
         return 0;
     });
 
+    let lastDateStr = '';
     let sheetsHtml = parsedDocs.map((doc, i) => {
         const title = doc['Name / File'] || doc.name || doc.title || 'Untitled';
+        const dateRaw = doc.Date || doc.date || '';
+        let dateStr = '';
+        if (dateRaw) {
+            const d = new Date(dateRaw);
+            if (!isNaN(d.getTime())) {
+                dateStr = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            }
+        }
+
+        let imageTitle = '';
+        for (const key in doc) {
+            const lowerKey = key.toLowerCase().trim();
+            if (lowerKey === 'image title' || lowerKey === 'caption' || lowerKey === 'imagetitle') {
+                imageTitle = doc[key];
+                break;
+            }
+        }
         const text = doc.text || doc.content || '';
         const imageUrl = doc['Image URL'] || doc.imageUrl || '';
         const audioUrl = getHDImageUrl(doc['Audio URL'] || doc.audioUrl || '');
@@ -145,26 +163,58 @@ window.openHistory = function() {
         
         let imageHtml = '';
         if (imageUrl) {
+            let mediaTag = '';
             if (imageUrl.toLowerCase().trim().endsWith('.mp4')) {
                 const realUrl = imageUrl.trim().slice(0, -4);
-                imageHtml = `<video src="${getHDImageUrl(realUrl)}" class="history-partition-image" autoplay loop muted playsinline></video>`;
+                const match = realUrl.match(/(?:id=|\/d\/)([a-zA-Z0-9_-]+)/);
+                if (match) {
+                    const embedUrl = `https://drive.google.com/file/d/${match[1]}/preview`;
+                    mediaTag = `<iframe src="${embedUrl}" class="history-partition-image" allow="autoplay" style="border: none; max-width: 100%; width: 300px; aspect-ratio: 16/9; background: #000;"></iframe>`;
+                } else {
+                    mediaTag = `<video src="${getHDImageUrl(realUrl)}" class="history-partition-image" autoplay loop muted playsinline></video>`;
+                }
             } else {
-                imageHtml = `<img src="${getSafeImg(imageUrl)}" class="history-partition-image" alt="${title}" />`;
+                mediaTag = `<img src="${getSafeImg(imageUrl)}" class="history-partition-image" alt="${title}" />`;
             }
+            imageHtml = `
+                <div class="image-tint-wrapper" style="display: inline-block; position: relative; margin: 0 auto;">
+                    ${mediaTag}
+                </div>
+            `;
         }
         let audioHtml = audioUrl ? `
             <div style="margin-top: 0.5rem; text-align: left;">
                 <span class="magazine-audio-btn mag-listen-btn" style="font-family: 'Ufficio', sans-serif; font-size: inherit; opacity: 1; text-decoration: none; cursor: pointer;" onclick="event.stopPropagation(); if(typeof toggleMagazineAudio === 'function') toggleMagazineAudio('${audioUrl}')">${typeof magAudioState !== 'undefined' ? magAudioState : 'listen'}</span>
             </div>` : '';
 
-        return `
-            <div class="history-partition ${alignmentClass}" data-index="${i}">
-                <div class="history-partition-text">
-                    <p style="margin-bottom: 0;">${text}</p>
-                    ${audioHtml}
-                </div>
-                <div class="history-partition-title">${title}</div>
+        let dateMarkerHtml = '';
+        if (dateStr && dateStr !== lastDateStr) {
+            dateMarkerHtml = `<div style="position: absolute; right: 0; top: 50%; transform: translate(50%, -50%); font-family: 'Ufficio', sans-serif; text-transform: uppercase; font-size: clamp(0.5rem, 1.2vw, 0.7rem); color: #000; z-index: 10; white-space: nowrap;">${dateStr}</div>`;
+            lastDateStr = dateStr;
+        }
+
+        let imageBlock = `
+            <div class="history-partition-image-wrapper">
                 ${imageHtml}
+                ${imageTitle ? `<div class="history-caption">${imageTitle}</div>` : ''}
+            </div>
+        `;
+        let textBlock = `
+            <div class="history-partition-text">
+                <p style="margin-bottom: 0;">${text}</p>
+                ${audioHtml}
+            </div>
+        `;
+        let titleBlock = `<div class="history-partition-title"><span class="title-marker">${title}</span></div>`;
+
+        let contentHtml = (i % 2 === 0) 
+            ? imageBlock + titleBlock + textBlock
+            : textBlock + titleBlock + imageBlock;
+
+        return `
+            <div class="history-partition" data-index="${i}">
+                ${dateMarkerHtml}
+                ${contentHtml}
             </div>`;
     }).join('');
     
