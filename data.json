@@ -1,6 +1,67 @@
 {
   "archive": [
     {
+      "id": "1PogMK9f8XFkguBP9GtGpvMuSnO2hMg4Z",
+      "images": [
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1n2iFo9jsHVGsK1fUsYXXib14fMpbUgCo",
+          "title": "interview_draft",
+          "audioUrl": "audio/inside_the_salmon_skin.mp3"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1o47KhY1btlQ9qLddLyQfkm1uviVx0H1A",
+          "title": "schizzo 03 edit"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1o47KhY1btlQ9qLddLyQfkm1uviVx0H1A",
+          "title": "schizzo 03 edit"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1BTNJzjLgD-r2G6_Ikmn4e9J0Aiv2PVOH",
+          "title": "Story 1 - part 1"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1xACmlA1LDFt62Tk0ns1LwkARXfmgkAdI",
+          "title": "Story 1 - part 2"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1BZsdd9wkxO8xcI0U50eLDCIwcfNJcYYX",
+          "title": "Story 2 - part 1"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1FTnHFIduBb64VWQoWNRDq6P7slxd6ZO-",
+          "title": "Story 2 - part 2"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1b2XhVeqJYUOSUdEYDLXTAVFdTC-AEKZI",
+          "title": "Story 3 - part 1"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1RfW3pz-uR7qY8jB-BxyS4iC2MoNEPDIN",
+          "title": "Story 3 - part 2"
+        },
+        {
+          "src": "https://drive.google.com/uc?export=view&id=1DZYmJJiwQnV89hHc_QfstfUNjiarYx4s",
+          "title": "Story 4 - part 1 v2 senza sfondo"
+        }
+      ],
+      "titleImage": "https://drive.google.com/uc?export=view&id=1wlh-jayOX9t3puxJbecyRGkbPqkXI-OJ",
+      "metadata": {
+        "name": "INSIDE THE SALMON SKIN",
+        "author": "Nicolò Mario Terruso,Sasha Fasolo Massoli",
+        "year": "Spring 2026",
+        "tags": [
+          "architecture"
+        ],
+        "description": "The project focuses on the upcycling of decommissioned salmon fishing rings in Tromsø, Norway, to create floating, modular nesting structures for kittiwakes during the breeding season.<br>",
+        "competition": "120 hours 2026",
+        "result": "Winner 2026",
+        "jury statement": " “This proposal confronts us with a powerful idea, can we reuse the ubiquitous circular sea farming structure as a floating sanctuary for Kittiwakes? The jury believes this proposal sketches out a solution in an exemplary way, upcycling industrial waste at scale. The solution is cost efficient, believable and extremely flexible. The proposal also addresses the Kittiwakes need for a partially sheltered solution, and we can see the potential for developing this into an attraction for experience based tourism.”",
+        "instagram handles": "Nicolò Mario Terruso @nicolo.terruso<br>Sasha Fasolo Massoli @sashafasolomassoli<br>"
+      },
+      "titleAudio": null
+    },
+    {
       "id": "1n4TXpVoq0865qPb5mH93DkkDxOuYGCra",
       "images": [
         {
