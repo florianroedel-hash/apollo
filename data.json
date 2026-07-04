@@ -523,6 +523,51 @@
         },
         {
           "isPast": true,
+          "timestamp": 1781042400000,
+          "text": "10.06.2026<br>you have been spotted <br> it is exam phase and we see all these amazing projects and models beeing put together, the last sketches, the first test prints and we want to show all of them! Whenever we like a project we left a little message and so far the feedback was amazing\n\n",
+          "imgId": "1VUod3vLLhwf48RjD4okEbemIisGjedFb",
+          "spreadData": {
+            "id": "calevt_6",
+            "metadata": {
+              "name": "10.06.2026",
+              "dateOverride": "you have been spotted",
+              "year": "2026",
+              "author": "Apollo",
+              "course": "Tags: Event",
+              "track": "",
+              "description": "bigletti<br>it is exam phase and we see all these amazing projects and models beeing put together, the last sketches, the first test prints and we want to show all of them! Whenever we like a project we left a little message and so far the feedback was amazing<br>",
+              "tags": [
+                "Event"
+              ],
+              "dateoverride": "10.06"
+            },
+            "titleImage": "https://drive.google.com/uc?id=1VUod3vLLhwf48RjD4okEbemIisGjedFb",
+            "images": [
+              {
+                "src": "https://drive.google.com/uc?id=1Ch2nmx82sLcBfPux3ety8aw-afJswFR8",
+                "title": "iterations"
+              },
+              {
+                "src": "https://drive.google.com/uc?id=1lkUQaZGIt28n6h5N5gNUf0NHCB5myl93",
+                "title": "iterations2"
+              },
+              {
+                "src": "https://drive.google.com/uc?id=1vwE9wL1ViF2big5bUvQQF7UDcGSBkib1",
+                "title": "phone case 2"
+              },
+              {
+                "src": "https://drive.google.com/uc?id=1PO2QkdapopHIa4bmKPB59Fsf0540fm_Z",
+                "title": "phone case1"
+              },
+              {
+                "src": "https://drive.google.com/uc?id=1usjNgelyQc5eodCpgNAHGd-8lHwjr-5c",
+                "title": "title"
+              }
+            ]
+          }
+        },
+        {
+          "isPast": true,
           "timestamp": 1779400800000,
           "text": "22.05.2026<br>New Posters out<br> its examn season and we want to see your amazing projects and gain attention for your work",
           "imgId": "1AdIG1eIUXweE9WOkBqQrmgb0tK1YrotC",
